@@ -6,6 +6,7 @@
 import { useState, useMemo, useEffect, useCallback, ReactNode } from 'react';
 import { Search, X, ChevronRight, Info, Brain, Loader2, AlertTriangle, Lightbulb, Droplets, Beef, Wheat, Plus, Edit2, Trash2, Moon, Activity, Leaf, Thermometer, CheckCircle2, Zap, Utensils, ShoppingBasket, Sparkles, User, History, Sun } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { analyzeFood, getNutritionData, type AnalysisResult, type NutritionData } from './lib/gemini';
 
 interface Food {
@@ -280,12 +281,21 @@ function generateStaticAnalysis(f: Food) {
     warning = "Dengeli bir öğün için porsiyon kontrolüne dikkat edin ve bol su ile destekleyin.";
   }
 
+  const circadianData = [
+    { hour: '08:00', impact: Math.max(1, 10 - (gi / 15)), label: gi > 70 ? 'Riskli' : 'İdeal' },
+    { hour: '12:00', impact: Math.max(1, 10 - (gi / 20)), label: gi > 70 ? 'Dikkat' : 'İdeal' },
+    { hour: '16:00', impact: Math.max(1, 10 - (gi / 18)), label: gi > 70 ? 'Dikkat' : 'İdeal' },
+    { hour: '20:00', impact: Math.max(1, 10 - (gi / 12)), label: 'Riskli' },
+    { hour: '00:00', impact: Math.max(1, 10 - (gi / 8)), label: 'Kritik' }
+  ];
+
   return {
     metabolicEffect,
     functionalBenefit,
     profileComments,
     warning,
-    insulinEffect: gi > 70 ? "Yüksek" : gi > 55 ? "Orta" : "Düşük"
+    insulinEffect: gi > 70 ? "Yüksek" : gi > 55 ? "Orta" : "Düşük",
+    circadianData
   };
 }
 
@@ -353,6 +363,170 @@ function PairingBox({ food, score }: { food: Food, score: number }) {
             <span className="font-bold tracking-tight">{p.name}</span>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function CircadianRhythmWidget({ data, darkMode }: { data: any[], darkMode: boolean }) {
+  return (
+    <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'} flex flex-col h-full w-full`}>
+      <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6">SİRKADİYEN METABOLİK YANIT</div>
+      <div className="flex-1 w-full min-h-[150px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="colorImpact" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#2DFF73" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#2DFF73" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} />
+            <XAxis 
+              dataKey="hour" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fontSize: 10, fill: '#71717a', fontWeight: 'bold' }}
+            />
+            <YAxis hide domain={[0, 10]} />
+            <RechartsTooltip 
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className={`p-3 rounded-xl border shadow-xl ${darkMode ? 'bg-[#1A1A1A] border-white/10' : 'bg-white border-black/10'}`}>
+                      <div className="text-[0.6rem] font-black text-zinc-500 uppercase mb-1">{payload[0].payload.hour}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-[1rem] font-black" style={{ color: getRingColor(payload[0].value as number) }}>
+                          {payload[0].value}/10
+                        </div>
+                        <div className={`text-[0.6rem] font-black px-2 py-0.5 rounded-full ${payload[0].payload.label === 'İdeal' ? 'bg-emerald-500/10 text-emerald-500' : payload[0].payload.label === 'Dikkat' ? 'bg-orange-500/10 text-orange-500' : 'bg-red-500/10 text-red-500'}`}>
+                          {payload[0].payload.label}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+            <Area 
+              type="monotone" 
+              dataKey="impact" 
+              stroke="#2DFF73" 
+              strokeWidth={3}
+              fillOpacity={1} 
+              fill="url(#colorImpact)" 
+              animationDuration={2000}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-4 flex justify-between items-center">
+        <div className="text-[0.65rem] text-zinc-500 font-medium leading-tight max-w-[70%]">
+          Vücudun insülin duyarlılığı akşam saatlerinde azaldığı için aynı besin gece daha yüksek glisemik yanıt oluşturur.
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-[0.5rem] text-zinc-500 font-black uppercase">En İdeal Zaman</span>
+          <span className="text-[0.8rem] font-black text-[#2DFF73]">08:00 - 12:00</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MacroDistribution({ karb, pro, yag, darkMode }: { karb: number, pro: number, yag: number, darkMode: boolean }) {
+  const data = [
+    { name: 'Karb', value: karb, color: '#F59E0B' },
+    { name: 'Pro', value: pro, color: '#3B82F6' },
+    { name: 'Yağ', value: yag, color: '#EF4444' },
+  ].filter(item => item.value > 0);
+
+  const total = data.reduce((acc, curr) => acc + curr.value, 0);
+
+  return (
+    <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'} flex flex-col items-center h-full w-full`}>
+      <div className="text-[0.7rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6 w-full text-center">MAKRO DAĞILIMI (100g)</div>
+      <div className="w-full h-[180px] relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={55}
+              outerRadius={75}
+              paddingAngle={5}
+              dataKey="value"
+              stroke="none"
+              animationBegin={0}
+              animationDuration={1500}
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <RechartsTooltip 
+              contentStyle={{ 
+                backgroundColor: darkMode ? '#1A1A1A' : '#FFFFFF', 
+                borderRadius: '12px', 
+                border: 'none',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                color: darkMode ? '#FFFFFF' : '#000000'
+              }}
+              itemStyle={{ fontSize: '10px', fontWeight: 'black', textTransform: 'uppercase' }}
+              cursor={{ fill: 'transparent' }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <span className={`text-[1.2rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{total.toFixed(1)}g</span>
+          <span className="text-[0.5rem] text-zinc-500 font-black uppercase mt-1">Makro</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-2 mt-6 w-full">
+        {data.map((item) => (
+          <div key={item.name} className="flex flex-col items-center">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
+              <span className="text-[0.6rem] text-zinc-500 font-black uppercase tracking-tighter">{item.name}</span>
+            </div>
+            <span className={`text-[0.8rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{item.value}g</span>
+            <span className="text-[0.55rem] text-zinc-500 font-bold mt-1">{((item.value / total) * 100).toFixed(0)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SkeletonLoader({ darkMode }: { darkMode: boolean }) {
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-8 bg-black/80 backdrop-blur-sm">
+      <div className={`rounded-[3rem] relative border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-w-4xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}>
+        <div className="p-8 md:p-12 pb-4 border-b border-white/5">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-8">
+            <div className="flex-1 w-full">
+              <div className={`h-16 w-2/3 rounded-2xl animate-pulse mb-4 ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+              <div className={`h-6 w-1/4 rounded-full animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+            </div>
+            <div className="flex gap-4">
+              <div className={`w-12 h-12 rounded-full animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+              <div className={`w-12 h-12 rounded-full animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 md:p-10 pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className={`md:col-span-1 md:row-span-2 h-[300px] rounded-[2.5rem] animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+            <div className={`md:col-span-3 h-[120px] rounded-[2.5rem] animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+            <div className={`md:col-span-3 h-[100px] rounded-[2.5rem] animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+            <div className={`md:col-span-4 h-[200px] rounded-[2.5rem] animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+            <div className={`md:col-span-2 h-[100px] rounded-[2.5rem] animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+            <div className={`md:col-span-2 h-[100px] rounded-[2.5rem] animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+            <div className={`md:col-span-4 h-[80px] rounded-[2.5rem] animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1166,6 +1340,16 @@ export default function App() {
       </div>
 
       <AnimatePresence>
+        {isAiLoading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <SkeletonLoader darkMode={darkMode} />
+          </motion.div>
+        )}
+
         {aiResult && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -1200,43 +1384,39 @@ export default function App() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      {/* Metabolic Score */}
-                      <div className="flex flex-col items-center">
-                        <div className="w-[48px] h-[48px] relative">
-                          <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
-                            <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
-                            <circle 
-                              cx="24" cy="24" r="21" fill="none" stroke={getRingColor(aiResult.score)} strokeWidth="4"
-                              strokeDasharray={`${((aiResult.score / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <div className="absolute inset-0 flex items-center justify-center text-[1rem] font-black" style={{ color: getRingColor(aiResult.score) }}>
-                            {aiResult.score}
+                      {/* Scores in Bento Style */}
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col items-center">
+                          <div className="w-[48px] h-[48px] relative">
+                            <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
+                              <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
+                              <circle 
+                                cx="24" cy="24" r="21" fill="none" stroke={getRingColor(aiResult.score)} strokeWidth="4"
+                                strokeDasharray={`${((aiResult.score / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center text-[1rem] font-black" style={{ color: getRingColor(aiResult.score) }}>
+                              {aiResult.score}
+                            </div>
                           </div>
+                          <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Metabolik</span>
                         </div>
-                        <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Metabolik</span>
-                      </div>
-                      {/* Health Score */}
-                      <div className="flex flex-col items-center">
-                        <div className="relative w-28 h-28 flex items-center justify-center">
-                          <svg className="w-full h-full -rotate-90">
-                            <circle cx="56" cy="56" r="48" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="8" />
-                            <motion.circle 
-                              cx="56" cy="56" r="48" fill="none" 
-                              stroke={getRingColor(aiResult.healthScore)} 
-                              strokeWidth="8"
-                              strokeDasharray="301.6"
-                              initial={{ strokeDashoffset: 301.6 }}
-                              animate={{ strokeDashoffset: 301.6 - (aiResult.healthScore / 10) * 301.6 }}
-                              transition={{ duration: 1.5, ease: "circOut" }}
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-[2.2rem] font-black leading-none tracking-tighter" style={{ color: getRingColor(aiResult.healthScore) }}>{aiResult.healthScore}</span>
-                            <span className="text-[0.6rem] text-zinc-500 font-black tracking-widest mt-0.5">SAĞLIK</span>
+                        <div className="flex flex-col items-center">
+                          <div className="w-[48px] h-[48px] relative">
+                            <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
+                              <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
+                              <circle 
+                                cx="24" cy="24" r="21" fill="none" stroke={getRingColor(aiResult.healthScore)} strokeWidth="4"
+                                strokeDasharray={`${((aiResult.healthScore / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center text-[1rem] font-black" style={{ color: getRingColor(aiResult.healthScore) }}>
+                              {aiResult.healthScore}
+                            </div>
                           </div>
+                          <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Sağlık</span>
                         </div>
                       </div>
                     </div>
@@ -1244,90 +1424,106 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="p-8 md:p-12 pt-4 relative z-10">
-
-                {/* Main Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-                  {[
-                    { label: 'Kalori / 100g', value: aiResult.kal, color: 'text-zinc-500' },
-                    { label: 'GI değeri', value: aiResult.gi, color: 'text-orange-400' },
-                    { label: 'GL (porsiyon)', value: aiResult.gy, color: 'text-blue-400' },
-                    { label: 'Lif / 100g', value: `${aiResult.lp}g`, color: 'text-emerald-400' }
-                  ].map((item, i) => (
-                    <div key={i} className={`p-6 rounded-[2rem] border flex flex-col items-center text-center transition-all ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                      <div className={`text-[1.8rem] font-black mb-1 tracking-tighter ${darkMode ? 'text-white' : 'text-black'}`}>
-                        {item.value}
-                      </div>
-                      <div className="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-black">{item.label}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Insulin Effect Bar */}
-                <div className="mb-12">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-[0.75rem] font-black uppercase tracking-widest text-zinc-500">İnsülin Etkisi</span>
-                    <span className={`text-[0.85rem] font-black ${aiResult.score > 7 ? 'text-red-500' : aiResult.score > 4 ? 'text-orange-500' : 'text-emerald-500'}`}>
-                      {aiResult.insulinEffect || (aiResult.score > 7 ? 'Yüksek' : aiResult.score > 4 ? 'Orta' : 'Düşük')}
-                    </span>
-                  </div>
-                  <div className={`h-3 w-full rounded-full overflow-hidden ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${aiResult.score * 10}%` }}
-                      transition={{ duration: 1, ease: "circOut" }}
-                      className="h-full rounded-full"
-                      style={{ 
-                        background: `linear-gradient(90deg, #10B981 0%, #F59E0B 50%, #EF4444 100%)`,
-                        width: `${aiResult.score * 10}%`
-                      }}
+              <div className="p-6 md:p-10 pt-4 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  
+                  {/* Row 1: Macro Chart & Metabolic Effect */}
+                  <div className={`md:col-span-1 md:row-span-2 p-6 rounded-[2.5rem] border flex flex-col items-center justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                    <MacroDistribution 
+                      karb={aiResult.karb} 
+                      pro={aiResult.pro} 
+                      yag={aiResult.yag} 
+                      darkMode={darkMode} 
                     />
                   </div>
-                </div>
 
-                {/* Detailed Analysis Sections */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                  <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                    <div className="text-[0.7rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-4">METABOLİK ETKİ</div>
+                  <div className={`md:col-span-3 p-8 rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                    <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">METABOLİK ETKİ</div>
                     <p className={`text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
                       {aiResult.metabolicEffect}
                     </p>
                   </div>
-                  <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                    <div className="text-[0.7rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-4">FONKSİYONEL FAYDA</div>
+
+                  {/* Row 2: Stats Grid */}
+                  <div className={`md:col-span-3 p-6 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[
+                        { label: 'Kalori', value: aiResult.kal, color: 'text-zinc-500' },
+                        { label: 'GI', value: aiResult.gi, color: 'text-orange-400' },
+                        { label: 'GL', value: aiResult.gy, color: 'text-blue-400' },
+                        { label: 'Lif', value: `${aiResult.lp}g`, color: 'text-emerald-400' }
+                      ].map((item, i) => (
+                        <div key={i} className="flex flex-col items-center text-center">
+                          <div className={`text-[1.8rem] font-black tracking-tighter ${darkMode ? 'text-white' : 'text-black'}`}>
+                            {item.value}
+                          </div>
+                          <div className="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-black">{item.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Row 3: Circadian Rhythm Widget */}
+                  <div className="md:col-span-4">
+                    <CircadianRhythmWidget data={aiResult.circadianData} darkMode={darkMode} />
+                  </div>
+
+                  {/* Row 4: Insulin Bar & Functional Benefit */}
+                  <div className={`md:col-span-2 p-8 rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-[0.65rem] font-black uppercase tracking-widest text-zinc-500">İnsülin Etkisi</span>
+                      <span className={`text-[0.8rem] font-black ${aiResult.score > 7 ? 'text-red-500' : aiResult.score > 4 ? 'text-orange-500' : 'text-emerald-500'}`}>
+                        {aiResult.insulinEffect || (aiResult.score > 7 ? 'Yüksek' : aiResult.score > 4 ? 'Orta' : 'Düşük')}
+                      </span>
+                    </div>
+                    <div className={`h-2.5 w-full rounded-full overflow-hidden ${darkMode ? 'bg-white/10' : 'bg-black/10'}`}>
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${aiResult.score * 10}%` }}
+                        transition={{ duration: 1, ease: "circOut" }}
+                        className="h-full rounded-full"
+                        style={{ 
+                          background: `linear-gradient(90deg, #10B981 0%, #F59E0B 50%, #EF4444 100%)`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={`md:col-span-2 p-8 rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                    <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">FONKSİYONEL FAYDA</div>
                     <p className={`text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
                       {aiResult.functionalBenefit}
                     </p>
                   </div>
-                </div>
 
-                {/* Profile Based Comments */}
-                <div className="mb-12">
-                  <div className="text-[0.7rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6 text-center">PROFİL BAZLI YORUM</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[
-                      { title: 'Kilo vermek isteyen', text: aiResult.profileComments?.weightLoss, color: 'border-emerald-500/30 bg-emerald-500/5', titleColor: 'text-emerald-500' },
-                      { title: 'Diyabetik / İnsülin direnci', text: aiResult.profileComments?.diabetic, color: 'border-orange-500/30 bg-orange-500/5', titleColor: 'text-orange-500' },
-                      { title: 'Sporcu', text: aiResult.profileComments?.athlete, color: 'border-blue-500/30 bg-blue-500/5', titleColor: 'text-blue-500' },
-                      { title: 'Çölyak / Gluten hassasiyeti', text: aiResult.profileComments?.celiac, color: 'border-red-500/30 bg-red-500/5', titleColor: 'text-red-500' }
-                    ].map((p, i) => (
-                      <div key={i} className={`p-6 rounded-[2rem] border ${p.color}`}>
-                        <h4 className={`text-[0.85rem] font-black mb-2 ${p.titleColor}`}>{p.title}</h4>
-                        <p className={`text-[0.85rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.text}</p>
-                      </div>
-                    ))}
+                  {/* Row 4: Warning & Profile Comments */}
+                  <div className={`md:col-span-4 p-8 rounded-[2.5rem] border border-orange-500/20 bg-orange-500/5 flex gap-6 items-center`}>
+                    <AlertTriangle className="w-8 h-8 text-orange-500 shrink-0" />
+                    <p className={`text-[0.95rem] font-bold leading-relaxed ${darkMode ? 'text-orange-200' : 'text-orange-900'}`}>
+                      {aiResult.warning}
+                    </p>
                   </div>
+
+                  <div className="md:col-span-4 mt-4">
+                    <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6 text-center">PROFİL BAZLI YORUM</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {[
+                        { title: 'Kilo Verme', text: aiResult.profileComments?.weightLoss, color: 'border-emerald-500/30 bg-emerald-500/5', titleColor: 'text-emerald-500' },
+                        { title: 'Diyabetik', text: aiResult.profileComments?.diabetic, color: 'border-orange-500/30 bg-orange-500/5', titleColor: 'text-orange-500' },
+                        { title: 'Sporcu', text: aiResult.profileComments?.athlete, color: 'border-blue-500/30 bg-blue-500/5', titleColor: 'text-blue-500' },
+                        { title: 'Çölyak', text: aiResult.profileComments?.celiac, color: 'border-red-500/30 bg-red-500/5', titleColor: 'text-red-500' }
+                      ].map((p, i) => (
+                        <div key={i} className={`p-6 rounded-[2rem] border ${p.color}`}>
+                          <h4 className={`text-[0.75rem] font-black mb-2 uppercase tracking-wider ${p.titleColor}`}>{p.title}</h4>
+                          <p className={`text-[0.8rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>{p.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
 
-                {/* Warning Box */}
-                <div className="bg-orange-500/10 rounded-[2rem] p-6 border border-orange-500/20 flex gap-4 items-start mb-8">
-                  <AlertTriangle className="w-6 h-6 text-orange-500 shrink-0 mt-1" />
-                  <p className={`text-[0.9rem] font-bold leading-relaxed ${darkMode ? 'text-orange-200' : 'text-orange-900'}`}>
-                    {aiResult.warning}
-                  </p>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-4 mt-12">
                   <button 
                     onClick={() => {
                       const text = `${aiResult.foodName} Analizi:\nSağlık Skoru: ${aiResult.healthScore}/10\nMetabolik Etki: ${aiResult.metabolicEffect}\nUyarı: ${aiResult.warning}`;

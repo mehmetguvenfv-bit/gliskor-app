@@ -36,6 +36,11 @@ export interface AnalysisResult {
   karb: number;
   pro: number;
   yag: number;
+  circadianData: {
+    hour: string;
+    impact: number;
+    label: string;
+  }[];
 }
 
 export interface NutritionData {
@@ -141,6 +146,7 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
   10. Karaciğer Yükü: %50 üzeri fruktoz için karaciğer yağlanması uyarısı ver.
   11. Hareket: Yemek sonrası yürüyüş için puanı %20 iyileştir.
   12. Alkol: Yağ yakımını durdurma uyarısı ekle.
+  13. Sirkadiyen Veri: Besinin günün farklı saatlerindeki (08:00, 12:00, 16:00, 20:00, 00:00) metabolik etkisini (1-10 arası puan, 10 en iyi) ve kısa bir etiketi (örn: "İdeal", "Riskli") sağla.
   
   Çıktı Formatı Gereksinimleri:
   - insulinEffect: "Düşük", "Orta-Düşük", "Orta", "Yüksek" gibi sözel bir ifade.
@@ -195,9 +201,21 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
             kal: { type: Type.NUMBER },
             karb: { type: Type.NUMBER },
             pro: { type: Type.NUMBER },
-            yag: { type: Type.NUMBER }
+            yag: { type: Type.NUMBER },
+            circadianData: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  hour: { type: Type.STRING },
+                  impact: { type: Type.NUMBER },
+                  label: { type: Type.STRING }
+                },
+                required: ["hour", "impact", "label"]
+              }
+            }
           },
-          required: ["foodName", "gi", "gy", "ii", "fr", "lp", "mx", "score", "healthScore", "insulinEffect", "metabolicEffect", "functionalBenefit", "profileComments", "warning", "suggestion", "kal", "karb", "pro", "yag"]
+          required: ["foodName", "gi", "gy", "ii", "fr", "lp", "mx", "score", "healthScore", "insulinEffect", "metabolicEffect", "functionalBenefit", "profileComments", "warning", "suggestion", "kal", "karb", "pro", "yag", "circadianData"]
         }
       }
     });
