@@ -1095,10 +1095,19 @@ export default function App() {
               <span className="text-[#2DFF73] italic">Skor</span>
             </div>
             <div className={`text-[0.85rem] font-black tracking-[0.1em] uppercase mt-1 transition-colors ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>Metabolik Sağlık ve İnsülin Analizi</div>
-            <div className={`flex items-center gap-2 text-[0.75rem] font-bold tracking-tight mt-1 transition-colors ${darkMode ? 'text-[#2DFF73]' : 'text-emerald-600'}`}>
-              <span>Mgv tarafından Google AI Studio tasarlandı</span>
-              <span className="mx-1 opacity-30">|</span>
-              <span className="opacity-70">v2.1.0</span>
+            <div className={`flex items-center gap-2 text-[0.7rem] font-bold tracking-[0.05em] uppercase mt-1.5 transition-colors ${darkMode ? 'text-[#2DFF73]/80' : 'text-emerald-700/80'}`}>
+              <span className="opacity-60">Engineered by</span>
+              <span className="font-black tracking-widest">Mgv</span>
+              <span className="mx-1 opacity-20">|</span>
+              <span className="opacity-60">Powered by</span>
+              <span className="font-black tracking-widest">Google AI Studio</span>
+              <span className="mx-1 opacity-20">|</span>
+              <span className="opacity-40 font-mono">v2.1.0</span>
+              <span className="mx-1 opacity-20">|</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#2DFF73] animate-pulse shadow-[0_0_8px_rgba(45,255,115,0.5)]" />
+                <span className="opacity-40 text-[0.65rem]">System Online</span>
+              </div>
             </div>
           </div>
           <div className="flex gap-4">
