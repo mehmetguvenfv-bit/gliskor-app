@@ -78,28 +78,28 @@ const foods: Food[] = [
   {isim:"İmam bayıldı",kat:"Türk yemekleri",gi:30,karb:10,lif:3.2,pro:1.8,yag:8.0,kal:118},
   {isim:"Karnıyarık",kat:"Türk yemekleri",gi:35,karb:12,lif:3.5,pro:8.0,yag:10.0,kal:170},
   {isim:"Kuru fasulye yemeği",kat:"Türk yemekleri",gi:24,karb:22,lif:6.4,pro:8.7,yag:4.0,kal:160},
-  {isim:"Adana kebap",kat:"Türk yemekleri",gi:5,karb:1,lif:0.6,pro:14.0,yag:19.0,kal:239},
-  {isim:"Döner (tavuk)",kat:"Türk yemekleri",gi:10,karb:2,lif:0.3,pro:20.0,yag:8.0,kal:165},
+  {isim:"Adana kebap",kat:"Protein Kaynakları",gi:5,karb:1,lif:0.6,pro:14.0,yag:19.0,kal:239},
+  {isim:"Döner (tavuk)",kat:"Protein Kaynakları",gi:10,karb:2,lif:0.3,pro:20.0,yag:8.0,kal:165},
   {isim:"Mantı",kat:"Türk yemekleri",gi:55,karb:30,lif:1.5,pro:12.0,yag:8.0,kal:240},
   {isim:"Lahmacun",kat:"Türk yemekleri",gi:60,karb:32,lif:1.8,pro:10.0,yag:7.0,kal:230},
   {isim:"Pide (peynirli)",kat:"Türk yemekleri",gi:65,karb:35,lif:1.5,pro:12.0,yag:8.0,kal:260},
   {isim:"Dolma (zeytinyağlı)",kat:"Türk yemekleri",gi:35,karb:18,lif:2.0,pro:2.5,yag:5.0,kal:128},
   {isim:"Cacık",kat:"Türk yemekleri",gi:15,karb:4,lif:0.5,pro:3.5,yag:3.0,kal:57},
   {isim:"Humus",kat:"Türk yemekleri",gi:25,karb:12,lif:4.0,pro:5.0,yag:6.0,kal:116},
-  {isim:"Simit",kat:"Tahıllar",gi:70,karb:57,lif:2.5,pro:10,yag:4,kal:272},
+  {isim:"Simit",kat:"Tahıllar",gi:70,karb:57,lif:2.5,pro:10,yag:4,kal:310},
   {isim:"Poğaça (peynirli)",kat:"Tahıllar",gi:65,karb:38,lif:1.5,pro:8,yag:15,kal:310},
   {isim:"Sucuklu Yumurta",kat:"Türk yemekleri",gi:5,karb:2,lif:0.5,pro:15,yag:25,kal:290},
   {isim:"Menemen",kat:"Türk yemekleri",gi:30,karb:8,lif:2.5,pro:12,yag:18,kal:240},
   {isim:"Kısır",kat:"Türk yemekleri",gi:45,karb:25,lif:6,pro:5,yag:12,kal:220},
   {isim:"İçli Köfte (haşlanmış)",kat:"Türk yemekleri",gi:50,karb:28,lif:4,pro:12,yag:15,kal:290},
   {isim:"Kumpir (sade)",kat:"Türk yemekleri",gi:75,karb:45,lif:5,pro:6,yag:10,kal:290},
-  {isim:"Pekmez",kat:"İçecekler",gi:65,karb:75,lif:0,pro:0,yag:0,kal:290},
-  {isim:"Bal",kat:"İçecekler",gi:60,karb:82,lif:0,pro:0.3,yag:0,kal:304},
-  {isim:"Tahin",kat:"Süt ürünleri",gi:25,karb:21,lif:9,pro:18,yag:54,kal:595},
+  {isim:"Pekmez",kat:"İçecekler",gi:75,karb:75,lif:0,pro:0,yag:0,kal:290},
+  {isim:"Bal",kat:"İçecekler",gi:65,karb:82,lif:0,pro:0.3,yag:0,kal:304},
+  {isim:"Tahin",kat:"Kuruyemişler",gi:25,karb:21,lif:9,pro:18,yag:54,kal:640},
   {isim:"Pekmez-Tahin",kat:"Türk yemekleri",gi:45,karb:48,lif:4.5,pro:9,yag:27,kal:442},
   {isim:"Zeytin (siyah)",kat:"Sebzeler",gi:15,karb:6,lif:3,pro:1,yag:11,kal:115},
   {isim:"Zeytin (yeşil)",kat:"Sebzeler",gi:15,karb:4,lif:3,pro:1,yag:15,kal:145},
-  {isim:"Yumurta (haşlanmış)",kat:"Türk yemekleri",gi:0,karb:1,lif:0,pro:13,yag:11,kal:155},
+  {isim:"Yumurta (haşlanmış)",kat:"Protein Kaynakları",gi:0,karb:1,lif:0,pro:13,yag:11,kal:155},
   {isim:"Pastırma",kat:"Türk yemekleri",gi:0,karb:1,lif:0,pro:30,yag:12,kal:230},
   {isim:"Sucuk",kat:"Türk yemekleri",gi:0,karb:2,lif:0,pro:14,yag:30,kal:330},
   {isim:"Sosis",kat:"Türk yemekleri",gi:0,karb:2,lif:0,pro:12,yag:28,kal:310},
@@ -127,7 +127,7 @@ const foods: Food[] = [
   {isim:"Mücver",kat:"Türk yemekleri",gi:50,karb:15,lif:2.5,pro:6,yag:12,kal:195},
   {isim:"Hamsi Tava",kat:"Türk yemekleri",gi:45,karb:10,lif:0.5,pro:18,yag:15,kal:250},
   {isim:"Palamut Izgara",kat:"Türk yemekleri",gi:0,karb:0,lif:0,pro:22,yag:12,kal:200},
-  {isim:"Kuzu Şiş",kat:"Türk yemekleri",gi:0,karb:0,lif:0,pro:25,yag:18,kal:260},
+  {isim:"Kuzu Şiş",kat:"Protein Kaynakları",gi:0,karb:0,lif:0,pro:25,yag:18,kal:260},
   {isim:"Kelle Paça Çorbası",kat:"Türk yemekleri",gi:10,karb:2,lif:0,pro:15,yag:12,kal:180},
   {isim:"İşkembe Çorbası",kat:"Türk yemekleri",gi:15,karb:3,lif:0,pro:12,yag:10,kal:150},
   {isim:"Sarma (etli)",kat:"Türk yemekleri",gi:45,karb:15,lif:2.5,pro:10,yag:12,kal:210},
@@ -168,18 +168,18 @@ const foods: Food[] = [
   {isim:"Kuru Üzüm",kat:"Meyveler",gi:65,karb:79,lif:4,pro:3,yag:0.5,kal:300},
   {isim:"Kuru Kayısı",kat:"Meyveler",gi:35,karb:63,lif:7,pro:3,yag:0.5,kal:240},
   {isim:"Kuru İncir",kat:"Meyveler",gi:50,karb:64,lif:10,pro:3,yag:1,kal:250},
-  {isim:"Ceviz",kat:"Tahıllar",gi:15,karb:14,lif:7,pro:15,yag:65,kal:650},
-  {isim:"Fındık",kat:"Tahıllar",gi:15,karb:17,lif:10,pro:15,yag:61,kal:630},
-  {isim:"Badem",kat:"Tahıllar",gi:15,karb:22,lif:12,pro:21,yag:50,kal:580},
-  {isim:"Antep Fıstığı",kat:"Tahıllar",gi:15,karb:28,lif:10,pro:20,yag:45,kal:560},
-  {isim:"Yer Fıstığı",kat:"Tahıllar",gi:15,karb:16,lif:9,pro:26,yag:49,kal:570},
-  {isim:"Ay Çekirdeği",kat:"Tahıllar",gi:15,karb:20,lif:9,pro:21,yag:51,kal:580},
-  {isim:"Kabak Çekirdeği",kat:"Tahıllar",gi:15,karb:11,lif:6,pro:30,yag:49,kal:560},
-  {isim:"Leblebi (sarı)",kat:"Tahıllar",gi:30,karb:58,lif:15,pro:20,yag:6,kal:360},
-  {isim:"Leblebi (beyaz)",kat:"Tahıllar",gi:30,karb:60,lif:15,pro:19,yag:5,kal:350},
+  {isim:"Ceviz",kat:"Kuruyemişler",gi:15,karb:14,lif:7,pro:15,yag:65,kal:700},
+  {isim:"Fındık",kat:"Kuruyemişler",gi:15,karb:17,lif:10,pro:15,yag:61,kal:680},
+  {isim:"Badem",kat:"Kuruyemişler",gi:15,karb:22,lif:12,pro:21,yag:50,kal:620},
+  {isim:"Antep Fıstığı",kat:"Kuruyemişler",gi:15,karb:28,lif:10,pro:20,yag:45,kal:600},
+  {isim:"Yer Fıstığı",kat:"Kuruyemişler",gi:15,karb:16,lif:9,pro:26,yag:49,kal:610},
+  {isim:"Ay Çekirdeği",kat:"Kuruyemişler",gi:15,karb:20,lif:9,pro:21,yag:51,kal:580},
+  {isim:"Kabak Çekirdeği",kat:"Kuruyemişler",gi:15,karb:11,lif:6,pro:30,yag:49,kal:560},
+  {isim:"Leblebi (sarı)",kat:"Baklagiller",gi:30,karb:58,lif:15,pro:20,yag:6,kal:360},
+  {isim:"Leblebi (beyaz)",kat:"Baklagiller",gi:30,karb:60,lif:15,pro:19,yag:5,kal:350},
   {isim:"Bira",kat:"Alkol",gi:70,karb:4,lif:0,pro:0.5,yag:0,kal:43},
   {isim:"Şarap (sek)",kat:"Alkol",gi:0,karb:2.6,lif:0,pro:0.1,yag:0,kal:85},
-  {isim:"Rakı",kat:"Alkol",gi:0,karb:2,lif:0,pro:0,yag:0,kal:250},
+  {isim:"Rakı",kat:"Alkol",gi:0,karb:2,lif:0,pro:0,yag:0,kal:285},
   {isim:"Votka",kat:"Alkol",gi:0,karb:0,lif:0,pro:0,yag:0,kal:230},
   {isim:"Viski",kat:"Alkol",gi:0,karb:0,lif:0,pro:0,yag:0,kal:250},
   {isim:"Tatlı Kokteyl",kat:"Alkol",gi:85,karb:25,lif:0,pro:0,yag:0,kal:200},
@@ -240,6 +240,10 @@ function generateStaticAnalysis(f: Food) {
     functionalBenefit = "Yüksek lif içeriği sayesinde sindirim sistemini destekler ve bağırsak mikrobiyotasını besler. Şeker emilimini yavaşlatır.";
   } else if (pro > 15) {
     functionalBenefit = "Yüksek protein içeriği kas onarımını destekler ve termojenik etkisiyle metabolizmaya canlandırır. Tokluk süresini uzatır.";
+  } else if (f.kat === 'Kuruyemişler') {
+    functionalBenefit = "Sağlıklı yağ asitleri ve E vitamini kaynağıdır. Hücre zarını korur ve beyin sağlığını destekler.";
+  } else if (f.kat === 'Protein Kaynakları') {
+    functionalBenefit = "Vücudun temel yapı taşıdır. Kas kütlesini korur ve metabolik hızı artırır.";
   } else if (f.kat.includes("Sebze")) {
     functionalBenefit = "Zengin mikrobesin ve antioksidan içeriğiyle hücresel sağlığı korur, enflamasyonu azaltmaya yardımcı olur.";
   } else {
@@ -247,7 +251,11 @@ function generateStaticAnalysis(f: Food) {
   }
 
   // Profile Comments
-  if (gi > 60 || gy > 15) {
+  if (f.kat === 'Alkol') {
+    profileComments.weightLoss = "Alkol yağ yakımını 24 saate kadar durdurabilir. Kilo verme sürecinde tamamen kaçınılmalıdır.";
+    profileComments.diabetic = "Alkol şeker metabolizmasını bozar ve hipoglisemi riskini artırır. Çok tehlikelidir.";
+    profileComments.athlete = "Alkol protein sentezini engeller ve toparlanma sürecini ciddi şekilde yavaşlatır.";
+  } else if (gi > 60 || gy > 15) {
     profileComments.weightLoss = "Porsiyon kontrolü hayati önem taşır; yanında mutlaka bol sirkeli bir yeşil salata tüketilmelidir.";
     profileComments.diabetic = "Yüksek glisemik yük nedeniyle kan şekerinde ani dalgalanmalara yol açar, tüketilecekse çok küçük porsiyonda kalmalıdır.";
     profileComments.athlete = "Antrenman sonrası glikojen depolarını doldurmak için etkili bir yakıt olabilir ancak sedanter dönemde sınırlanmalıdır.";
@@ -262,7 +270,9 @@ function generateStaticAnalysis(f: Food) {
     : "Doğal olarak gluten içermez ancak çapraz bulaşma riskine karşı dikkatli olunmalıdır.";
 
   // Warning
-  if (gi > 70) {
+  if (f.kat === 'Alkol') {
+    warning = "Alkol karaciğer yükünü artırır ve metabolizmayı dondurur. Özellikle Rakı gibi yüksek alkollü içecekler metabolik sağlığı ciddi şekilde tehdit eder.";
+  } else if (gi > 70) {
     warning = "Bu besin yüksek glisemik indekse sahiptir. Tek başına tüketmek yerine mutlaka protein veya sağlıklı yağlarla eşleştirin.";
   } else if (isProcessedMeat(f.isim)) {
     warning = "İşlenmiş et ürünleri yüksek sodyum ve katkı maddesi içerir. Tüketim sıklığını minimumda tutun.";
@@ -402,7 +412,7 @@ function calculateMetabolicScore(f: Food, isCooked: boolean = false, mealSequenc
   if (net > 15 && tempF.lif < 1.5) ham += 40;
   if (isLiquid) ham += 60;
 
-  if (isResistant && (tempF.kat === 'Tahıllar' || tempF.kat === 'Baklagiller' || lowerName.includes('patates'))) {
+  if (isResistant && (tempF.kat === 'Tahıllar' || tempF.kat === 'Baklagiller' || tempF.kat === 'Kuruyemişler' || lowerName.includes('patates'))) {
     ham -= 40;
   }
 
@@ -411,7 +421,7 @@ function calculateMetabolicScore(f: Food, isCooked: boolean = false, mealSequenc
   
   if (hasAcid) ham *= 0.9;
   if (hasMovement) ham *= 0.8;
-  if (tempF.kat === 'Alkol') ham += 50;
+  if (tempF.kat === 'Alkol') ham += 100; // Increased penalty for alcohol (liver load)
   if (highGYCount >= 3) ham *= 1.15;
   if (isLowSleep || isStressed) ham *= 1.1;
 
@@ -433,6 +443,7 @@ function calculateMetabolicScore(f: Food, isCooked: boolean = false, mealSequenc
   }
 
   if (isIndustrial) score = 1.5;
+  if (lowerName === 'rakı') score = Math.min(score, 2.0); // Rakı specific hard cap
 
   return score;
 }
