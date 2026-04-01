@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'DM Serif Display', serif;
+  --font-sans: 'DM Sans', sans-serif;
+}
+
+:root {
+  --bg: #0A0A0A;
+  --surface: #141414;
+  --ink: #FFFFFF;
+  --ink2: #A1A1AA;
+  --ink3: #71717A;
+  --accent: #2DFF73;
+  --accent-glow: rgba(45, 255, 115, 0.3);
+  --orange: #FF6B2B;
+  --orange-glow: rgba(255, 107, 43, 0.4);
+  --blue: #3B82F6;
+  --blue-glow: rgba(59, 130, 246, 0.4);
+  --red: #EF4444;
+  --red-glow: rgba(239, 68, 68, 0.3);
+  --gold: #FFD700;
+  --border: rgba(255, 255, 255, 0.08);
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --radius: 24px;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  letter-spacing: -0.01em;
+}
+
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Light Mode Overrides for Glass */
+.light-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.neon-orange {
+  filter: drop-shadow(0 0 8px var(--orange-glow));
+}
+
+.neon-blue {
+  filter: drop-shadow(0 0 8px var(--blue-glow));
+}
+
+.neon-green {
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+
+.neon-red {
+  filter: drop-shadow(0 0 8px var(--red-glow));
+}
+
+.logo {
+  font-family: var(--font-serif);
+  letter-spacing: -0.02em;
+}
+
+.card-name {
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+.detail-name {
+  font-family: var(--font-serif);
+  font-weight: 700;
+}
+
+.detail-score-big {
+  font-family: var(--font-sans);
+  font-weight: 800;
+}
+
+.detail-metric-val {
+  font-family: var(--font-mono);
+}
