@@ -1078,8 +1078,17 @@ export default function App() {
       <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-colors duration-500 ${darkMode ? 'bg-black/50 border-white/5' : 'bg-white/50 border-black/5'} px-8 py-6`}>
         <div className="max-w-[1200px] mx-auto flex justify-between items-center">
           <div>
-            <div className={`logo text-[2.5rem] font-bold tracking-tighter transition-colors ${darkMode ? 'text-white' : 'text-black'}`}>Gli<span className="text-[#2DFF73] italic">Skor</span></div>
-            <div className={`text-[0.7rem] font-black tracking-[0.2em] uppercase mt-1 opacity-70 transition-colors ${darkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>Metabolik Sağlık ve İnsülin Analizi</div>
+            <div className={`logo text-[2.5rem] font-bold tracking-tighter transition-colors flex items-center ${darkMode ? 'text-white' : 'text-black'}`}>
+              <span>Gli</span>
+              <Utensils className="text-[#2DFF73] mx-2" size={32} />
+              <span className="text-[#2DFF73] italic">Skor</span>
+            </div>
+            <div className={`text-[0.85rem] font-black tracking-[0.1em] uppercase mt-1 transition-colors ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>Metabolik Sağlık ve İnsülin Analizi</div>
+            <div className={`flex items-center gap-2 text-[0.75rem] font-bold tracking-tight mt-1 transition-colors ${darkMode ? 'text-[#2DFF73]' : 'text-emerald-600'}`}>
+              <span>Mgv tarafından Google AI Studio tasarlandı</span>
+              <span className="mx-1 opacity-30">|</span>
+              <span className="opacity-70">v2.1.0</span>
+            </div>
           </div>
           <div className="flex gap-4">
             <button 
@@ -2353,9 +2362,7 @@ export default function App() {
           className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-black flex items-center justify-center shadow-[0_10px_40px_rgba(16,185,129,0.4)] relative group"
         >
           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
-          <div className="relative z-10">
-            <Utensils size={32} />
-          </div>
+          <Utensils size={32} />
           {plate.length > 0 && (
             <motion.div 
               initial={{ scale: 0 }}
