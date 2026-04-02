@@ -6,6 +6,20 @@ export interface VersionNote {
 
 export const VERSION_HISTORY: VersionNote[] = [
   {
+    version: "v2.2.0",
+    date: "2 Nisan 2026",
+    changes: [
+      "Çift kaydırma çubuğu sorunu giderildi (Modal açıkken sayfa kaydırması engellendi).",
+      "Karanlık ve Aydınlık mod için özel, zarif kaydırma çubukları (scrollbar) eklendi.",
+      "Mobil ve tablet cihazlar için modal yerleşimleri ve yazı boyutları optimize edildi.",
+      "Besin Ekleme ve Profil modalları Aydınlık Mod için tamamen uyumlu hale getirildi.",
+      "Analizi Paylaş özelliği düzeltildi ve başarı bildirimleri eklendi.",
+      "Mobil cihazlarda başlık, logo ve buton yerleşimleri iyileştirildi.",
+      "Bento Grid ve grafik bileşenleri mobil uyumluluğu artırıldı.",
+      "Modallarda uzun başlıkların taşma sorunu (text-wrapping) çözüldü."
+    ]
+  },
+  {
     version: "v2.1.0",
     date: "2 Nisan 2026",
     changes: [
