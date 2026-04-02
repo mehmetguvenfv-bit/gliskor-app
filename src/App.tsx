@@ -1306,23 +1306,24 @@ export default function App() {
         </div>
       </header>
 
-      <div className="max-w-[900px] mx-auto mt-10 px-8">
-        <div className={`border rounded-[30px] flex items-center px-6 gap-4 transition-all focus-within:ring-2 focus-within:ring-[#2DFF73]/20 focus-within:border-[#2DFF73]/30 group ${darkMode ? 'bg-[#141412] border-white/5' : 'bg-white border-black/5 shadow-xl'}`}>
-          <Search className={`${darkMode ? 'text-[#A8A39E]' : 'text-zinc-400'} group-focus-within:text-[#2DFF73] transition-colors`} size={20} />
+      <div className="max-w-[900px] mx-auto mt-6 sm:mt-10 px-4 sm:px-8">
+        <div className={`border rounded-[25px] sm:rounded-[30px] flex items-center px-4 sm:px-6 gap-2 sm:gap-4 transition-all focus-within:ring-2 focus-within:ring-[#2DFF73]/20 focus-within:border-[#2DFF73]/30 group ${darkMode ? 'bg-[#141412] border-white/5' : 'bg-white border-black/5 shadow-xl'}`}>
+          <Search className={`${darkMode ? 'text-[#A8A39E]' : 'text-zinc-400'} group-focus-within:text-[#2DFF73] transition-colors hidden xs:block`} size={20} />
           <input 
             type="text" 
-            placeholder="Besin, içecek veya marka ara..." 
+            placeholder="Besin veya marka ara..." 
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
-            className={`flex-1 bg-transparent border-none py-6 focus:outline-none font-medium ${darkMode ? 'text-white placeholder-zinc-600' : 'text-black placeholder-zinc-400'}`}
+            className={`flex-1 bg-transparent border-none py-4 sm:py-6 focus:outline-none font-medium text-[0.9rem] sm:text-[1rem] ${darkMode ? 'text-white placeholder-zinc-600' : 'text-black placeholder-zinc-400'}`}
           />
           <button 
             onClick={() => handleAiAnalysis(searchVal)}
             disabled={!searchVal || isAiLoading}
-            className="bg-[#2DFF73] text-black px-6 py-3 rounded-2xl font-black text-[0.8rem] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale flex items-center gap-2"
+            className="bg-[#2DFF73] text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[0.7rem] sm:text-[0.8rem] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale flex items-center gap-2 shrink-0"
           >
-            {isAiLoading ? <Loader2 className="animate-spin" size={16} /> : <Sparkles size={16} />}
-            Analiz Et
+            {isAiLoading ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+            <span className="hidden xs:inline">Analiz Et</span>
+            <span className="xs:hidden">AI</span>
           </button>
         </div>
       </div>
@@ -1345,38 +1346,38 @@ export default function App() {
             exit={{ opacity: 0, scale: 0.95 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-8 bg-black/80 backdrop-blur-sm"
           >
-            <div className={`rounded-[3rem] relative border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-w-4xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}>
+            <div className={`rounded-[2rem] sm:rounded-[3rem] relative border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-w-4xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}>
               {/* Background Glows */}
               <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] opacity-5 pointer-events-none blur-[80px] bg-emerald-500 rounded-full" />
               <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] opacity-5 pointer-events-none blur-[80px] bg-blue-500 rounded-full" />
               
-              <div className={`sticky top-0 z-50 p-8 md:p-12 pb-4 backdrop-blur-xl border-b ${darkMode ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F5F5F0]/80 border-black/5'}`}>
+              <div className={`sticky top-0 z-50 p-6 sm:p-8 md:p-12 pb-4 backdrop-blur-xl border-b ${darkMode ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F5F5F0]/80 border-black/5'}`}>
                 <button 
                   onClick={() => setAiResult(null)}
-                  className={`absolute top-8 right-8 transition-all hover:rotate-90 z-50 p-2 rounded-full ${darkMode ? 'text-zinc-500 hover:text-white bg-white/5' : 'text-zinc-400 hover:text-black bg-black/5'}`}
+                  className={`absolute top-6 right-6 sm:top-8 sm:right-8 transition-all hover:rotate-90 z-50 p-2 rounded-full ${darkMode ? 'text-zinc-500 hover:text-white bg-white/5' : 'text-zinc-400 hover:text-black bg-black/5'}`}
                 >
-                  <X size={24} />
+                  <X size={20} className="sm:w-6 sm:h-6" />
                 </button>
                 
                 <div className="relative z-10">
                   {/* Header Section */}
-                  <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-                    <div className="flex-1">
-                      <h2 className={`text-[3.5rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
+                  <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8">
+                    <div className="flex-1 pr-10 md:pr-0">
+                      <h2 className={`text-[2.2rem] sm:text-[3.5rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
                         {aiResult.foodName}
                       </h2>
                       <div className="flex items-center gap-3">
-                        <span className={`px-4 py-1.5 border rounded-full text-[0.7rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
+                        <span className={`px-4 py-1.5 border rounded-full text-[0.6rem] sm:text-[0.7rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
                           {foods.find(f => f.isim === aiResult.foodName)?.kat || "Besin"}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 shrink-0">
                       {/* Scores in Bento Style */}
                       <div className="flex items-center gap-4">
                         <div className="flex flex-col items-center">
-                          <div className="w-[48px] h-[48px] relative">
-                            <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
+                          <div className="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] relative">
+                            <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
                               <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
                               <circle 
                                 cx="24" cy="24" r="21" fill="none" stroke={getRingColor(aiResult.score)} strokeWidth="4"
@@ -1384,15 +1385,15 @@ export default function App() {
                                 strokeLinecap="round"
                               />
                             </svg>
-                            <div className="absolute inset-0 flex items-center justify-center text-[1rem] font-black" style={{ color: getRingColor(aiResult.score) }}>
+                            <div className="absolute inset-0 flex items-center justify-center text-[0.8rem] sm:text-[1rem] font-black" style={{ color: getRingColor(aiResult.score) }}>
                               {aiResult.score}
                             </div>
                           </div>
-                          <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Metabolik</span>
+                          <span className="text-[0.4rem] sm:text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Metabolik</span>
                         </div>
                         <div className="flex flex-col items-center">
-                          <div className="w-[48px] h-[48px] relative">
-                            <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
+                          <div className="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] relative">
+                            <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
                               <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
                               <circle 
                                 cx="24" cy="24" r="21" fill="none" stroke={getRingColor(aiResult.healthScore)} strokeWidth="4"
@@ -1400,11 +1401,11 @@ export default function App() {
                                 strokeLinecap="round"
                               />
                             </svg>
-                            <div className="absolute inset-0 flex items-center justify-center text-[1rem] font-black" style={{ color: getRingColor(aiResult.healthScore) }}>
+                            <div className="absolute inset-0 flex items-center justify-center text-[0.8rem] sm:text-[1rem] font-black" style={{ color: getRingColor(aiResult.healthScore) }}>
                               {aiResult.healthScore}
                             </div>
                           </div>
-                          <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Sağlık</span>
+                          <span className="text-[0.4rem] sm:text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Sağlık</span>
                         </div>
                       </div>
                     </div>
@@ -1412,11 +1413,11 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="p-6 md:p-10 pt-4 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="p-4 sm:p-6 md:p-10 pt-4 relative z-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                   
                   {/* Row 1: Macro Chart & Metabolic Effect */}
-                  <div className={`md:col-span-1 md:row-span-2 p-6 rounded-[2.5rem] border flex flex-col items-center justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                  <div className={`sm:col-span-1 md:row-span-2 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border flex flex-col items-center justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
                     <MacroDistribution 
                       karb={aiResult.karb} 
                       pro={aiResult.pro} 
@@ -1425,42 +1426,42 @@ export default function App() {
                     />
                   </div>
 
-                  <div className={`md:col-span-3 p-8 rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                    <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">METABOLİK ETKİ</div>
-                    <p className={`text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                  <div className={`sm:col-span-1 md:col-span-3 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                    <div className="text-[0.55rem] sm:text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">METABOLİK ETKİ</div>
+                    <p className={`text-[0.9rem] sm:text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
                       {aiResult.metabolicEffect}
                     </p>
                   </div>
 
                   {/* Row 2: Stats Grid */}
-                  <div className={`md:col-span-3 p-6 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className={`sm:col-span-2 md:col-span-3 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                       {[
                         { label: 'Kalori', value: aiResult.kal, color: 'text-zinc-500' },
                         { label: 'GI', value: aiResult.gi, color: 'text-orange-400' },
                         { label: 'GL', value: aiResult.gy, color: 'text-blue-400' },
                         { label: 'Lif', value: `${aiResult.lp}g`, color: 'text-emerald-400' }
                       ].map((item, i) => (
-                        <div key={i} className="flex flex-col items-center text-center">
-                          <div className={`text-[1.8rem] font-black tracking-tighter ${darkMode ? 'text-white' : 'text-black'}`}>
+                        <div key={i} className="flex flex-col items-center text-center p-2">
+                          <div className={`text-[1.4rem] sm:text-[1.8rem] font-black tracking-tighter ${darkMode ? 'text-white' : 'text-black'}`}>
                             {item.value}
                           </div>
-                          <div className="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-black">{item.label}</div>
+                          <div className="text-[0.55rem] sm:text-[0.6rem] text-zinc-500 uppercase tracking-widest font-black">{item.label}</div>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Row 3: Circadian Rhythm Widget */}
-                  <div className="md:col-span-4">
+                  <div className="sm:col-span-2 md:col-span-4">
                     <CircadianRhythmWidget data={aiResult.circadianData} darkMode={darkMode} />
                   </div>
 
                   {/* Row 4: Insulin Bar & Functional Benefit */}
-                  <div className={`md:col-span-2 p-8 rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                  <div className={`sm:col-span-1 md:col-span-2 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-[0.65rem] font-black uppercase tracking-widest text-zinc-500">İnsülin Etkisi</span>
-                      <span className={`text-[0.8rem] font-black ${aiResult.score > 7 ? 'text-red-500' : aiResult.score > 4 ? 'text-orange-500' : 'text-emerald-500'}`}>
+                      <span className="text-[0.6rem] sm:text-[0.65rem] font-black uppercase tracking-widest text-zinc-500">İnsülin Etkisi</span>
+                      <span className={`text-[0.75rem] sm:text-[0.8rem] font-black ${aiResult.score > 7 ? 'text-red-500' : aiResult.score > 4 ? 'text-orange-500' : 'text-emerald-500'}`}>
                         {aiResult.insulinEffect || (aiResult.score > 7 ? 'Yüksek' : aiResult.score > 4 ? 'Orta' : 'Düşük')}
                       </span>
                     </div>
@@ -1477,17 +1478,17 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className={`md:col-span-2 p-8 rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                    <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">FONKSİYONEL FAYDA</div>
-                    <p className={`text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                  <div className={`sm:col-span-1 md:col-span-2 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                    <div className="text-[0.55rem] sm:text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">FONKSİYONEL FAYDA</div>
+                    <p className={`text-[0.9rem] sm:text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
                       {aiResult.functionalBenefit}
                     </p>
                   </div>
 
                   {/* Row 4: Warning & Profile Comments */}
-                  <div className={`md:col-span-4 p-8 rounded-[2.5rem] border border-orange-500/20 bg-orange-500/5 flex gap-6 items-center`}>
-                    <AlertTriangle className="w-8 h-8 text-orange-500 shrink-0" />
-                    <p className={`text-[0.95rem] font-bold leading-relaxed ${darkMode ? 'text-orange-200' : 'text-orange-900'}`}>
+                  <div className={`sm:col-span-2 md:col-span-4 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border border-orange-500/20 bg-orange-500/5 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center`}>
+                    <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500 shrink-0" />
+                    <p className={`text-[0.85rem] sm:text-[0.95rem] font-bold leading-relaxed ${darkMode ? 'text-orange-200' : 'text-orange-900'}`}>
                       {aiResult.warning}
                     </p>
                   </div>
@@ -1815,7 +1816,7 @@ export default function App() {
         ))}
       </div>
 
-      <div className="max-w-[1000px] mx-auto mt-8 px-8 grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
+      <div className="max-w-[1000px] mx-auto mt-8 px-4 sm:px-8 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4 sm:gap-6">
         {filteredFoods.length === 0 ? (
           <div className="col-span-full text-center py-20 text-zinc-600 text-[1.1rem] font-medium">Bu arama için sonuç bulunamadı.</div>
         ) : (
@@ -1834,23 +1835,23 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 key={f.isim}
                 onClick={() => setSelectedFood(f)}
-                className={`${darkMode ? 'glass border-white/5 hover:border-white/20' : 'light-glass border-black/5 hover:border-black/10 shadow-[0_20px_40px_rgba(0,0,0,0.1)]'} rounded-[3rem] p-10 cursor-pointer transition-all hover:-translate-y-3 relative group flex flex-col h-full overflow-hidden border`}
+                className={`${darkMode ? 'glass border-white/5 hover:border-white/20' : 'light-glass border-black/5 hover:border-black/10 shadow-[0_20px_40px_rgba(0,0,0,0.1)]'} rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-10 cursor-pointer transition-all hover:-translate-y-3 relative group flex flex-col h-full overflow-hidden border`}
               >
                 {/* Decorative background glow */}
                 <div className="absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity rounded-full -mr-16 -mt-16" style={{ backgroundColor: col }} />
                 
-                <div className="flex items-start justify-between mb-8 gap-4 relative z-10">
+                <div className="flex items-start justify-between mb-6 sm:mb-8 gap-4 relative z-10">
                   <div className="flex items-start gap-4 flex-1 min-w-0">
-                    <div className="min-w-0">
-                      <div className={`text-[1.6rem] font-black leading-[1.1] break-words tracking-tight group-hover:text-[#2DFF73] transition-colors ${darkMode ? 'text-white' : 'text-black'}`}>{f.isim}</div>
-                      <div className={`text-[0.75rem] font-black mt-3 uppercase tracking-[0.25em] opacity-70 ${darkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>{f.kat}</div>
+                    <div className="min-w-0 flex-1 flex flex-col min-h-[70px] sm:min-h-[85px]">
+                      <div className={`text-[1.25rem] sm:text-[1.4rem] font-black leading-[1.1] line-clamp-2 tracking-tight group-hover:text-[#2DFF73] transition-colors ${darkMode ? 'text-white' : 'text-black'}`}>{f.isim}</div>
+                      <div className={`text-[0.65rem] sm:text-[0.7rem] font-black mt-auto pt-2 uppercase tracking-[0.25em] opacity-70 ${darkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>{f.kat}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     <div className="flex items-center gap-2">
                       {/* Metabolic Score Ring (Smaller) */}
-                      <div className="w-[40px] h-[40px] shrink-0 relative" title="Metabolik Skor">
-                        <svg width="40" height="40" viewBox="0 0 40 40" className="-rotate-90">
+                      <div className="w-[36px] h-[36px] sm:w-[40px] sm:h-[40px] shrink-0 relative" title="Metabolik Skor">
+                        <svg width="100%" height="100%" viewBox="0 0 40 40" className="-rotate-90">
                           <circle cx="20" cy="20" r="18" fill="none" stroke={darkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"} strokeWidth="4"/>
                           <circle 
                             cx="20" cy="20" r="18" fill="none" stroke={getRingColor(mScore)} strokeWidth="4"
@@ -1858,13 +1859,13 @@ export default function App() {
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center text-[0.7rem] font-black" style={{ color: getRingColor(mScore) }}>
+                        <div className="absolute inset-0 flex items-center justify-center text-[0.6rem] sm:text-[0.7rem] font-black" style={{ color: getRingColor(mScore) }}>
                           {mScore}
                         </div>
                       </div>
                       {/* Health Score Ring (Main) */}
-                      <div className="w-[56px] h-[56px] shrink-0 relative" title="Sağlık Skoru">
-                        <svg width="56" height="56" viewBox="0 0 56 56" className="-rotate-90">
+                      <div className="w-[48px] h-[48px] sm:w-[56px] sm:h-[56px] shrink-0 relative" title="Sağlık Skoru">
+                        <svg width="100%" height="100%" viewBox="0 0 56 56" className="-rotate-90">
                           <circle cx="28" cy="28" r="25" fill="none" stroke={darkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"} strokeWidth="6"/>
                           <circle 
                             cx="28" cy="28" r="25" fill="none" stroke={col} strokeWidth="6"
@@ -1872,17 +1873,17 @@ export default function App() {
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center text-[1.2rem] font-black" style={{ color: col }}>
+                        <div className="absolute inset-0 flex items-center justify-center text-[1rem] sm:text-[1.2rem] font-black" style={{ color: col }}>
                           {nScore}
                         </div>
                       </div>
                     </div>
                     <button 
                       onClick={(e) => { e.stopPropagation(); addToPlate(f); }}
-                      className={`w-12 h-12 border rounded-2xl shadow-xl flex items-center justify-center hover:bg-[#2DFF73] hover:text-black hover:border-[#2DFF73] hover:scale-110 transition-all shrink-0 group/add ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'}`}
+                      className={`w-10 h-10 sm:w-12 sm:h-12 border rounded-xl sm:rounded-2xl shadow-xl flex items-center justify-center hover:bg-[#2DFF73] hover:text-black hover:border-[#2DFF73] hover:scale-110 transition-all shrink-0 group/add ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'}`}
                       title="Tabağa Ekle"
                     >
-                      <Plus size={24} strokeWidth={3} className="group-hover/add:rotate-90 transition-transform" />
+                      <Plus size={20} className="sm:w-6 sm:h-6 group-hover/add:rotate-90 transition-transform" strokeWidth={3} />
                     </button>
                   </div>
                 </div>
@@ -2443,15 +2444,15 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`rounded-[3rem] border shadow-2xl overflow-hidden max-w-lg w-full p-10 ${darkMode ? 'bg-[#0A0A0A] border-white/10' : 'bg-[#F5F5F0] border-black/10'}`}
+              className={`rounded-[2.5rem] sm:rounded-[3rem] border shadow-2xl overflow-hidden max-w-lg w-full p-6 sm:p-10 ${darkMode ? 'bg-[#0A0A0A] border-white/10' : 'bg-[#F5F5F0] border-black/10'}`}
             >
-              <div className="flex items-center justify-between mb-10">
-                <h3 className={`text-[2rem] font-black tracking-tighter bg-gradient-to-br bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>Profilim</h3>
+              <div className="flex items-center justify-between mb-6 sm:mb-10">
+                <h3 className={`text-[1.5rem] sm:text-[2rem] font-black tracking-tighter bg-gradient-to-br bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>Profilim</h3>
                 <button 
                   onClick={() => setIsProfileOpen(false)}
-                  className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10' : 'bg-black/5 border-black/10 text-zinc-500 hover:bg-black/10'}`}
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10' : 'bg-black/5 border-black/10 text-zinc-500 hover:bg-black/10'}`}
                 >
-                  <X size={24} />
+                  <X size={20} className="sm:w-6 sm:h-6" />
                 </button>
               </div>
 
