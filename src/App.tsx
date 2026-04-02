@@ -371,8 +371,8 @@ function PairingBox({ food, score }: { food: Food, score: number }) {
 
 function CircadianRhythmWidget({ data, darkMode }: { data: any[], darkMode: boolean }) {
   return (
-    <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'} flex flex-col h-full w-full`}>
-      <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6">SİRKADİYEN METABOLİK YANIT</div>
+    <div className={`p-5 xs:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'} flex flex-col h-full w-full`}>
+      <div className="text-[0.55rem] xs:text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6">SİRKADİYEN METABOLİK YANIT</div>
       <div className="flex-1 w-full min-h-[150px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -445,8 +445,8 @@ function MacroDistribution({ karb, pro, yag, darkMode }: { karb: number, pro: nu
   const total = data.reduce((acc, curr) => acc + curr.value, 0);
 
   return (
-    <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'} flex flex-col items-center h-full w-full`}>
-      <div className="text-[0.7rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6 w-full text-center">MAKRO DAĞILIMI (100g)</div>
+    <div className={`p-5 xs:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'} flex flex-col items-center h-full w-full`}>
+      <div className="text-[0.6rem] xs:text-[0.7rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6 w-full text-center">MAKRO DAĞILIMI (100g)</div>
       <div className="w-full h-[180px] relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -1345,17 +1345,17 @@ export default function App() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-8 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-2 xs:p-4 md:p-8 bg-black/80 backdrop-blur-sm"
           >
-            <div className={`rounded-[2rem] sm:rounded-[3rem] relative border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-w-4xl w-full max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}>
+            <div className={`rounded-[2rem] sm:rounded-[3rem] relative border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-w-4xl w-full max-h-[98vh] sm:max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}>
               {/* Background Glows */}
               <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] opacity-5 pointer-events-none blur-[80px] bg-emerald-500 rounded-full" />
               <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] opacity-5 pointer-events-none blur-[80px] bg-blue-500 rounded-full" />
               
-              <div className={`sticky top-0 z-50 p-6 sm:p-8 md:p-12 pb-4 backdrop-blur-xl border-b ${darkMode ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F5F5F0]/80 border-black/5'}`}>
+              <div className={`sticky top-0 z-50 p-4 xs:p-8 md:p-12 pb-4 backdrop-blur-xl border-b ${darkMode ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F5F5F0]/80 border-black/5'}`}>
                 <button 
                   onClick={() => setAiResult(null)}
-                  className={`absolute top-6 right-6 sm:top-8 sm:right-8 transition-all hover:rotate-90 z-50 p-2 rounded-full ${darkMode ? 'text-zinc-500 hover:text-white bg-white/5' : 'text-zinc-400 hover:text-black bg-black/5'}`}
+                  className={`absolute top-4 right-4 xs:top-8 xs:right-8 transition-all hover:rotate-90 z-50 p-2 rounded-full ${darkMode ? 'text-zinc-500 hover:text-white bg-white/5' : 'text-zinc-400 hover:text-black bg-black/5'}`}
                 >
                   <X size={20} className="sm:w-6 sm:h-6" />
                 </button>
@@ -1363,8 +1363,8 @@ export default function App() {
                 <div className="relative z-10">
                   {/* Header Section */}
                   <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8">
-                    <div className="flex-1 pr-10 md:pr-0">
-                      <h2 className={`text-[2.2rem] sm:text-[3.5rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
+                    <div className="flex-1 pr-10 xs:pr-16 md:pr-0">
+                      <h2 className={`text-[1.8rem] xs:text-[3rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent break-words ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
                         {aiResult.foodName}
                       </h2>
                       <div className="flex items-center gap-3">
@@ -1913,30 +1913,30 @@ export default function App() {
       <AnimatePresence>
         {selectedFood && (
           <div 
-            className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-2 xs:p-4"
             onClick={() => setSelectedFood(null)}
           >
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`rounded-[3rem] w-full max-w-4xl p-8 md:p-12 relative max-h-[95vh] overflow-y-auto custom-scrollbar border shadow-2xl ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}
+              className={`rounded-[2rem] sm:rounded-[3rem] w-full max-w-4xl p-4 xs:p-8 md:p-12 relative max-h-[98vh] sm:max-h-[95vh] overflow-y-auto custom-scrollbar border shadow-2xl ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="absolute top-8 right-8 flex gap-3 z-50">
+              <div className="absolute top-4 right-4 xs:top-8 xs:right-8 flex gap-2 xs:gap-3 z-50">
                 <button 
                   onClick={() => addToPlate(selectedFood)}
                   disabled={plate.length >= 6}
-                  className="w-12 h-12 rounded-full bg-emerald-500 text-black cursor-pointer flex items-center justify-center hover:bg-emerald-400 transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                  className="w-9 h-9 xs:w-12 xs:h-12 rounded-full bg-emerald-500 text-black cursor-pointer flex items-center justify-center hover:bg-emerald-400 transition-all disabled:opacity-50 shadow-[0_0_20px_rgba(16,185,129,0.4)]"
                   title="Tabağa Ekle"
                 >
-                  <Plus size={24} />
+                  <Plus size={18} className="xs:w-6 xs:h-6" />
                 </button>
                 <button 
-                  className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all hover:rotate-90 ${darkMode ? 'text-zinc-500 hover:text-white bg-white/5 border-white/10' : 'text-zinc-400 hover:text-black bg-black/5 border-black/10'}`}
+                  className={`w-9 h-9 xs:w-12 xs:h-12 rounded-full border flex items-center justify-center transition-all hover:rotate-90 ${darkMode ? 'text-zinc-500 hover:text-white bg-white/5 border-white/10' : 'text-zinc-400 hover:text-black bg-black/5 border-black/10'}`}
                   onClick={() => setSelectedFood(null)}
                 >
-                  <X size={24} />
+                  <X size={18} className="xs:w-6 xs:h-6" />
                 </button>
               </div>
 
@@ -1946,12 +1946,12 @@ export default function App() {
                 
                 return (
                   <>
-                    <div className="mb-12">
-                      <h2 className={`text-[3.5rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent pr-24 ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
+                    <div className="mb-8 sm:mb-12">
+                      <h2 className={`text-[1.8rem] xs:text-[3rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-6 bg-gradient-to-b bg-clip-text text-transparent pr-20 xs:pr-24 ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'} break-words`}>
                         {selectedFood.isim}
                       </h2>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        <div className="flex items-center gap-3 flex-wrap">
                           <span className={`px-4 py-1.5 border rounded-full text-[0.7rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
                             {selectedFood.kat}
                           </span>
@@ -2020,14 +2020,14 @@ export default function App() {
                     </div>
 
                     {/* Main Stats Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-12">
                       {[
                         { label: 'Kalori / 100g', value: selectedFood.kal, color: 'text-zinc-500' },
                         { label: 'GI değeri', value: selectedFood.gi, color: 'text-orange-400' },
                         { label: 'GL (porsiyon)', value: calculateGY(selectedFood), color: 'text-blue-400' },
                         { label: 'Lif / 100g', value: `${selectedFood.lif}g`, color: 'text-emerald-400' }
                       ].map((item, i) => (
-                        <div key={i} className={`p-6 rounded-[2rem] border flex flex-col items-center text-center transition-all ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/10'}`}>
+                        <div key={i} className={`p-4 xs:p-6 rounded-[1.5rem] sm:rounded-[2rem] border flex flex-col items-center text-center transition-all ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/10'}`}>
                           <div className={`text-[1.8rem] font-black mb-1 tracking-tighter ${darkMode ? 'text-white' : 'text-black'}`}>
                             {item.value}
                           </div>
