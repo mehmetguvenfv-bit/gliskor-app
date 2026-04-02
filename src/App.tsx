@@ -992,6 +992,7 @@ export default function App() {
   const [aiResult, setAiResult] = useState<AnalysisResult | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [aiSuccess, setAiSuccess] = useState<string | null>(null);
   const [quickFilter, setQuickFilter] = useState<'none' | 'super' | 'protein' | 'lowcarb'>('none');
 
   // History State
@@ -1262,17 +1263,17 @@ export default function App() {
 
   return (
     <div className={`min-h-screen overflow-x-hidden transition-colors duration-500 ${darkMode ? 'bg-[#0A0A0A] text-[#E4E3E0]' : 'bg-[#F5F5F0] text-[#141414]'} pb-20 font-sans selection:bg-[#2DFF73] selection:text-black`}>
-      <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-colors duration-500 ${darkMode ? 'bg-black/50 border-white/5' : 'bg-white/50 border-black/5'} px-3 sm:px-8 py-4 sm:py-6`}>
+      <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-colors duration-500 ${darkMode ? 'bg-black/50 border-white/5' : 'bg-white/50 border-black/5'} px-3 sm:px-8 py-2.5 sm:py-5`}>
         <div className="max-w-[1200px] mx-auto flex justify-between items-center">
           <div>
-            <div className={`logo text-[1.3rem] xs:text-[1.8rem] sm:text-[2.5rem] font-bold tracking-tighter transition-colors flex items-center ${darkMode ? 'text-white' : 'text-black'}`}>
+            <div className={`logo text-[1.1rem] xs:text-[1.8rem] sm:text-[2.5rem] font-bold tracking-tighter transition-colors flex items-center ${darkMode ? 'text-white' : 'text-black'}`}>
               <span>Gli</span>
               <Utensils className={`text-[#2DFF73] mx-1 sm:mx-2 w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8`} />
               <span className="text-[#2DFF73] italic">Skor</span>
             </div>
-            <div className={`text-[0.55rem] xs:text-[0.65rem] sm:text-[0.85rem] font-black tracking-[0.1em] uppercase mt-1 transition-colors hidden min-[380px]:block ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>Metabolik Sağlık ve İnsülin Analizi</div>
+            <div className={`text-[0.5rem] xs:text-[0.65rem] sm:text-[0.85rem] font-black tracking-[0.1em] uppercase mt-1 transition-colors hidden min-[380px]:block ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>Metabolik Sağlık ve İnsülin Analizi</div>
           </div>
-          <div className="flex gap-1.5 xs:gap-2 sm:gap-4">
+          <div className="flex gap-1 xs:gap-2 sm:gap-4">
             <button 
               onClick={() => setDarkMode(!darkMode)}
               className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
@@ -1299,8 +1300,8 @@ export default function App() {
               className="bg-[#2DFF73] text-black p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl hover:bg-[#2DFF73]/90 transition-all shadow-[0_0_30px_rgba(45,255,115,0.3)] hover:scale-105 active:scale-95 flex items-center gap-1.5 xs:gap-2 font-black text-[0.65rem] xs:text-[0.7rem] sm:text-[0.8rem] uppercase tracking-widest px-3 xs:px-4 sm:px-6"
               title="Yeni Besin Ekle"
             >
-              <Plus size={16} className="xs:w-[18px] xs:h-[18px]" strokeWidth={3} />
-              <span className="hidden min-[540px]:inline">Besin Ekle</span>
+              <Plus size={16} className="w-[16px] h-[16px] xs:w-[18px] xs:h-[18px]" strokeWidth={3} />
+              <span className="hidden sm:inline">Besin Ekle</span>
             </button>
           </div>
         </div>
@@ -1514,11 +1515,31 @@ export default function App() {
 
                 <div className="flex flex-col sm:flex-row gap-4 mt-12">
                   <button 
-                    onClick={() => {
+                    onClick={async () => {
                       const text = `${aiResult.foodName} Analizi:\nSağlık Skoru: ${aiResult.healthScore}/10\nMetabolik Etki: ${aiResult.metabolicEffect}\nUyarı: ${aiResult.warning}`;
-                      navigator.clipboard.writeText(text);
-                      setAiError("Analiz kopyalandı!");
-                      setTimeout(() => setAiError(null), 2000);
+                      
+                      try {
+                        if (navigator.share) {
+                          await navigator.share({
+                            title: 'GliSkor Analizi',
+                            text: text,
+                          });
+                          setAiSuccess("Analiz başarıyla paylaşıldı!");
+                        } else {
+                          await navigator.clipboard.writeText(text);
+                          setAiSuccess("Analiz panoya kopyalandı!");
+                        }
+                      } catch (err) {
+                        console.error("Paylaşım hatası:", err);
+                        if (err instanceof Error && err.name !== 'AbortError') {
+                          setAiError("Paylaşım sırasında bir sorun oluştu.");
+                        }
+                      }
+                      
+                      setTimeout(() => {
+                        setAiSuccess(null);
+                        setAiError(null);
+                      }, 3000);
                     }}
                     className={`flex-1 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[0.8rem] transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-black/5 border-black/10 text-black hover:bg-black/10'}`}
                   >
@@ -1539,9 +1560,18 @@ export default function App() {
 
       {aiError && (
         <div className="max-w-[900px] mx-auto mt-4 px-4 sm:px-8">
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[0.85rem] flex items-center gap-2">
-            <AlertTriangle size={16} />
+          <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-4 rounded-2xl text-[0.85rem] font-bold flex items-center gap-3 shadow-lg shadow-red-500/5">
+            <AlertTriangle size={18} />
             {aiError}
+          </div>
+        </div>
+      )}
+
+      {aiSuccess && (
+        <div className="max-w-[900px] mx-auto mt-4 px-4 sm:px-8">
+          <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-4 rounded-2xl text-[0.85rem] font-bold flex items-center gap-3 shadow-lg shadow-emerald-500/5">
+            <CheckCircle2 size={18} />
+            {aiSuccess}
           </div>
         </div>
       )}
@@ -1763,7 +1793,7 @@ export default function App() {
         </div>
       </div>
 
-      <div className="max-w-[1000px] mx-auto mt-12 px-4 sm:px-8 grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-x-6 gap-y-8 sm:gap-8 border-y border-white/5 py-10">
+      <div className="max-w-[1000px] mx-auto mt-12 px-4 sm:px-8 grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-x-6 gap-y-8 sm:gap-8 border-y border-white/5 py-6 sm:py-10">
         {[
           { color: '#2DFF73', label: '8–10 GÜVENLİ', desc: 'Metabolik denge' },
           { color: '#FACC15', label: '5–7 ÖLÇÜLÜ', desc: 'Porsiyon kontrolü' },
