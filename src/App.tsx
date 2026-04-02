@@ -1130,6 +1130,18 @@ export default function App() {
     alert("Veritabanı başarıyla güncellendi!");
   };
 
+  useEffect(() => {
+    const isAnyModalOpen = selectedFood || aiResult || isFormOpen || isHistoryOpen || isProfileOpen || isPlateOpen;
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedFood, aiResult, isFormOpen, isHistoryOpen, isProfileOpen, isPlateOpen]);
+
   const handleAiFill = async () => {
     if (!formData.isim.trim()) {
       setFormErrors({ isim: 'Önce bir besin adı girmelisiniz' });
@@ -1262,7 +1274,7 @@ export default function App() {
   }, [searchVal, activeCat, sortMode, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, highGYCount, isLowSleep, isStressed]);
 
   return (
-    <div className={`min-h-screen overflow-x-hidden transition-colors duration-500 ${darkMode ? 'bg-[#0A0A0A] text-[#E4E3E0]' : 'bg-[#F5F5F0] text-[#141414]'} pb-20 font-sans selection:bg-[#2DFF73] selection:text-black`}>
+    <div className={`min-h-screen overflow-x-hidden transition-colors duration-500 ${darkMode ? 'bg-[#0A0A0A] text-[#E4E3E0]' : 'bg-[#F5F5F0] text-[#141414] light-mode'} pb-20 font-sans selection:bg-[#2DFF73] selection:text-black`}>
       <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-colors duration-500 ${darkMode ? 'bg-black/50 border-white/5' : 'bg-white/50 border-black/5'} px-3 sm:px-8 py-2.5 sm:py-5`}>
         <div className="max-w-[1200px] mx-auto flex justify-between items-center">
           <div>
@@ -1347,7 +1359,7 @@ export default function App() {
             exit={{ opacity: 0, scale: 0.95 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-2 xs:p-4 md:p-8 bg-black/80 backdrop-blur-sm"
           >
-            <div className={`rounded-[2rem] sm:rounded-[3rem] relative border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-w-4xl w-full max-h-[98vh] sm:max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}>
+            <div className={`rounded-[2rem] sm:rounded-[3rem] relative border shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden max-w-4xl w-full max-h-[92vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}>
               {/* Background Glows */}
               <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] opacity-5 pointer-events-none blur-[80px] bg-emerald-500 rounded-full" />
               <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] opacity-5 pointer-events-none blur-[80px] bg-blue-500 rounded-full" />
@@ -1920,7 +1932,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`rounded-[2rem] sm:rounded-[3rem] w-full max-w-4xl p-4 xs:p-8 md:p-12 relative max-h-[98vh] sm:max-h-[95vh] overflow-y-auto custom-scrollbar border shadow-2xl ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}
+              className={`rounded-[2rem] sm:rounded-[3rem] w-full max-w-4xl p-4 xs:p-8 md:p-12 relative max-h-[92vh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar border shadow-2xl ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="absolute top-4 right-4 xs:top-8 xs:right-8 flex gap-2 xs:gap-3 z-50">
@@ -2239,17 +2251,17 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-[#0A0A0A] rounded-[3rem] w-full max-w-[500px] p-10 relative max-h-[90vh] overflow-y-auto border border-white/10 shadow-2xl"
+              className={`rounded-[3rem] w-full max-w-[500px] p-10 relative max-h-[90vh] overflow-y-auto custom-scrollbar border shadow-2xl ${darkMode ? 'bg-[#0A0A0A] border-white/10 text-white' : 'bg-[#F5F5F0] border-black/10 text-black'}`}
               onClick={(e) => e.stopPropagation()}
             >
               <button 
-                className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-zinc-400 hover:bg-white/10 transition-all"
+                className={`absolute top-8 right-8 w-10 h-10 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10' : 'bg-black/5 border-black/10 text-zinc-500 hover:bg-black/10'}`}
                 onClick={() => setIsFormOpen(false)}
               >
                 <X size={20} />
               </button>
               
-              <h2 className="text-[2.2rem] font-black tracking-tighter mb-8 bg-gradient-to-br from-white to-zinc-500 bg-clip-text text-transparent">
+              <h2 className={`text-[2.2rem] font-black tracking-tighter mb-8 bg-gradient-to-br bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
                 {editingFood ? 'Besini Düzenle' : 'Yeni Besin Ekle'}
               </h2>
               
@@ -2438,7 +2450,7 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`rounded-[2.5rem] sm:rounded-[3rem] border shadow-2xl overflow-hidden max-w-lg w-full p-6 sm:p-10 ${darkMode ? 'bg-[#0A0A0A] border-white/10' : 'bg-[#F5F5F0] border-black/10'}`}
+              className={`rounded-[2.5rem] sm:rounded-[3rem] border shadow-2xl overflow-y-auto custom-scrollbar max-w-lg w-full p-6 sm:p-10 max-h-[90vh] ${darkMode ? 'bg-[#0A0A0A] border-white/10' : 'bg-[#F5F5F0] border-black/10'}`}
             >
               <div className="flex items-center justify-between mb-6 sm:mb-10">
                 <h3 className={`text-[1.5rem] sm:text-[2rem] font-black tracking-tighter bg-gradient-to-br bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>Profilim</h3>
