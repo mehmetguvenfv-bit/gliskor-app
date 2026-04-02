@@ -3,6 +3,7 @@
 @theme {
   --font-serif: 'DM Serif Display', serif;
   --font-sans: 'DM Sans', sans-serif;
+  --breakpoint-xs: 480px;
 }
 
 :root {

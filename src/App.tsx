@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo, useEffect, useCallback, ReactNode } from 'react';
-import { Search, X, ChevronRight, Info, Brain, Loader2, AlertTriangle, Lightbulb, Droplets, Beef, Wheat, Plus, Edit2, Trash2, Moon, Activity, Leaf, Thermometer, CheckCircle2, Zap, Utensils, ShoppingBasket, Sparkles, User, History, Sun } from 'lucide-react';
+import { Search, X, ChevronRight, Info, Brain, Loader2, AlertTriangle, Lightbulb, Droplets, Beef, Wheat, Plus, Minus, Edit2, Trash2, Moon, Activity, Leaf, Thermometer, CheckCircle2, Zap, Utensils, ShoppingBasket, Sparkles, User, History, Sun, Waves } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { analyzeFood, getNutritionData, type AnalysisResult, type NutritionData } from './lib/gemini';
@@ -1261,46 +1261,46 @@ export default function App() {
   }, [searchVal, activeCat, sortMode, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, highGYCount, isLowSleep, isStressed]);
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${darkMode ? 'bg-[#0A0A0A] text-[#E4E3E0]' : 'bg-[#F5F5F0] text-[#141414]'} pb-20 font-sans selection:bg-[#2DFF73] selection:text-black`}>
-      <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-colors duration-500 ${darkMode ? 'bg-black/50 border-white/5' : 'bg-white/50 border-black/5'} px-8 py-6`}>
+    <div className={`min-h-screen overflow-x-hidden transition-colors duration-500 ${darkMode ? 'bg-[#0A0A0A] text-[#E4E3E0]' : 'bg-[#F5F5F0] text-[#141414]'} pb-20 font-sans selection:bg-[#2DFF73] selection:text-black`}>
+      <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-colors duration-500 ${darkMode ? 'bg-black/50 border-white/5' : 'bg-white/50 border-black/5'} px-3 sm:px-8 py-4 sm:py-6`}>
         <div className="max-w-[1200px] mx-auto flex justify-between items-center">
           <div>
-            <div className={`logo text-[2.5rem] font-bold tracking-tighter transition-colors flex items-center ${darkMode ? 'text-white' : 'text-black'}`}>
+            <div className={`logo text-[1.3rem] xs:text-[1.8rem] sm:text-[2.5rem] font-bold tracking-tighter transition-colors flex items-center ${darkMode ? 'text-white' : 'text-black'}`}>
               <span>Gli</span>
-              <Utensils className="text-[#2DFF73] mx-2" size={32} />
+              <Utensils className={`text-[#2DFF73] mx-1 sm:mx-2 w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8`} />
               <span className="text-[#2DFF73] italic">Skor</span>
             </div>
-            <div className={`text-[0.85rem] font-black tracking-[0.1em] uppercase mt-1 transition-colors ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>Metabolik Sağlık ve İnsülin Analizi</div>
+            <div className={`text-[0.55rem] xs:text-[0.65rem] sm:text-[0.85rem] font-black tracking-[0.1em] uppercase mt-1 transition-colors hidden min-[380px]:block ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>Metabolik Sağlık ve İnsülin Analizi</div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-1.5 xs:gap-2 sm:gap-4">
             <button 
               onClick={() => setDarkMode(!darkMode)}
-              className={`p-3.5 rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+              className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
               title={darkMode ? "Açık Mod" : "Koyu Mod"}
             >
-              {darkMode ? <Sun size={22} className="group-hover:rotate-45 transition-transform" /> : <Moon size={22} className="group-hover:-rotate-12 transition-transform" />}
+              {darkMode ? <Sun size={16} className="xs:w-[18px] xs:h-[18px] group-hover:rotate-45 transition-transform" /> : <Moon size={16} className="xs:w-[18px] xs:h-[18px] group-hover:-rotate-12 transition-transform" />}
             </button>
             <button 
               onClick={() => setIsHistoryOpen(true)}
-              className={`p-3.5 rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+              className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
               title="Analiz Geçmişi"
             >
-              <History size={22} className="group-hover:rotate-[-12deg] transition-transform" />
+              <History size={16} className="xs:w-[18px] xs:h-[18px] group-hover:rotate-[-12deg] transition-transform" />
             </button>
             <button 
               onClick={() => setIsProfileOpen(true)}
-              className={`p-3.5 rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+              className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
               title="Kullanıcı Profili"
             >
-              <User size={22} className="group-hover:scale-110 transition-transform" />
+              <User size={16} className="xs:w-[18px] xs:h-[18px] group-hover:scale-110 transition-transform" />
             </button>
             <button 
               onClick={openAddModal}
-              className="bg-[#2DFF73] text-black p-3.5 rounded-2xl hover:bg-[#2DFF73]/90 transition-all shadow-[0_0_30px_rgba(45,255,115,0.3)] hover:scale-105 active:scale-95 flex items-center gap-2 font-black text-[0.8rem] uppercase tracking-widest px-6"
+              className="bg-[#2DFF73] text-black p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl hover:bg-[#2DFF73]/90 transition-all shadow-[0_0_30px_rgba(45,255,115,0.3)] hover:scale-105 active:scale-95 flex items-center gap-1.5 xs:gap-2 font-black text-[0.65rem] xs:text-[0.7rem] sm:text-[0.8rem] uppercase tracking-widest px-3 xs:px-4 sm:px-6"
               title="Yeni Besin Ekle"
             >
-              <Plus size={20} strokeWidth={3} />
-              <span className="hidden sm:inline">Besin Ekle</span>
+              <Plus size={16} className="xs:w-[18px] xs:h-[18px]" strokeWidth={3} />
+              <span className="hidden min-[540px]:inline">Besin Ekle</span>
             </button>
           </div>
         </div>
@@ -1538,7 +1538,7 @@ export default function App() {
       </AnimatePresence>
 
       {aiError && (
-        <div className="max-w-[900px] mx-auto mt-4 px-8">
+        <div className="max-w-[900px] mx-auto mt-4 px-4 sm:px-8">
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-[0.85rem] flex items-center gap-2">
             <AlertTriangle size={16} />
             {aiError}
@@ -1546,7 +1546,7 @@ export default function App() {
         </div>
       )}
 
-      <div className="max-w-[900px] mx-auto mt-4 px-8 flex gap-2 flex-wrap">
+      <div className="max-w-[900px] mx-auto mt-4 px-4 sm:px-8 flex gap-2 flex-wrap">
         <button 
           onClick={() => setQuickFilter(quickFilter === 'super' ? 'none' : 'super')}
           className={`flex items-center gap-1.5 text-[0.7rem] px-3 py-1.5 rounded-full border transition-all ${quickFilter === 'super' ? 'bg-green-600 border-green-600 text-white' : 'bg-white border-green-100 text-green-700 hover:bg-green-50'}`}
@@ -1567,7 +1567,7 @@ export default function App() {
         </button>
       </div>
 
-      <div className="max-w-[900px] mx-auto mt-4 px-8 flex gap-2 flex-wrap">
+      <div className="max-w-[900px] mx-auto mt-4 px-4 sm:px-8 flex gap-2 flex-wrap">
         {cats.map(cat => (
           <button
             key={cat}
@@ -1583,12 +1583,13 @@ export default function App() {
         ))}
       </div>
 
-      <div className="max-w-[900px] mx-auto mt-6 px-8">
-        <div className={`rounded-3xl p-6 flex flex-col sm:flex-row gap-6 border ${darkMode ? 'glass border-white/10' : 'light-glass border-black/10 shadow-md'}`}>
+      {/* Info Section - More Subtle & Professional */}
+      <div className="max-w-[900px] mx-auto mt-6 px-4 sm:px-8">
+        <div className={`rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row gap-6 sm:gap-12 border transition-all ${darkMode ? 'bg-white/[0.02] border-white/5' : 'bg-black/[0.02] border-black/5 shadow-sm'}`}>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-[#FF6B2B] neon-orange"></div>
-              <span className={`text-[0.85rem] font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-black'}`}>İnsülin Skoru</span>
+              <div className="w-2 h-2 rounded-full bg-[#FF6B2B] shadow-[0_0_10px_rgba(255,107,43,0.5)]"></div>
+              <span className={`text-[0.75rem] font-black uppercase tracking-widest ${darkMode ? 'text-white/70' : 'text-black/70'}`}>İnsülin Skoru</span>
             </div>
             <p className="text-[0.75rem] text-zinc-500 font-medium leading-relaxed">
               Besinin kan şekeri ve insülin üzerindeki etkisini ölçer. <span className={darkMode ? 'text-white' : 'text-black'}>10</span> en güvenli, <span className={darkMode ? 'text-white' : 'text-black'}>1</span> en riskli değerdir.
@@ -1597,8 +1598,8 @@ export default function App() {
           <div className={`w-px hidden sm:block ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-[#2B6BFF] neon-blue"></div>
-              <span className={`text-[0.85rem] font-black uppercase tracking-widest ${darkMode ? 'text-white' : 'text-black'}`}>Sağlık Skoru</span>
+              <div className="w-2 h-2 rounded-full bg-[#2B6BFF] shadow-[0_0_10px_rgba(43,107,255,0.5)]"></div>
+              <span className={`text-[0.75rem] font-black uppercase tracking-widest ${darkMode ? 'text-white/70' : 'text-black/70'}`}>Sağlık Skoru</span>
             </div>
             <p className="text-[0.75rem] text-zinc-500 font-medium leading-relaxed">
               Besinin vitamin, mineral, lif ve protein yoğunluğunu ölçer. <span className={darkMode ? 'text-white' : 'text-black'}>10</span> en besleyici, <span className={darkMode ? 'text-white' : 'text-black'}>1</span> en boş kalorili değerdir.
@@ -1607,180 +1608,143 @@ export default function App() {
         </div>
       </div>
 
-      <div className="max-w-[900px] mx-auto mt-8 px-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className={`flex rounded-[2rem] overflow-hidden p-1.5 gap-1.5 border ${darkMode ? 'glass border-white/10' : 'light-glass border-black/10 shadow-sm'}`}>
-          <button 
-            onClick={() => { setIsCooked(true); setIsResistant(false); }}
-            className={`flex-1 py-3 px-2 rounded-2xl text-[0.75rem] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${isCooked && !isResistant ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : `text-zinc-500 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}`}
-          >
-            <Beef size={16} />
-            Sıcak
-          </button>
-          <button 
-            onClick={() => { setIsCooked(false); setIsResistant(true); }}
-            className={`flex-1 py-3 px-2 rounded-2xl text-[0.75rem] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${isResistant ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : `text-zinc-500 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}`}
-          >
-            <Loader2 size={16} />
-            Dirençli
-          </button>
-          <button 
-            onClick={() => { setIsCooked(false); setIsResistant(false); }}
-            className={`flex-1 py-3 px-2 rounded-2xl text-[0.75rem] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${!isCooked && !isResistant ? (darkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-black/10 text-black border border-black/10') : `text-zinc-500 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}`}
-          >
-            <Thermometer size={16} />
-            Çiğ
-          </button>
+      {/* Control Panel - More Dashboard-like */}
+      <div className="max-w-[900px] mx-auto mt-8 px-4 sm:px-8 flex flex-col gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className={`p-1.5 rounded-2xl border flex gap-1 ${darkMode ? 'bg-white/[0.02] border-white/5' : 'bg-black/[0.02] border-black/5'}`}>
+            {[
+              { id: 'hot', label: 'SICAK', active: isCooked && !isResistant, onClick: () => { setIsCooked(true); setIsResistant(false); } },
+              { id: 'res', label: 'DİRENÇLİ', active: isResistant, onClick: () => { setIsCooked(false); setIsResistant(true); } },
+              { id: 'raw', label: 'ÇİĞ', active: !isCooked && !isResistant, onClick: () => { setIsCooked(false); setIsResistant(false); } }
+            ].map((t) => (
+              <button
+                key={t.id}
+                onClick={t.onClick}
+                className={`flex-1 py-2.5 rounded-xl text-[0.65rem] font-black tracking-widest transition-all ${t.active ? (darkMode ? 'bg-white text-black' : 'bg-black text-white') : 'opacity-40 hover:opacity-100'}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          
+          <div className={`p-1.5 rounded-2xl border flex gap-1 ${darkMode ? 'bg-white/[0.02] border-white/5' : 'bg-black/[0.02] border-black/5'}`}>
+            {[
+              { id: 'ideal', label: 'İDEAL', active: mealSequence === 'ideal', onClick: () => setMealSequence('ideal') },
+              { id: 'standard', label: 'STANDART', active: mealSequence === 'standard', onClick: () => setMealSequence('standard') },
+              { id: 'carbs', label: 'KARB ÖNCE', active: mealSequence === 'carbsFirst', onClick: () => setMealSequence('carbsFirst') }
+            ].map((m) => (
+              <button
+                key={m.id}
+                onClick={m.onClick}
+                className={`flex-1 py-2.5 rounded-xl text-[0.65rem] font-black tracking-widest transition-all ${m.active ? (darkMode ? 'bg-white text-black' : 'bg-black text-white') : 'opacity-40 hover:opacity-100'}`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className={`flex rounded-[2rem] overflow-hidden p-1.5 gap-1.5 border ${darkMode ? 'glass border-white/10' : 'light-glass border-black/10 shadow-sm'}`}>
-          <button 
-            onClick={() => setMealSequence('ideal')}
-            className={`flex-1 py-3 px-2 rounded-2xl text-[0.75rem] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${mealSequence === 'ideal' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : `text-zinc-500 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}`}
-          >
-            <Wheat size={16} />
-            İdeal
-          </button>
-          <button 
-            onClick={() => setMealSequence('standard')}
-            className={`flex-1 py-3 px-2 rounded-2xl text-[0.75rem] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${mealSequence === 'standard' ? (darkMode ? 'bg-white/10 text-white border border-white/10' : 'bg-black/10 text-black border border-black/10') : `text-zinc-500 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}`}
-          >
-            Standart
-          </button>
-          <button 
-            onClick={() => setMealSequence('carbsFirst')}
-            className={`flex-1 py-3 px-2 rounded-2xl text-[0.75rem] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${mealSequence === 'carbsFirst' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : `text-zinc-500 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}`}
-          >
-            <AlertTriangle size={16} />
-            Karb Önce
-          </button>
-        </div>
-        <div className={`flex rounded-[2rem] overflow-hidden p-1.5 gap-1.5 border ${darkMode ? 'glass border-white/10' : 'light-glass border-black/10 shadow-sm'}`}>
-          <button 
-            onClick={() => setHasAcid(!hasAcid)}
-            className={`flex-1 py-3 px-2 rounded-2xl text-[0.75rem] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${hasAcid ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : `text-zinc-500 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}`}
-          >
-            <Droplets size={16} />
-            Asit
-          </button>
-          <button 
-            onClick={() => setIsLiquid(!isLiquid)}
-            className={`flex-1 py-3 px-2 rounded-2xl text-[0.75rem] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${isLiquid ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : `text-zinc-500 ${darkMode ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}`}
-          >
-            <Droplets size={16} />
-            Sıvı
-          </button>
-          <button 
-            onClick={() => setIsProcessed(!isProcessed)}
-            className={`flex-1 py-3 px-2 rounded-2xl text-[0.75rem] font-black uppercase tracking-tighter transition-all flex flex-col items-center justify-center gap-1 ${isProcessed ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-zinc-500 hover:bg-white/5'}`}
-          >
-            <AlertTriangle size={16} />
-            İşlenmiş
-          </button>
+
+        <div className="flex gap-2">
+          {[
+            { id: 'asit', label: 'ASİT', active: hasAcid, onClick: () => setHasAcid(!hasAcid), icon: <Droplets size={12} /> },
+            { id: 'sivi', label: 'SIVI', active: isLiquid, onClick: () => setIsLiquid(!isLiquid), icon: <Waves size={12} /> },
+            { id: 'islenmis', label: 'İŞLENMİŞ', active: isProcessed, onClick: () => setIsProcessed(!isProcessed), icon: <AlertTriangle size={12} /> }
+          ].map((f) => (
+            <button
+              key={f.id}
+              onClick={f.onClick}
+              className={`flex-1 py-3 rounded-2xl border flex items-center justify-center gap-2 text-[0.65rem] font-black tracking-widest transition-all ${f.active ? 'bg-red-500/20 border-red-500/40 text-red-500' : (darkMode ? 'bg-white/[0.02] border-white/5 opacity-40 hover:opacity-100' : 'bg-black/[0.02] border-black/5 opacity-40 hover:opacity-100')}`}
+            >
+              {f.icon}
+              {f.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="max-w-[900px] mx-auto mt-4 px-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white/5 border border-white/5 rounded-2xl p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-indigo-500/10 rounded-xl text-indigo-400">
-              <Activity size={20} />
-            </div>
-            <div>
-              <div className="text-[0.85rem] font-bold text-white flex items-center gap-2">
-                Sirkadiyen Ritim
-                <button title="Besini ne zaman tükettiğin metabolik yanıtı değiştirir. Gece geç saatlerde insülin direnci artar."><Info size={12} className="text-[#A8A39E]" /></button>
+      {/* Metabolic Dashboard - Compact & Professional */}
+      <div className="max-w-[900px] mx-auto mt-6 px-4 sm:px-8">
+        <div className={`p-6 sm:p-8 rounded-[2rem] border grid grid-cols-1 md:grid-cols-2 gap-8 ${darkMode ? 'bg-white/[0.02] border-white/5' : 'bg-black/[0.02] border-black/5 shadow-sm'}`}>
+          
+          {/* Circadian */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`p-2 rounded-lg ${darkMode ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-500/5 text-indigo-600'}`}>
+                  <Activity size={14} />
+                </div>
+                <span className="text-[0.65rem] font-black uppercase tracking-widest opacity-60">Sirkadiyen Ritim</span>
               </div>
-              <div className="text-[0.7rem] text-[#A8A39E] font-medium">Tüketim saati</div>
+              <span className="text-[0.8rem] font-black font-mono">{consumptionHour.toString().padStart(2, '0')}:00</span>
             </div>
-          </div>
-          <div className="flex items-center gap-4">
             <input 
-              type="range" 
-              min="0" 
-              max="23" 
-              value={consumptionHour} 
+              type="range" min="0" max="23" value={consumptionHour} 
               onChange={(e) => setConsumptionHour(parseInt(e.target.value))}
-              className="w-24 sm:w-32 accent-[#2DFF73]"
+              className="w-full accent-[#2DFF73] h-1.5 bg-white/5 rounded-full appearance-none cursor-pointer"
             />
-            <div className="bg-[#2DFF73] text-black px-3 py-1 rounded-lg font-bold text-[0.9rem] min-w-[60px] text-center">
-              {consumptionHour.toString().padStart(2, '0')}:00
-            </div>
           </div>
-        </div>
 
-        <div className="bg-white/5 border border-white/5 rounded-2xl p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-red-500/10 rounded-xl text-red-400">
-              <Zap size={20} />
-            </div>
-            <div>
-              <div className="text-[0.85rem] font-bold text-white flex items-center gap-2">
-                İnsülin Penceresi
-                <button title="Günde 3'ten fazla yüksek glisemik yük (GY) öğünü tüketmek insülin direncini tetikler."><Info size={12} className="text-[#A8A39E]" /></button>
+          {/* Insulin Window */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`p-2 rounded-lg ${darkMode ? 'bg-red-500/10 text-red-400' : 'bg-red-500/5 text-red-600'}`}>
+                  <Zap size={14} />
+                </div>
+                <span className="text-[0.65rem] font-black uppercase tracking-widest opacity-60">İnsülin Penceresi</span>
               </div>
-              <div className="text-[0.7rem] text-[#A8A39E] font-medium">Günlük GY+ öğün sayısı</div>
+              <div className="flex items-center gap-3">
+                <button onClick={() => setHighGYCount(Math.max(0, highGYCount - 1))} className="opacity-40 hover:opacity-100 transition-opacity"><Minus size={14} /></button>
+                <span className="text-[0.8rem] font-black font-mono w-4 text-center">{highGYCount}</span>
+                <button onClick={() => setHighGYCount(highGYCount + 1)} className="opacity-40 hover:opacity-100 transition-opacity"><Plus size={14} /></button>
+              </div>
+            </div>
+            <div className="flex gap-1">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className={`h-1.5 flex-1 rounded-full transition-colors ${i < highGYCount ? 'bg-red-500' : (darkMode ? 'bg-white/5' : 'bg-black/5')}`} />
+              ))}
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
+
+          {/* Sleep */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`p-2 rounded-lg ${darkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-500/5 text-blue-600'}`}>
+                  <Moon size={14} />
+                </div>
+                <span className="text-[0.65rem] font-black uppercase tracking-widest opacity-60">Uyku Kalitesi</span>
+              </div>
               <button 
-                onClick={() => setHighGYCount(Math.max(0, highGYCount - 1))}
-                className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white hover:bg-white/10 transition-colors border border-white/5"
-              >-</button>
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[1.1rem] font-bold border ${highGYCount >= 3 ? 'bg-red-500/20 border-red-500/30 text-red-400' : 'bg-white/5 border-white/10 text-white'}`}>
-                {highGYCount}
+                onClick={() => setIsLowSleep(!isLowSleep)}
+                className={`text-[0.65rem] font-black px-4 py-1.5 rounded-full border transition-all ${!isLowSleep ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-500' : 'bg-red-500/20 border-red-500/40 text-red-500'}`}
+              >
+                {!isLowSleep ? 'İyi Uyudum' : 'Az Uyudum'}
+              </button>
+            </div>
+          </div>
+
+          {/* Stress */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className={`p-2 rounded-lg ${darkMode ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-500/5 text-orange-600'}`}>
+                  <Thermometer size={14} />
+                </div>
+                <span className="text-[0.65rem] font-black uppercase tracking-widest opacity-60">Stres Seviyesi</span>
               </div>
               <button 
-                onClick={() => setHighGYCount(highGYCount + 1)}
-                className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white hover:bg-white/10 transition-colors border border-white/5"
-              >+</button>
+                onClick={() => setIsStressed(!isStressed)}
+                className={`text-[0.65rem] font-black px-4 py-1.5 rounded-full border transition-all ${!isStressed ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-500' : 'bg-red-500/20 border-red-500/40 text-red-500'}`}
+              >
+                {!isStressed ? 'Sakinim' : 'Stresliyim'}
+              </button>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white/5 border border-white/5 rounded-2xl p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400">
-              <Moon size={20} />
-            </div>
-            <div>
-              <div className="text-[0.85rem] font-bold text-white flex items-center gap-2">
-                Uyku Kalitesi
-                <button title="Yetersiz uyku (6 saatten az) ertesi gün insülin direncini %30'a kadar artırabilir."><Info size={12} className="text-[#A8A39E]" /></button>
-              </div>
-              <div className="text-[0.7rem] text-[#A8A39E] font-medium">Dün geceki uyku</div>
-            </div>
-          </div>
-          <button 
-            onClick={() => setIsLowSleep(!isLowSleep)}
-            className={`px-5 py-2.5 rounded-xl text-[0.85rem] font-bold transition-all ${isLowSleep ? 'bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-white/5 text-[#A8A39E] hover:bg-white/10 border border-white/5'}`}
-          >
-            {isLowSleep ? 'Az Uyudum' : 'İyi Uyudum'}
-          </button>
-        </div>
-
-        <div className="bg-white/5 border border-white/5 rounded-2xl p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-orange-500/10 rounded-xl text-orange-400">
-              <Thermometer size={20} />
-            </div>
-            <div>
-              <div className="text-[0.85rem] font-bold text-white flex items-center gap-2">
-                Stres Seviyesi
-                <button title="Yüksek kortizol (stres hormonu) kan şekerini yükseltir ve insülinin etkisini bloke eder."><Info size={12} className="text-[#A8A39E]" /></button>
-              </div>
-              <div className="text-[0.7rem] text-[#A8A39E] font-medium">Anlık stres durumu</div>
-            </div>
-          </div>
-          <button 
-            onClick={() => setIsStressed(!isStressed)}
-            className={`px-5 py-2.5 rounded-xl text-[0.85rem] font-bold transition-all ${isStressed ? 'bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.3)]' : 'bg-white/5 text-[#A8A39E] hover:bg-white/10 border border-white/5'}`}
-          >
-            {isStressed ? 'Stresliyim' : 'Sakinim'}
-          </button>
         </div>
       </div>
 
-      <div className="max-w-[900px] mx-auto mt-6 px-8 flex items-center justify-between">
+      <div className="max-w-[900px] mx-auto mt-6 px-4 sm:px-8 flex items-center justify-between">
         <span className="text-[0.8rem] text-[#A8A39E] font-light">{filteredFoods.length} besin listelendi</span>
         <div className="flex gap-[6px]">
           {(['skor', 'gi', 'isim'] as const).map(mode => (
@@ -1799,18 +1763,18 @@ export default function App() {
         </div>
       </div>
 
-      <div className="max-w-[1000px] mx-auto mt-12 px-8 flex flex-wrap justify-center gap-8 border-y border-white/5 py-8">
+      <div className="max-w-[1000px] mx-auto mt-12 px-4 sm:px-8 grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-x-6 gap-y-8 sm:gap-8 border-y border-white/5 py-10">
         {[
           { color: '#2DFF73', label: '8–10 GÜVENLİ', desc: 'Metabolik denge' },
           { color: '#FACC15', label: '5–7 ÖLÇÜLÜ', desc: 'Porsiyon kontrolü' },
           { color: '#F97316', label: '3–4 DİKKATLİ', desc: 'Yüksek insülin' },
           { color: '#EF4444', label: '1–2 KAÇIN', desc: 'Kritik seviye' }
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-4 group">
-            <div className="w-3 h-3 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)] transition-all group-hover:scale-125" style={{ backgroundColor: item.color, boxShadow: `0 0 15px ${item.color}40` }} />
-            <div>
-              <div className="text-[0.75rem] font-black tracking-widest text-white">{item.label}</div>
-              <div className="text-[0.6rem] font-medium text-zinc-500 uppercase tracking-wider">{item.desc}</div>
+          <div key={i} className="flex items-center gap-3 sm:gap-4 group justify-center sm:justify-start">
+            <div className="w-2.5 h-2.5 sm:w-3 h-3 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)] transition-all group-hover:scale-125 shrink-0" style={{ backgroundColor: item.color, boxShadow: `0 0 15px ${item.color}40` }} />
+            <div className="flex flex-col">
+              <div className={`text-[0.65rem] sm:text-[0.75rem] font-black tracking-widest leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{item.label}</div>
+              <div className="text-[0.55rem] sm:text-[0.6rem] font-medium text-zinc-500 uppercase tracking-wider mt-1">{item.desc}</div>
             </div>
           </div>
         ))}
