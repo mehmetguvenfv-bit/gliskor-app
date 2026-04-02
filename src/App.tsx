@@ -8,6 +8,7 @@ import { Search, X, ChevronRight, Info, Brain, Loader2, AlertTriangle, Lightbulb
 import { motion, AnimatePresence } from 'motion/react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { analyzeFood, getNutritionData, type AnalysisResult, type NutritionData } from './lib/gemini';
+import { CURRENT_VERSION, VERSION_HISTORY } from './constants/versions';
 
 interface Food {
   isim: string;
@@ -1007,6 +1008,7 @@ export default function App() {
   const [darkMode, setDarkMode] = useState(true);
   const [isPlateOpen, setIsPlateOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
@@ -1269,20 +1271,6 @@ export default function App() {
               <span className="text-[#2DFF73] italic">Skor</span>
             </div>
             <div className={`text-[0.85rem] font-black tracking-[0.1em] uppercase mt-1 transition-colors ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>Metabolik Sağlık ve İnsülin Analizi</div>
-            <div className={`flex items-center gap-2 text-[0.7rem] font-bold tracking-[0.05em] uppercase mt-1.5 transition-colors ${darkMode ? 'text-[#2DFF73]/80' : 'text-emerald-700/80'}`}>
-              <span className="opacity-60">Engineered by</span>
-              <span className="font-black tracking-widest">Mgv</span>
-              <span className="mx-1 opacity-20">|</span>
-              <span className="opacity-60">Powered by</span>
-              <span className="font-black tracking-widest">Google AI Studio</span>
-              <span className="mx-1 opacity-20">|</span>
-              <span className="opacity-40 font-mono">v2.1.0</span>
-              <span className="mx-1 opacity-20">|</span>
-              <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#2DFF73] animate-pulse shadow-[0_0_8px_rgba(45,255,115,0.5)]" />
-                <span className="opacity-40 text-[0.65rem]">System Online</span>
-              </div>
-            </div>
           </div>
           <div className="flex gap-4">
             <button 
@@ -2393,6 +2381,62 @@ export default function App() {
 
       {/* Profile Modal */}
       <AnimatePresence>
+        {isVersionHistoryOpen && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className={`rounded-[3rem] border shadow-2xl overflow-hidden max-w-2xl w-full p-10 max-h-[80vh] flex flex-col ${darkMode ? 'bg-[#0A0A0A] border-white/10' : 'bg-[#F5F5F0] border-black/10'}`}
+            >
+              <div className="flex items-center justify-between mb-8 shrink-0">
+                <div>
+                  <h3 className={`text-[2rem] font-black tracking-tighter bg-gradient-to-br bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>Sürüm Notları</h3>
+                  <p className="text-zinc-500 text-[0.8rem] font-bold uppercase tracking-widest mt-1">GliSkor Gelişim Günlüğü</p>
+                </div>
+                <button 
+                  onClick={() => setIsVersionHistoryOpen(false)}
+                  className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10' : 'bg-black/5 border-black/10 text-zinc-500 hover:bg-black/10'}`}
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto pr-4 custom-scrollbar space-y-8">
+                {VERSION_HISTORY.map((v, idx) => (
+                  <div key={v.version} className={`relative pl-8 border-l-2 ${idx === 0 ? 'border-[#2DFF73]' : 'border-zinc-800'}`}>
+                    <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 ${idx === 0 ? 'bg-[#2DFF73] border-[#2DFF73]' : 'bg-zinc-900 border-zinc-800'}`} />
+                    <div className="flex items-baseline gap-3 mb-4">
+                      <span className={`text-[1.5rem] font-black tracking-tighter ${idx === 0 ? 'text-[#2DFF73]' : 'text-zinc-400'}`}>{v.version}</span>
+                      <span className="text-zinc-500 text-[0.7rem] font-bold uppercase tracking-widest">{v.date}</span>
+                      {idx === 0 && (
+                        <span className="bg-[#2DFF73]/10 text-[#2DFF73] text-[0.6rem] px-2 py-0.5 rounded-full font-black uppercase tracking-widest">Güncel</span>
+                      )}
+                    </div>
+                    <ul className="space-y-3">
+                      {v.changes.map((change, i) => (
+                        <li key={i} className="flex gap-3 text-[0.9rem] text-zinc-400 leading-relaxed">
+                          <span className="text-[#2DFF73] mt-1.5 shrink-0">•</span>
+                          <span>{change}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-white/5 shrink-0">
+                <button 
+                  onClick={() => setIsVersionHistoryOpen(false)}
+                  className="w-full bg-white/5 hover:bg-white/10 text-white py-4 rounded-2xl font-bold transition-all"
+                >
+                  Kapat
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
         {isProfileOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
             <motion.div 
@@ -2486,6 +2530,24 @@ export default function App() {
                   >
                     Profili Güncelle
                   </button>
+
+                  <div className={`flex items-center justify-center gap-2 text-[0.6rem] font-bold tracking-[0.05em] uppercase mt-6 transition-colors ${darkMode ? 'text-[#2DFF73]/60' : 'text-emerald-700/60'}`}>
+                    <span className="opacity-60">Engineered by</span>
+                    <span className="font-black tracking-widest">Mgv</span>
+                    <span className="mx-1 opacity-20">|</span>
+                    <span className="opacity-60">Powered by</span>
+                    <span className="font-black tracking-widest">Google AI Studio</span>
+                    <span className="mx-1 opacity-20">|</span>
+                    <button 
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        setIsVersionHistoryOpen(true);
+                      }}
+                      className="opacity-40 font-mono hover:opacity-100 hover:text-[#2DFF73] transition-all cursor-help"
+                    >
+                      {CURRENT_VERSION}
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
