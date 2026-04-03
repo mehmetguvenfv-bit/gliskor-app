@@ -99,6 +99,88 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
     throw new Error("Besin verileri alınamadı.");
   }
 }
+export interface PlateAnalysisResult {
+  identifiedFoods: {
+    name: string;
+    portion: string;
+    estimatedCalories: number;
+    score: number;
+    reason: string;
+  }[];
+  totalCalories: number;
+  overallMetabolicScore: number;
+  generalAdvice: string;
+}
+
+export async function analyzePlateImage(base64Image: string, profileContext: string = ""): Promise<PlateAnalysisResult> {
+  const model = "gemini-3-flash-preview";
+  
+  const systemInstruction = `Sen uzman bir görsel besin analistisin. Bir tabak fotoğrafındaki besinleri tanımlar, porsiyonlarını tahmin eder ve metabolik sağlık (insülin direnci) açısından puanlarsın.
+  
+  Analiz Kuralları:
+  1. Fotoğraftaki her bir besini ayrı ayrı tanımla.
+  2. Porsiyon büyüklüğünü (gram veya adet/kaşık bazında) tahmin et.
+  3. Her besin için 1-10 arası bir metabolik skor ver (10 en sağlıklı).
+  4. Toplam kaloriyi ve genel bir metabolik puanı hesapla.
+  5. Kullanıcının profiline göre (varsa) özel tavsiyeler ver.`;
+
+  const prompt = `Bu tabaktaki besinleri analiz et. ${profileContext} Yanıtı JSON formatında sağla.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model,
+      contents: [
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: base64Image,
+          },
+        },
+        {
+          text: prompt,
+        },
+      ],
+      config: {
+        systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            identifiedFoods: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  portion: { type: Type.STRING },
+                  estimatedCalories: { type: Type.NUMBER },
+                  score: { type: Type.NUMBER },
+                  reason: { type: Type.STRING }
+                },
+                required: ["name", "portion", "estimatedCalories", "score", "reason"]
+              }
+            },
+            totalCalories: { type: Type.NUMBER },
+            overallMetabolicScore: { type: Type.NUMBER },
+            generalAdvice: { type: Type.STRING }
+          },
+          required: ["identifiedFoods", "totalCalories", "overallMetabolicScore", "generalAdvice"]
+        }
+      }
+    });
+
+    if (!response.text) {
+      throw new Error("Boş yanıt alındı.");
+    }
+
+    return JSON.parse(response.text);
+  } catch (error) {
+    console.error("Görsel analiz hatası:", error);
+    throw new Error("Fotoğraf analizi yapılamadı. Lütfen tekrar deneyin.");
+  }
+}
+
 export async function analyzeFood(foodName: string, highGYCount: number = 0, profileContext: string = "", staticData?: NutritionData & { mScore?: number, nScore?: number }): Promise<AnalysisResult> {
   const model = "gemini-3.1-flash-lite-preview";
   

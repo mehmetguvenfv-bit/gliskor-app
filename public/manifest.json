@@ -1,0 +1,23 @@
+{
+  "name": "GliSkor",
+  "short_name": "GliSkor",
+  "description": "Glisemik Puanlama ve Besin Analizi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141412",
+  "theme_color": "#2DFF73",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/gliskor-icon/192/192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://picsum.photos/seed/gliskor-icon/512/512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -6,6 +6,36 @@ export interface VersionNote {
 
 export const VERSION_HISTORY: VersionNote[] = [
   {
+    version: "v2.5.0",
+    date: "3 Nisan 2026",
+    changes: [
+      "Gelişmiş AI ve Görüntü İşleme (Plate Analysis) özelliği eklendi.",
+      "Tabak fotoğrafından besin tanımlama ve metabolik puanlama motoru devreye alındı.",
+      "Kamera ve galeri üzerinden hızlı besin analizi desteği sağlandı.",
+      "Tanımlanan besinlerin toplu olarak günlüğe eklenmesi özelliği eklendi."
+    ]
+  },
+  {
+    version: "v2.4.0",
+    date: "3 Nisan 2026",
+    changes: [
+      "Günlük Öğün Takibi (Tracking) sistemi eklendi.",
+      "Günlük Toplam Glikoz Yükü (Daily GL) hesaplama motoru devreye alındı.",
+      "Metabolik Performans Skoru ile günlük analiz özelliği eklendi.",
+      "Besinleri doğrudan günlüğe ekleme ve geçmişi yönetme imkanı sağlandı."
+    ]
+  },
+  {
+    version: "v2.3.0",
+    date: "3 Nisan 2026",
+    changes: [
+      "Kişiselleştirilmiş Metabolik Profil sistemi eklendi.",
+      "Boy, Aktivite Seviyesi ve Hedef bazlı dinamik skorlama algoritması devreye alındı.",
+      "Profil modalı yeni veri alanları ile genişletildi.",
+      "AI analiz motoru artık kullanıcı hedeflerine göre özel tavsiyeler üretiyor."
+    ]
+  },
+  {
     version: "v2.2.0",
     date: "2 Nisan 2026",
     changes: [

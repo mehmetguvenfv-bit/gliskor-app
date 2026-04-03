@@ -1,5 +1,5 @@
 {
   "name": "GliSkor",
   "description": "İnsülin direnci için glisemik puanlama ve uzman AI besin analizi rehberi.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["camera"]
 }
