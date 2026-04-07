@@ -60,9 +60,13 @@ class ErrorBoundary extends (React.Component as any) {
   }
 }
 import { motion, AnimatePresence } from 'motion/react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { analyzeFood, getNutritionData, analyzePlateImage, type AnalysisResult, type NutritionData, type PlateAnalysisResult } from './lib/gemini';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, Legend } from 'recharts';
+import { analyzeFood, getNutritionData, analyzePlateImage, getCoachResponse, analyzeBarcode, type AnalysisResult, type NutritionData, type PlateAnalysisResult } from './lib/gemini';
 import { CURRENT_VERSION, VERSION_HISTORY } from './constants/versions';
+import { auth, db, signInWithGoogle, logout } from './lib/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { doc, setDoc, getDoc, collection, query, where, onSnapshot, addDoc, orderBy, limit, Timestamp, serverTimestamp } from 'firebase/firestore';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface Food {
   isim: string;
@@ -1155,10 +1159,95 @@ function GliSkorApp() {
   const [isPlateAnalysisOpen, setIsPlateAnalysisOpen] = useState(false);
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [isChallengeOpen, setIsChallengeOpen] = useState(false);
+  const [isCoachOpen, setIsCoachOpen] = useState(false);
+  const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
+  const [isStatsOpen, setIsStatsOpen] = useState(false);
+  const [isRecipeOpen, setIsRecipeOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [waterIntake, setWaterIntake] = useState(0);
+  const [coachMessages, setCoachMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
+  const [isCoachLoading, setIsCoachLoading] = useState(false);
   const [plateAnalysisResult, setPlateAnalysisResult] = useState<PlateAnalysisResult | null>(null);
   const [isPlateAnalysisLoading, setIsPlateAnalysisLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState({ current: 0, total: 0 });
+
+  // Firebase Auth Listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      if (user) {
+        // Load user data from Firestore
+        const userRef = doc(db, 'users', user.uid);
+        getDoc(userRef).then((docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserProfile(prev => ({ ...prev, ...data }));
+            if (data.achievements) {
+              setAchievements(data.achievements);
+            }
+            if (data.points !== undefined) {
+              setUserStats(prev => ({
+                ...prev,
+                points: data.points || 0,
+                level: data.level || 1,
+                streak: data.streak || 0
+              }));
+            }
+          } else {
+            // Create initial profile
+            setDoc(userRef, {
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              createdAt: serverTimestamp(),
+              ...userProfile
+            });
+          }
+        });
+
+        // Sync Food Logs
+        const logsRef = collection(db, 'users', user.uid, 'foodLogs');
+        const today = new Date().setHours(0, 0, 0, 0);
+        const q = query(logsRef, where('timestamp', '>=', new Date(today).toISOString()));
+        const unsubscribeLogs = onSnapshot(q, (snapshot) => {
+          const logs: LogEntry[] = [];
+          snapshot.forEach((doc) => {
+            const data = doc.data();
+            logs.push({
+              id: doc.id,
+              food: data as Food,
+              amount: data.amount || 100,
+              timestamp: new Date(data.timestamp).getTime(),
+              mealType: data.mealType || 'Atıştırmalık'
+            });
+          });
+          setDailyLog(logs);
+        });
+
+        return () => unsubscribeLogs();
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      setAiError("Giriş yapılamadı.");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setDailyLog([]);
+      setAiSuccess("Çıkış yapıldı.");
+    } catch (error) {
+      setAiError("Çıkış yapılamadı.");
+    }
+  };
 
   // Gamification State
   const [userStats, setUserStats] = useState<UserStats>(() => {
@@ -1213,7 +1302,7 @@ function GliSkorApp() {
       const newPoints = prev.points + pointsEarned;
       const newLevel = Math.floor(newPoints / 500) + 1;
 
-      return {
+      const updated = {
         ...prev,
         points: newPoints,
         level: newLevel,
@@ -1222,6 +1311,20 @@ function GliSkorApp() {
         totalLogs: prev.totalLogs + 1,
         bestMetabolicScore: Math.max(prev.bestMetabolicScore, score)
       };
+
+      if (currentUser) {
+        const userRef = doc(db, 'users', currentUser.uid);
+        setDoc(userRef, {
+          points: newPoints,
+          level: newLevel,
+          streak: newStreak,
+          lastLogDate: today,
+          totalLogs: updated.totalLogs,
+          bestMetabolicScore: updated.bestMetabolicScore
+        }, { merge: true }).catch(err => console.error("Error updating stats:", err));
+      }
+
+      return updated;
     });
   }, []);
 
@@ -1267,9 +1370,13 @@ function GliSkorApp() {
 
         return achievement;
       });
+      if (changed && currentUser) {
+        const userRef = doc(db, 'users', currentUser.uid);
+        setDoc(userRef, { achievements: next }, { merge: true }).catch(err => console.error("Error syncing achievements:", err));
+      }
       return changed ? next : prev;
     });
-  }, [userStats]);
+  }, [userStats, currentUser]);
 
   // Persistence Effects
   useEffect(() => {
@@ -1290,7 +1397,11 @@ function GliSkorApp() {
 
   useEffect(() => {
     localStorage.setItem('gliskor_profile', JSON.stringify(userProfile));
-  }, [userProfile]);
+    if (currentUser) {
+      const userRef = doc(db, 'users', currentUser.uid);
+      setDoc(userRef, userProfile, { merge: true }).catch(err => console.error("Error syncing profile:", err));
+    }
+  }, [userProfile, currentUser]);
 
   useEffect(() => {
     localStorage.setItem('gliskor_history', JSON.stringify(history));
@@ -1348,19 +1459,85 @@ function GliSkorApp() {
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof Food, string>>>({});
   const [isFilling, setIsFilling] = useState(false);
 
-  const addToLog = (food: Food, amount: number = 100, mealType: LogEntry['mealType'] = 'Atıştırmalık', score: number = 70) => {
+  const addToLog = async (food: Food, amount: number = 100, mealType: LogEntry['mealType'] = 'Atıştırmalık', score: number = 70) => {
+    const timestamp = Date.now();
     const newEntry: LogEntry = {
       id: Math.random().toString(36).substr(2, 9),
       food,
       amount,
-      timestamp: Date.now(),
+      timestamp,
       mealType
     };
-    setDailyLog(prev => [...prev, newEntry]);
+
+    if (currentUser) {
+      try {
+        const logsRef = collection(db, 'users', currentUser.uid, 'foodLogs');
+        await addDoc(logsRef, {
+          ...food,
+          amount,
+          timestamp: new Date(timestamp).toISOString(),
+          mealType,
+          uid: currentUser.uid
+        });
+      } catch (error) {
+        console.error("Error adding to Firestore:", error);
+      }
+    } else {
+      setDailyLog(prev => [...prev, newEntry]);
+    }
+
     updateGamification(score);
     setAiSuccess(`${food.isim} günlüğe eklendi! +${Math.max(5, Math.round(score / 5))} Puan`);
     setTimeout(() => setAiSuccess(null), 3000);
   };
+
+  const handleCoachMessage = async (text: string) => {
+    if (!text.trim()) return;
+    const newMessages = [...coachMessages, { role: 'user' as const, content: text }];
+    setCoachMessages(newMessages);
+    setIsCoachLoading(true);
+    try {
+      const profileContext = `Kullanıcı: ${userProfile.age} yaş, ${userProfile.weight}kg, ${userProfile.goal} hedefi.`;
+      const response = await getCoachResponse(newMessages, profileContext);
+      setCoachMessages(prev => [...prev, { role: 'assistant' as const, content: response }]);
+    } catch (error) {
+      setAiError("Koç şu an yanıt veremiyor.");
+    } finally {
+      setIsCoachLoading(false);
+    }
+  };
+
+  const handleBarcodeScan = async (barcode: string) => {
+    setIsAiLoading(true);
+    try {
+      const result = await analyzeBarcode(barcode);
+      setSelectedFood(result);
+      setAiSuccess(`${result.isim} bulundu!`);
+      setIsBarcodeOpen(false);
+    } catch (error) {
+      setAiError("Barkod bulunamadı.");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let scanner: Html5QrcodeScanner | null = null;
+    if (isBarcodeOpen) {
+      scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+      scanner.render((decodedText) => {
+        handleBarcodeScan(decodedText);
+        scanner?.clear();
+      }, (error) => {
+        // console.warn(error);
+      });
+    }
+    return () => {
+      if (scanner) {
+        scanner.clear().catch(err => console.error("Scanner clear error:", err));
+      }
+    };
+  }, [isBarcodeOpen]);
 
   const removeFromLog = (id: string) => {
     setDailyLog(prev => prev.filter(entry => entry.id !== id));
@@ -1906,6 +2083,23 @@ function GliSkorApp() {
               >
                 <User size={16} aria-hidden="true" className="xs:w-[18px] xs:h-[18px] group-hover:scale-110 transition-transform" />
               </button>
+              {!currentUser ? (
+                <button 
+                  onClick={handleLogin}
+                  className="bg-white text-black p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl hover:bg-zinc-200 transition-all shadow-lg flex items-center gap-2 font-black text-[0.65rem] xs:text-[0.7rem] sm:text-[0.8rem] uppercase tracking-widest px-3 xs:px-4 sm:px-6"
+                >
+                  <Sparkles size={16} />
+                  <span className="hidden sm:inline">Giriş Yap</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={handleLogout}
+                  className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-red-500/5 text-red-600 border-red-500/10'}`}
+                  title="Çıkış Yap"
+                >
+                  <X size={16} />
+                </button>
+              )}
               <button 
                 onClick={openAddModal}
                 className="bg-[#2DFF73] text-black p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl hover:bg-[#2DFF73]/90 transition-all shadow-[0_0_30px_rgba(45,255,115,0.3)] hover:scale-105 active:scale-95 flex items-center gap-1.5 xs:gap-2 font-black text-[0.65rem] xs:text-[0.7rem] sm:text-[0.8rem] uppercase tracking-widest px-3 xs:px-4 sm:px-6"
@@ -1957,15 +2151,25 @@ function GliSkorApp() {
               {isListening ? <MicOff size={18} className="sm:w-5 sm:h-5 animate-pulse" /> : <Mic size={18} className="sm:w-5 sm:h-5" />}
             </button>
             <button 
-              onClick={() => {
-                const input = document.getElementById('plate-image-upload') as HTMLInputElement;
-                input.setAttribute('capture', 'environment');
-                input.click();
-              }}
+              onClick={() => setIsBarcodeOpen(true)}
               className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
-              title="Fotoğraf Çek"
+              title="Barkod Tara"
             >
-              <Camera size={18} className="sm:w-5 sm:h-5" />
+              <Search size={18} className="sm:w-5 sm:h-5" />
+            </button>
+            <button 
+              onClick={() => setIsCoachOpen(true)}
+              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-[#2DFF73]/10 text-[#2DFF73] border-[#2DFF73]/20 hover:bg-[#2DFF73]/20' : 'bg-[#2DFF73]/5 text-emerald-600 border-[#2DFF73]/10 hover:bg-[#2DFF73]/10'}`}
+              title="AI Koç"
+            >
+              <Brain size={18} className="sm:w-5 sm:h-5" />
+            </button>
+            <button 
+              onClick={() => setIsStatsOpen(true)}
+              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+              title="İstatistikler"
+            >
+              <Activity size={18} className="sm:w-5 sm:h-5" />
             </button>
             <button 
               onClick={() => handleAiAnalysis(searchVal)}
@@ -2227,14 +2431,209 @@ function GliSkorApp() {
         )}
       </AnimatePresence>
 
-      {aiError && (
-        <div className="max-w-[900px] mx-auto mt-4 px-4 sm:px-8">
-          <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-4 rounded-2xl text-[0.85rem] font-bold flex items-center gap-3 shadow-lg shadow-red-500/5">
-            <AlertTriangle size={18} />
-            {aiError}
+      {/* AI Coach Modal */}
+      <AnimatePresence>
+        {isCoachOpen && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className={`w-full max-w-2xl h-[80vh] rounded-[3rem] border flex flex-col overflow-hidden ${darkMode ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-black/10'}`}
+            >
+              <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#2DFF73]/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#2DFF73] flex items-center justify-center text-black">
+                    <Brain size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black tracking-tight">AI Beslenme Koçu</h2>
+                    <p className="text-[0.7rem] font-bold text-[#2DFF73] uppercase tracking-widest">Çevrimiçi • Uzman Analist</p>
+                  </div>
+                </div>
+                <button onClick={() => setIsCoachOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-all">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {coachMessages.length === 0 && (
+                  <div className="text-center py-12">
+                    <Sparkles className="mx-auto text-[#2DFF73] mb-4" size={32} />
+                    <p className="text-zinc-500 font-medium">Merhaba! Ben senin kişisel beslenme koçunum. Bugün sana nasıl yardımcı olabilirim?</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
+                      {["Akşam yemeği için sağlıklı bir önerin var mı?", "Tatlı krizini nasıl yönetirim?", "İnsülin direncini kırmak için ne yapmalıyım?", "Spordan sonra ne yemeliyim?"].map((q, i) => (
+                        <button key={i} onClick={() => handleCoachMessage(q)} className={`p-3 rounded-xl border text-[0.8rem] font-bold text-left transition-all ${darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-black/5 border-black/5 hover:bg-black/10'}`}>
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {coachMessages.map((m, i) => (
+                  <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] p-4 rounded-2xl text-[0.9rem] font-medium leading-relaxed ${m.role === 'user' ? 'bg-[#2DFF73] text-black rounded-tr-none' : 'bg-white/5 border border-white/5 text-zinc-200 rounded-tl-none'}`}>
+                      {m.content}
+                    </div>
+                  </div>
+                ))}
+                {isCoachLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl rounded-tl-none">
+                      <Loader2 className="animate-spin text-[#2DFF73]" size={20} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 border-t border-white/5">
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    placeholder="Mesajını yaz..." 
+                    className={`w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-6 pr-16 focus:outline-none focus:border-[#2DFF73]/50 transition-all ${darkMode ? 'text-white' : 'text-black'}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCoachMessage((e.target as HTMLInputElement).value);
+                        (e.target as HTMLInputElement).value = '';
+                      }
+                    }}
+                  />
+                  <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#2DFF73] text-black rounded-xl hover:scale-105 transition-all">
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
+
+      {/* Barcode Scanner Modal */}
+      <AnimatePresence>
+        {isBarcodeOpen && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="w-full max-w-md aspect-square rounded-[3rem] border border-white/10 bg-black overflow-hidden relative"
+            >
+              <div id="reader" className="w-full h-full"></div>
+              <div className="absolute inset-0 pointer-events-none border-[40px] border-black/40 flex items-center justify-center">
+                <div className="w-64 h-48 border-2 border-[#2DFF73] rounded-2xl relative">
+                  <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-[#2DFF73] -translate-x-1 -translate-y-1"></div>
+                  <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-[#2DFF73] translate-x-1 -translate-y-1"></div>
+                  <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-[#2DFF73] -translate-x-1 translate-y-1"></div>
+                  <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-[#2DFF73] translate-x-1 translate-y-1"></div>
+                  <motion.div 
+                    animate={{ top: ['0%', '100%', '0%'] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="absolute left-0 right-0 h-0.5 bg-[#2DFF73] shadow-[0_0_15px_#2DFF73]"
+                  />
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsBarcodeOpen(false)}
+                className="absolute top-6 right-6 p-3 bg-black/50 hover:bg-black rounded-full text-white transition-all z-10"
+              >
+                <X size={24} />
+              </button>
+              <div className="absolute bottom-10 left-0 right-0 text-center px-8">
+                <p className="text-white font-black uppercase tracking-widest text-[0.7rem] bg-black/50 py-2 rounded-full inline-block px-6">Barkodu Çerçevenin İçine Alın</p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Stats & Trends Modal */}
+      <AnimatePresence>
+        {isStatsOpen && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className={`w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] border p-8 sm:p-12 ${darkMode ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-black/10'}`}
+            >
+              <div className="flex justify-between items-center mb-12">
+                <div>
+                  <h2 className="text-3xl font-black tracking-tighter">Beslenme Trendlerin</h2>
+                  <p className="text-zinc-500 font-medium">Son 7 günlük glisemik yük ve kalori analizi</p>
+                </div>
+                <button onClick={() => setIsStatsOpen(false)} className="p-3 hover:bg-white/5 rounded-full transition-all">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                  <h3 className="text-lg font-black mb-6 flex items-center gap-2">
+                    <Activity className="text-[#2DFF73]" size={20} />
+                    Glisemik Yük Trendi
+                  </h3>
+                  <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={[
+                        { day: 'Pzt', gl: 85 }, { day: 'Sal', gl: 110 }, { day: 'Çar', gl: 95 }, { day: 'Per', gl: 120 }, { day: 'Cum', gl: 80 }, { day: 'Cmt', gl: 140 }, { day: 'Paz', gl: 90 }
+                      ]}>
+                        <defs>
+                          <linearGradient id="colorGl" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2DFF73" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#2DFF73" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} />
+                        <RechartsTooltip contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)'}} />
+                        <Area type="monotone" dataKey="gl" stroke="#2DFF73" strokeWidth={4} fillOpacity={1} fill="url(#colorGl)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                  <h3 className="text-lg font-black mb-6 flex items-center gap-2">
+                    <Flame className="text-orange-500" size={20} />
+                    Kalori Dağılımı
+                  </h3>
+                  <div className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={[
+                        { day: 'Pzt', cal: 1800 }, { day: 'Sal', cal: 2100 }, { day: 'Çar', cal: 1950 }, { day: 'Per', cal: 2200 }, { day: 'Cum', cal: 1850 }, { day: 'Cmt', cal: 2500 }, { day: 'Paz', cal: 2000 }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} />
+                        <RechartsTooltip />
+                        <Bar dataKey="cal" fill="#FF6B2B" radius={[10, 10, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { label: 'Ortalama GY', value: '98', status: 'İyi', color: 'text-[#2DFF73]' },
+                  { label: 'En Yüksek GY', value: '140', status: 'Yüksek', color: 'text-red-500' },
+                  { label: 'Hedef Uyumu', value: '%85', status: 'Harika', color: 'text-blue-400' }
+                ].map((s, i) => (
+                  <div key={i} className={`p-6 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                    <span className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-widest">{s.label}</span>
+                    <div className="flex items-end gap-2 mt-1">
+                      <span className="text-2xl font-black">{s.value}</span>
+                      <span className={`text-[0.7rem] font-bold mb-1 ${s.color}`}>{s.status}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {aiSuccess && (
         <div className="max-w-[900px] mx-auto mt-4 px-4 sm:px-8">

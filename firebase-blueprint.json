@@ -1,0 +1,78 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "User's health profile and settings",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "age": { "type": "number" },
+        "weight": { "type": "number" },
+        "height": { "type": "number" },
+        "gender": { "type": "string", "enum": ["Erkek", "Kadın", "Diğer"] },
+        "activityLevel": { "type": "string" },
+        "goal": { "type": "string" },
+        "hba1c": { "type": "number" },
+        "insulinResistance": { "type": "number" },
+        "dailyWaterGoal": { "type": "number" },
+        "dailyCalorieGoal": { "type": "number" },
+        "achievements": { "type": "array" },
+        "points": { "type": "number" },
+        "level": { "type": "number" },
+        "streak": { "type": "number" },
+        "lastActive": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "foodLog": {
+      "title": "Food Log",
+      "description": "A single food entry in the user's daily log",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "isim": { "type": "string" },
+        "porsiyon": { "type": "string" },
+        "kalori": { "type": "number" },
+        "karbonhidrat": { "type": "number" },
+        "protein": { "type": "number" },
+        "yag": { "type": "number" },
+        "lif": { "type": "number" },
+        "seker": { "type": "number" },
+        "gi": { "type": "number" },
+        "gy": { "type": "number" },
+        "mScore": { "type": "number" },
+        "nScore": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "mealType": { "type": "string", "enum": ["Kahvaltı", "Öğle", "Akşam", "Atıştırmalık"] }
+      },
+      "required": ["uid", "isim", "timestamp"]
+    },
+    "waterLog": {
+      "title": "Water Log",
+      "description": "Water intake tracking",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "amount": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "amount", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "userProfile",
+      "description": "User profile document"
+    },
+    "/users/{uid}/foodLogs/{logId}": {
+      "schema": "foodLog",
+      "description": "User's food consumption history"
+    },
+    "/users/{uid}/waterLogs/{logId}": {
+      "schema": "waterLog",
+      "description": "User's water intake history"
+    }
+  }
+}

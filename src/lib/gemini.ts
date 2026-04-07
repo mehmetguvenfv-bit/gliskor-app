@@ -181,6 +181,76 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
   }
 }
 
+export async function getCoachResponse(messages: {role: 'user' | 'assistant', content: string}[], profileContext: string): Promise<string> {
+  const model = "gemini-3-flash-preview";
+  
+  const systemInstruction = `Sen GliSkor uygulamasının uzman Beslenme Koçusun. Kullanıcılara metabolik sağlık, kan şekeri dengesi ve sağlıklı beslenme konularında rehberlik edersin.
+  
+  Kullanıcı Profili: ${profileContext}
+  
+  Kurallar:
+  1. Yanıtların bilimsel temelli, motive edici ve aksiyon odaklı olmalı.
+  2. Glisemik indeks, insülin direnci ve sirkadiyen ritim konularında derin bilgi sahibisin.
+  3. Kullanıcının sorularına pratik "biyohack" önerileri ekle (örn: "Yemekten önce sirke iç", "Karbonhidratı en son ye").
+  4. Yanıtlarını kısa ve öz tut (maksimum 3-4 paragraf).
+  5. Türkçe konuş.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model,
+      contents: messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+      config: {
+        systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+      }
+    });
+
+    return response.text || "Üzgünüm, şu an yanıt veremiyorum.";
+  } catch (error) {
+    console.error("Coach error:", error);
+    return "Bağlantı hatası oluştu. Lütfen tekrar deneyin.";
+  }
+}
+
+export async function analyzeBarcode(barcode: string): Promise<NutritionData> {
+  const model = "gemini-3-flash-preview";
+  
+  const systemInstruction = `Sen bir barkod analiz uzmanısın. Verilen barkod numarasına sahip ürünün besin değerlerini (100g için) tahmin eder veya veritabanından bulursun.`;
+
+  const prompt = `"${barcode}" barkodlu ürünün besin değerlerini JSON formatında sağla. Eğer ürünü tam bulamazsan, barkodun ait olduğu kategoriye göre en yakın tahmini yap.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model,
+      contents: prompt,
+      config: {
+        systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            isim: { type: Type.STRING },
+            kat: { type: Type.STRING, enum: ['Tahıllar', 'Meyveler', 'Sebzeler', 'İçecekler', 'Süt ürünleri', 'Baklagiller', 'Türk yemekleri', 'Alkol', 'Kuruyemişler', 'Protein Kaynakları'] },
+            gi: { type: Type.NUMBER },
+            karb: { type: Type.NUMBER },
+            lif: { type: Type.NUMBER },
+            pro: { type: Type.NUMBER },
+            yag: { type: Type.NUMBER },
+            kal: { type: Type.NUMBER }
+          },
+          required: ["isim", "kat", "gi", "karb", "lif", "pro", "yag", "kal"]
+        }
+      }
+    });
+
+    return JSON.parse(response.text || "{}");
+  } catch (error) {
+    console.error("Barcode error:", error);
+    throw new Error("Barkod analizi yapılamadı.");
+  }
+}
+
 export async function analyzeFood(foodName: string, highGYCount: number = 0, profileContext: string = "", staticData?: NutritionData & { mScore?: number, nScore?: number }): Promise<AnalysisResult> {
   const model = "gemini-3.1-flash-lite-preview";
   
