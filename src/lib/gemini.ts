@@ -1,7 +1,15 @@
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 
 // Using the API key provided by the environment
-const apiKey = process.env.GEMINI_API_KEY;
+const getApiKey = () => {
+  try {
+    return process.env.GEMINI_API_KEY;
+  } catch (e) {
+    return undefined;
+  }
+};
+
+const apiKey = getApiKey();
 if (!apiKey || apiKey === "MISSING") {
   console.error("GEMINI_API_KEY is missing! Please check your environment variables or Secrets panel.");
 } else if (!apiKey.startsWith("AIza")) {

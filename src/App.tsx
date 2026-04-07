@@ -66,7 +66,6 @@ import { CURRENT_VERSION, VERSION_HISTORY } from './constants/versions';
 import { auth, db, signInWithGoogle, logout } from './lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, onSnapshot, addDoc, orderBy, limit, Timestamp, serverTimestamp } from 'firebase/firestore';
-import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface Food {
   isim: string;
@@ -1233,19 +1232,28 @@ function GliSkorApp() {
 
   const handleLogin = async () => {
     try {
+      setAiError(null);
       await signInWithGoogle();
-    } catch (error) {
-      setAiError("Giriş yapılamadı.");
+    } catch (error: any) {
+      if (error?.code === 'auth/popup-closed-by-user') {
+        setAiError("Giriş penceresi kapatıldı. Lütfen tekrar deneyin ve pencerenin açılmasına izin verin.");
+      } else {
+        setAiError("Giriş yapılamadı. Lütfen internet bağlantınızı kontrol edin.");
+      }
+      setTimeout(() => setAiError(null), 5000);
     }
   };
 
   const handleLogout = async () => {
     try {
+      setAiError(null);
       await logout();
       setDailyLog([]);
       setAiSuccess("Çıkış yapıldı.");
+      setTimeout(() => setAiSuccess(null), 3000);
     } catch (error) {
-      setAiError("Çıkış yapılamadı.");
+      setAiError("Çıkış yapılamadı. Lütfen tekrar deneyin.");
+      setTimeout(() => setAiError(null), 5000);
     }
   };
 
@@ -1522,19 +1530,21 @@ function GliSkorApp() {
   };
 
   useEffect(() => {
-    let scanner: Html5QrcodeScanner | null = null;
+    let scanner: any = null;
     if (isBarcodeOpen) {
-      scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
-      scanner.render((decodedText) => {
-        handleBarcodeScan(decodedText);
-        scanner?.clear();
-      }, (error) => {
-        // console.warn(error);
-      });
+      import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
+        scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+        scanner.render((decodedText: string) => {
+          handleBarcodeScan(decodedText);
+          scanner?.clear();
+        }, (error: any) => {
+          // console.warn(error);
+        });
+      }).catch(err => console.error("Scanner import error:", err));
     }
     return () => {
       if (scanner) {
-        scanner.clear().catch(err => console.error("Scanner clear error:", err));
+        scanner.clear().catch((err: any) => console.error("Scanner clear error:", err));
       }
     };
   }, [isBarcodeOpen]);
