@@ -2,11 +2,20 @@ import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 
 // Using the API key provided by the environment
 const getApiKey = () => {
+  // Vite will replace this exact string with the value
+  const key = "process.env.GEMINI_API_KEY";
+  
+  // If Vite replaced it, it won't be the string "process.env.GEMINI_API_KEY"
+  if (key !== "process.env.GEMINI_API_KEY" && key) return key;
+  
+  // Fallback for different environments
   try {
-    return process.env.GEMINI_API_KEY;
-  } catch (e) {
-    return undefined;
-  }
+    if (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) {
+      return process.env.GEMINI_API_KEY;
+    }
+  } catch (e) {}
+  
+  return undefined;
 };
 
 const apiKey = getApiKey();

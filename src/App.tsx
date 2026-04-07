@@ -59,7 +59,7 @@ class ErrorBoundary extends (React.Component as any) {
     return children;
   }
 }
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, Legend } from 'recharts';
 import { analyzeFood, getNutritionData, analyzePlateImage, getCoachResponse, analyzeBarcode, type AnalysisResult, type NutritionData, type PlateAnalysisResult } from './lib/gemini';
 import { CURRENT_VERSION, VERSION_HISTORY } from './constants/versions';
