@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 // Using the API key provided by the environment
 const getApiKey = () => {
@@ -79,7 +79,7 @@ export interface NutritionData {
 }
 
 export async function getNutritionData(foodName: string): Promise<NutritionData> {
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = "gemini-3-flash-preview";
   
   const systemInstruction = `Sen bir besin değerleri veri tabanısın. Verilen besin adı için 100g porsiyon bazında besin değerlerini sağla.
   Kategoriler: Tahıllar, Meyveler, Sebzeler, İçecekler, Süt ürünleri, Baklagiller, Türk yemekleri, Alkol, Kuruyemişler, Protein Kaynakları.`;
@@ -89,10 +89,9 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
   try {
     const response = await getGenAI().models.generateContent({
       model,
-      contents: prompt,
+      contents: [{ parts: [{ text: prompt }] }],
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -154,18 +153,19 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
   try {
     const response = await getGenAI().models.generateContent({
       model,
-      contents: [
-        {
-          inlineData: {
-            mimeType: "image/jpeg",
-            data: base64Image.split(',')[1] || base64Image
-          }
-        },
-        prompt
-      ],
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              mimeType: "image/jpeg",
+              data: base64Image.split(',')[1] || base64Image
+            }
+          },
+          { text: prompt }
+        ]
+      },
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -207,7 +207,7 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
 }
 
 export async function getCoachResponse(messages: {role: 'user' | 'assistant', content: string}[], profileContext: string = ""): Promise<string> {
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = "gemini-3-flash-preview";
   
   const systemInstruction = `Sen GliSkor uygulamasının uzman AI Beslenme Koçusun. Kullanıcılara insülin direnci, glisemik indeks ve sağlıklı beslenme konularında rehberlik edersin.
   
@@ -222,13 +222,13 @@ export async function getCoachResponse(messages: {role: 'user' | 'assistant', co
   try {
     const chat = getGenAI().chats.create({
       model,
-      config: {
-        systemInstruction,
-      },
       history: messages.slice(0, -1).map(m => ({
         role: m.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: m.content }]
-      }))
+      })),
+      config: {
+        systemInstruction,
+      }
     });
 
     const response = await chat.sendMessage({
@@ -242,7 +242,7 @@ export async function getCoachResponse(messages: {role: 'user' | 'assistant', co
 }
 
 export async function analyzeBarcode(barcode: string): Promise<NutritionData | null> {
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = "gemini-3-flash-preview";
   
   const systemInstruction = `Sen bir barkod ve ürün veri tabanısın. Verilen barkod numarası için ürünün adını ve 100g porsiyon bazında besin değerlerini sağla.
   Eğer ürünü bulamazsan null döndür.`;
@@ -252,10 +252,9 @@ export async function analyzeBarcode(barcode: string): Promise<NutritionData | n
   try {
     const response = await getGenAI().models.generateContent({
       model,
-      contents: prompt,
+      contents: [{ parts: [{ text: prompt }] }],
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -283,7 +282,7 @@ export async function analyzeBarcode(barcode: string): Promise<NutritionData | n
 }
 
 export async function analyzeFood(foodName: string, highGYCount: number = 0, profileContext: string = "", staticData?: NutritionData & { mScore?: number, nScore?: number }): Promise<AnalysisResult> {
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = "gemini-3-flash-preview";
   
   let staticContext = "";
   if (staticData) {
@@ -328,10 +327,9 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
   try {
     const response = await getGenAI().models.generateContent({
       model,
-      contents: prompt,
+      contents: [{ parts: [{ text: prompt }] }],
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,

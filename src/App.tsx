@@ -1099,22 +1099,36 @@ function GliSkorApp() {
     hba1c: string;
     insulinResistance: string;
   }>(() => {
-    const saved = localStorage.getItem('gliskor_profile');
-    return saved ? JSON.parse(saved) : { 
-      age: '', 
-      weight: '', 
-      height: '',
-      gender: 'Belirtilmemiş', 
-      activityLevel: 'Orta Derece',
-      goal: 'Sağlıklı Yaşam',
-      hba1c: '', 
-      insulinResistance: 'Yok' 
-    };
+    try {
+      const saved = localStorage.getItem('gliskor_profile');
+      return saved ? JSON.parse(saved) : { 
+        age: '', 
+        weight: '', 
+        height: '',
+        gender: 'Belirtilmemiş', 
+        activityLevel: 'Orta Derece',
+        goal: 'Sağlıklı Yaşam',
+        hba1c: '', 
+        insulinResistance: 'Yok' 
+      };
+    } catch (e) {
+      console.error("Profile parse error:", e);
+      return { 
+        age: '', weight: '', height: '', gender: 'Belirtilmemiş', 
+        activityLevel: 'Orta Derece', goal: 'Sağlıklı Yaşam', 
+        hba1c: '', insulinResistance: 'Yok' 
+      };
+    }
   });
 
   const [foodList, setFoodList] = useState<Food[]>(() => {
-    const saved = localStorage.getItem('gliskor_foods');
-    return saved ? JSON.parse(saved) : foods;
+    try {
+      const saved = localStorage.getItem('gliskor_foods');
+      return saved ? JSON.parse(saved) : foods;
+    } catch (e) {
+      console.error("Foods parse error:", e);
+      return foods;
+    }
   });
   const [searchVal, setSearchVal] = useState('');
   const [activeCat, setActiveCat] = useState('Tümü');
@@ -1128,24 +1142,39 @@ function GliSkorApp() {
 
   // History State
   const [history, setHistory] = useState<AnalysisResult[]>(() => {
-    const saved = localStorage.getItem('gliskor_history');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('gliskor_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("History parse error:", e);
+      return [];
+    }
   });
 
   // Plate Builder State
   const [plate, setPlate] = useState<Food[]>(() => {
-    const saved = localStorage.getItem('gliskor_plate');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('gliskor_plate');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Plate parse error:", e);
+      return [];
+    }
   });
 
   // Daily Log State
   const [dailyLog, setDailyLog] = useState<LogEntry[]>(() => {
-    const saved = localStorage.getItem('gliskor_daily_log');
-    if (!saved) return [];
-    const parsed = JSON.parse(saved);
-    // Filter for today only
-    const today = new Date().setHours(0, 0, 0, 0);
-    return parsed.filter((entry: LogEntry) => new Date(entry.timestamp).setHours(0, 0, 0, 0) === today);
+    try {
+      const saved = localStorage.getItem('gliskor_daily_log');
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      // Filter for today only
+      const today = new Date().setHours(0, 0, 0, 0);
+      return parsed.filter((entry: LogEntry) => new Date(entry.timestamp).setHours(0, 0, 0, 0) === today);
+    } catch (e) {
+      console.error("Daily log parse error:", e);
+      return [];
+    }
   });
 
   const [darkMode, setDarkMode] = useState(true);
@@ -1519,11 +1548,15 @@ function GliSkorApp() {
     setIsAiLoading(true);
     try {
       const result = await analyzeBarcode(barcode);
-      setSelectedFood(result);
-      setAiSuccess(`${result.isim} bulundu!`);
-      setIsBarcodeOpen(false);
+      if (result) {
+        setSelectedFood(result);
+        setAiSuccess(`${result.isim} bulundu!`);
+        setIsBarcodeOpen(false);
+      } else {
+        setAiError("Barkod bulunamadı.");
+      }
     } catch (error) {
-      setAiError("Barkod bulunamadı.");
+      setAiError("Barkod analizi sırasında bir hata oluştu.");
     } finally {
       setIsAiLoading(false);
     }
@@ -1583,8 +1616,15 @@ function GliSkorApp() {
   };
 
   const handleAiAnalysis = useCallback(async (name: string) => {
+    if (!name || name.trim().length < 2) {
+      setAiError("Lütfen analiz etmek için geçerli bir besin adı girin.");
+      return;
+    }
+
     setIsAiLoading(true);
     setAiError(null);
+    console.log("Starting AI Analysis for:", name);
+    
     try {
       // Find food in database to provide context
       const staticFood = foodList.find(f => f.isim.toLowerCase() === name.toLowerCase());
@@ -1611,12 +1651,17 @@ function GliSkorApp() {
 
       // Include user profile context in the analysis
       const profileContext = `Kullanıcı Profili: Yaş ${userProfile.age || 'Bilinmiyor'}, Kilo ${userProfile.weight || 'Bilinmiyor'}, Boy ${userProfile.height || 'Bilinmiyor'}, Cinsiyet ${userProfile.gender}, Aktivite Seviyesi ${userProfile.activityLevel}, Hedef ${userProfile.goal}, HbA1c ${userProfile.hba1c || 'Bilinmiyor'}, İnsülin Direnci Seviyesi ${userProfile.insulinResistance || 'Bilinmiyor'}.`;
+      
+      console.log("Calling analyzeFood with context...");
       const result = await analyzeFood(name, highGYCount, profileContext, staticData);
+      console.log("AI Analysis Result received:", result);
+      
       setAiResult(result);
       setHistory(prev => [result, ...prev].slice(0, 20)); // Keep last 20
-    } catch (err) {
-      console.error("AI Analysis Error:", err);
-      setAiError("Analiz sırasında bir hata oluştu. Lütfen tekrar deneyin.");
+    } catch (err: any) {
+      console.error("AI Analysis Error Details:", err);
+      const errorMessage = err?.message || "Analiz sırasında bir hata oluştu.";
+      setAiError(`${errorMessage} Lütfen tekrar deneyin.`);
     } finally {
       setIsAiLoading(false);
     }
@@ -2205,6 +2250,27 @@ function GliSkorApp() {
           </motion.div>
         )}
 
+        {aiError && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[250] w-[90%] max-w-md"
+          >
+            <div className={`p-4 rounded-2xl border flex items-center gap-4 shadow-2xl ${darkMode ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-red-50 border-red-100 text-red-600'}`}>
+              <div className={`p-2 rounded-xl ${darkMode ? 'bg-red-500/20' : 'bg-red-500/10'}`}>
+                <AlertTriangle size={20} />
+              </div>
+              <div className="flex-1">
+                <p className="text-[0.85rem] font-bold leading-tight">{aiError}</p>
+              </div>
+              <button onClick={() => setAiError(null)} className="p-1 hover:bg-black/5 rounded-lg transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {aiResult && (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
@@ -2504,12 +2570,25 @@ function GliSkorApp() {
                     className={`w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-6 pr-16 focus:outline-none focus:border-[#2DFF73]/50 transition-all ${darkMode ? 'text-white' : 'text-black'}`}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
-                        handleCoachMessage((e.target as HTMLInputElement).value);
-                        (e.target as HTMLInputElement).value = '';
+                        const val = (e.target as HTMLInputElement).value;
+                        if (val.trim()) {
+                          handleCoachMessage(val);
+                          (e.target as HTMLInputElement).value = '';
+                        }
                       }
                     }}
+                    id="coach-input"
                   />
-                  <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#2DFF73] text-black rounded-xl hover:scale-105 transition-all">
+                  <button 
+                    onClick={() => {
+                      const input = document.getElementById('coach-input') as HTMLInputElement;
+                      if (input && input.value.trim()) {
+                        handleCoachMessage(input.value);
+                        input.value = '';
+                      }
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#2DFF73] text-black rounded-xl hover:scale-105 transition-all"
+                  >
                     <ChevronRight size={20} />
                   </button>
                 </div>
