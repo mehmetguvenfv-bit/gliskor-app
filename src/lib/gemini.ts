@@ -26,7 +26,14 @@ if (!apiKey || apiKey === "MISSING") {
 } else {
   console.log("API Anahtarı algılandı (Format doğru).");
 }
-const ai = new GoogleGenAI({ apiKey: apiKey || "MISSING" });
+
+let genAIInstance: GoogleGenAI | null = null;
+const getGenAI = () => {
+  if (!genAIInstance) {
+    genAIInstance = new GoogleGenAI({ apiKey: apiKey || "MISSING" });
+  }
+  return genAIInstance;
+};
 
 export interface AnalysisResult {
   foodName: string;
@@ -80,7 +87,7 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
   const prompt = `"${foodName}" besini için besin değerlerini JSON formatında sağla.`;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getGenAI().models.generateContent({
       model,
       contents: prompt,
       config: {
@@ -116,6 +123,7 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
     throw new Error("Besin verileri alınamadı.");
   }
 }
+
 export interface PlateAnalysisResult {
   identifiedFoods: {
     name: string;
@@ -144,18 +152,16 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
   const prompt = `Bu tabaktaki besinleri analiz et. ${profileContext} Yanıtı JSON formatında sağla.`;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getGenAI().models.generateContent({
       model,
       contents: [
         {
           inlineData: {
             mimeType: "image/jpeg",
-            data: base64Image,
-          },
+            data: base64Image.split(',')[1] || base64Image
+          }
         },
-        {
-          text: prompt,
-        },
+        prompt
       ],
       config: {
         systemInstruction,
@@ -187,57 +193,64 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
       }
     });
 
+    console.log("AI Plate Analysis Response:", response.text);
+
     if (!response.text) {
       throw new Error("Boş yanıt alındı.");
     }
 
     return JSON.parse(response.text);
   } catch (error) {
-    console.error("Görsel analiz hatası:", error);
-    throw new Error("Fotoğraf analizi yapılamadı. Lütfen tekrar deneyin.");
+    console.error("Tabak analizi hatası:", error);
+    throw new Error("Tabak analizi yapılamadı.");
   }
 }
 
-export async function getCoachResponse(messages: {role: 'user' | 'assistant', content: string}[], profileContext: string): Promise<string> {
-  const model = "gemini-3-flash-preview";
+export async function getCoachResponse(messages: {role: 'user' | 'assistant', content: string}[], profileContext: string = ""): Promise<string> {
+  const model = "gemini-3.1-flash-lite-preview";
   
-  const systemInstruction = `Sen GliSkor uygulamasının uzman Beslenme Koçusun. Kullanıcılara metabolik sağlık, kan şekeri dengesi ve sağlıklı beslenme konularında rehberlik edersin.
+  const systemInstruction = `Sen GliSkor uygulamasının uzman AI Beslenme Koçusun. Kullanıcılara insülin direnci, glisemik indeks ve sağlıklı beslenme konularında rehberlik edersin.
   
-  Kullanıcı Profili: ${profileContext}
+  Kişiliğin:
+  - Bilimsel ama anlaşılır (teknik terimleri açıkla).
+  - Motive edici ve destekleyici.
+  - Aksiyon odaklı (her zaman pratik bir tavsiye ver).
+  - Kullanıcının sağlık verilerine (varsa) saygılı.
   
-  Kurallar:
-  1. Yanıtların bilimsel temelli, motive edici ve aksiyon odaklı olmalı.
-  2. Glisemik indeks, insülin direnci ve sirkadiyen ritim konularında derin bilgi sahibisin.
-  3. Kullanıcının sorularına pratik "biyohack" önerileri ekle (örn: "Yemekten önce sirke iç", "Karbonhidratı en son ye").
-  4. Yanıtlarını kısa ve öz tut (maksimum 3-4 paragraf).
-  5. Türkçe konuş.`;
+  Kullanıcı Profili: ${profileContext}`;
 
   try {
-    const response = await ai.models.generateContent({
+    const chat = getGenAI().chats.create({
       model,
-      contents: messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
       config: {
         systemInstruction,
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
-      }
+      },
+      history: messages.slice(0, -1).map(m => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }]
+      }))
     });
 
+    const response = await chat.sendMessage({
+      message: messages[messages.length - 1].content
+    });
     return response.text || "Üzgünüm, şu an yanıt veremiyorum.";
   } catch (error) {
-    console.error("Coach error:", error);
-    return "Bağlantı hatası oluştu. Lütfen tekrar deneyin.";
+    console.error("Koç yanıt hatası:", error);
+    return "Üzgünüm, şu an yanıt veremiyorum. Lütfen daha sonra tekrar deneyin.";
   }
 }
 
-export async function analyzeBarcode(barcode: string): Promise<NutritionData> {
-  const model = "gemini-3-flash-preview";
+export async function analyzeBarcode(barcode: string): Promise<NutritionData | null> {
+  const model = "gemini-3.1-flash-lite-preview";
   
-  const systemInstruction = `Sen bir barkod analiz uzmanısın. Verilen barkod numarasına sahip ürünün besin değerlerini (100g için) tahmin eder veya veritabanından bulursun.`;
+  const systemInstruction = `Sen bir barkod ve ürün veri tabanısın. Verilen barkod numarası için ürünün adını ve 100g porsiyon bazında besin değerlerini sağla.
+  Eğer ürünü bulamazsan null döndür.`;
 
-  const prompt = `"${barcode}" barkodlu ürünün besin değerlerini JSON formatında sağla. Eğer ürünü tam bulamazsan, barkodun ait olduğu kategoriye göre en yakın tahmini yap.`;
+  const prompt = `"${barcode}" barkodlu ürünün besin değerlerini JSON formatında sağla.`;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await getGenAI().models.generateContent({
       model,
       contents: prompt,
       config: {
@@ -248,7 +261,7 @@ export async function analyzeBarcode(barcode: string): Promise<NutritionData> {
           type: Type.OBJECT,
           properties: {
             isim: { type: Type.STRING },
-            kat: { type: Type.STRING, enum: ['Tahıllar', 'Meyveler', 'Sebzeler', 'İçecekler', 'Süt ürünleri', 'Baklagiller', 'Türk yemekleri', 'Alkol', 'Kuruyemişler', 'Protein Kaynakları'] },
+            kat: { type: Type.STRING },
             gi: { type: Type.NUMBER },
             karb: { type: Type.NUMBER },
             lif: { type: Type.NUMBER },
@@ -261,10 +274,11 @@ export async function analyzeBarcode(barcode: string): Promise<NutritionData> {
       }
     });
 
-    return JSON.parse(response.text || "{}");
+    if (!response.text || response.text.includes("null")) return null;
+    return JSON.parse(response.text);
   } catch (error) {
-    console.error("Barcode error:", error);
-    throw new Error("Barkod analizi yapılamadı.");
+    console.error("Barkod analizi hatası:", error);
+    return null;
   }
 }
 
@@ -296,44 +310,23 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
   
   Skorlama Mantığı:
   1. İnsülin Direnci Etki Skoru (score): 1-10 arası. 10 en sağlıklı (düşük risk), 1 en riskli. 
-     Formül: R = ((Gy * 0.4) + (Ii * 0.3) + (Fr * 0.3)) / (Lp + 1). Bu değeri normalize et (10 - normalize_R).
   2. Sağlık Skoru (healthScore): 1-10 arası. 10 en besleyici, 1 en boş kalorili.
-     Kriterler: Vitamin, mineral, lif ve protein yoğunluğu yüksekse artır; ultra-işlenmiş, katkı maddeli veya boş kalorili ise düşür.
   
   Eğer sana veritabanı değerleri (staticContext) verilmişse, o değerleri kaynak olarak kullan. Verilmemişse kendi bilgilerine göre tahmin et.
   
-  Mantıksal Kurallar:
-  1. Düşük Lif & Yüksek GI: Lp < 2 ve Gi > 70 ise skoru %40 artır.
-  2. Fruktoz: Yüksekse "Karaciğer Direnci" uyarısı ekle.
-  3. Sıvı Matris: Mx == "liquid" ise tüm negatif etkileri x1.5 ile çarp.
-  4. Yemek Sırası: Karbonhidrat önceyse GY +%30, lif önceyse GY -%40.
-  5. Pişirme: Sıvı/Püre ise -30 puan. Sıcak nişasta GI +%20. Soğutulmuş nişasta +20 puan iyileştirme.
-  6. Sirkadiyen Ritim: Saat 20:00 sonrası yüksek karbonhidrat hasar puanını 2 katına çıkar.
-  7. Ultra-İşlenmiş Gıdalar (NOVA): İşlenmiş etler, paketli şekerli gıdalar vb. için skoru doğrudan 45 puan düşür. "Kritik Uyarı" ekle.
-  8. Sözel Analiz: İsimdeki anahtar kelimelere (Sosis, Midye Dolma vb.) göre spesifik skor ve uyarılar ata.
-  9. Biyohack Tavsiyesi: İşlenmiş etler için C vitamini (limon/biber) öner. Diğerleri için sirke, tarçın vb. öner.
-  10. Karaciğer Yükü: %50 üzeri fruktoz için karaciğer yağlanması uyarısı ver.
-  11. Hareket: Yemek sonrası yürüyüş için puanı %20 iyileştir.
-  12. Alkol: Yağ yakımını durdurma uyarısı ekle.
-  13. Sirkadiyen Veri: Besinin günün farklı saatlerindeki (08:00, 12:00, 16:00, 20:00, 00:00) metabolik etkisini (1-10 arası puan, 10 en iyi) ve kısa bir etiketi (örn: "İdeal", "Riskli") sağla.
-  
   Çıktı Formatı Gereksinimleri:
   - insulinEffect: "Düşük", "Orta-Düşük", "Orta", "Yüksek" gibi sözel bir ifade.
-  - metabolicEffect: Besinin metabolizma üzerindeki etkisi (kan şekeri, insülin vb.) hakkında 2-3 cümlelik teknik açıklama.
+  - metabolicEffect: Besinin metabolizma üzerindeki etkisi hakkında 2-3 cümlelik teknik açıklama.
   - functionalBenefit: Besinin içerdiği vitamin, mineral veya lif gibi faydalı bileşenler hakkında açıklama.
   - profileComments: 4 farklı profil için (kilo vermek isteyen, diyabetik, sporcu, çölyak) kısa, aksiyon odaklı tavsiyeler.
   - warning: Pişirme süresi, sos içeriği veya porsiyon kontrolü gibi kritik bir uyarı.
   - suggestion: Genel bir biyohack veya eşleşme tavsiyesi.
-  - kal: 100g için kalori değeri.
-  - karb: 100g için karbonhidrat değeri (gram).
-  - pro: 100g için protein değeri (gram).
-  - yag: 100g için yağ değeri (gram).`;
+  - circadianData: Besinin günün farklı saatlerindeki (08:00, 12:00, 16:00, 20:00, 00:00) metabolik etkisini (1-10 arası puan) ve kısa bir etiketi sağla.`;
 
   const prompt = `"${foodName}" besini için analiz yap. Kullanıcının günlük yüksek GY öğün sayısı: ${highGYCount}. ${profileContext} ${staticContext} Yanıtı JSON formatında sağla.`;
 
-
   try {
-    const response = await ai.models.generateContent({
+    const response = await getGenAI().models.generateContent({
       model,
       contents: prompt,
       config: {
@@ -350,8 +343,8 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
             fr: { type: Type.NUMBER },
             lp: { type: Type.NUMBER },
             mx: { type: Type.STRING, enum: ["liquid", "solid"] },
-            score: { type: Type.NUMBER, description: "1-10 scale (Insulin/Metabolic risk)" },
-            healthScore: { type: Type.NUMBER, description: "1-10 scale (Nutritional density)" },
+            score: { type: Type.NUMBER },
+            healthScore: { type: Type.NUMBER },
             insulinEffect: { type: Type.STRING },
             metabolicEffect: { type: Type.STRING },
             functionalBenefit: { type: Type.STRING },
@@ -389,21 +382,15 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
       }
     });
 
-    console.log("AI Analysis Response:", response.text);
+    console.log("AI Food Analysis Response:", response.text);
 
     if (!response.text) {
       throw new Error("Boş yanıt alındı.");
     }
 
     return JSON.parse(response.text);
-  } catch (error: any) {
-    console.error("Analiz hatası:", error);
-    
-    // API anahtarı hataları için daha spesifik mesaj
-    if (error?.message?.includes("API key")) {
-      throw new Error(`API Anahtarı Hatası: ${error.message}. Lütfen Vercel'de anahtarınızı güncelleyip Redeploy yapın.`);
-    }
-    
-    throw new Error("Besin analizi yapılamadı. Lütfen API anahtarınızı ve internet bağlantınızı kontrol edin.");
+  } catch (error) {
+    console.error("Besin analizi hatası:", error);
+    throw new Error("Besin analizi yapılamadı.");
   }
 }
