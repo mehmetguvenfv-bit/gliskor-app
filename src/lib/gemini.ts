@@ -79,7 +79,7 @@ export interface NutritionData {
 }
 
 export async function getNutritionData(foodName: string): Promise<NutritionData> {
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = "gemini-3-flash-preview";
   
   const systemInstruction = `Sen bir besin değerleri veri tabanısın. Verilen besin adı için 100g porsiyon bazında besin değerlerini sağla.
   Kategoriler: Tahıllar, Meyveler, Sebzeler, İçecekler, Süt ürünleri, Baklagiller, Türk yemekleri, Alkol, Kuruyemişler, Protein Kaynakları.`;
@@ -138,7 +138,7 @@ export interface PlateAnalysisResult {
 }
 
 export async function analyzePlateImage(base64Image: string, profileContext: string = ""): Promise<PlateAnalysisResult> {
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = "gemini-3-flash-preview";
   
   const systemInstruction = `Sen uzman bir görsel besin analistisin. Bir tabak fotoğrafındaki besinleri tanımlar, porsiyonlarını tahmin eder ve metabolik sağlık (insülin direnci) açısından puanlarsın.
   
@@ -209,7 +209,7 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
 }
 
 export async function getCoachResponse(messages: {role: 'user' | 'assistant', content: string}[], profileContext: string = ""): Promise<string> {
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = "gemini-3-flash-preview";
   
   const systemInstruction = `Sen GliSkor uygulamasının uzman AI Beslenme Koçusun. Kullanıcılara insülin direnci, glisemik indeks ve sağlıklı beslenme konularında rehberlik edersin.
   
@@ -245,7 +245,7 @@ export async function getCoachResponse(messages: {role: 'user' | 'assistant', co
 }
 
 export async function analyzeBarcode(barcode: string): Promise<NutritionData | null> {
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = "gemini-3-flash-preview";
   
   const systemInstruction = `Sen bir barkod ve ürün veri tabanısın. Verilen barkod numarası için ürünün adını ve 100g porsiyon bazında besin değerlerini sağla.
   Eğer ürünü bulamazsan null döndür.`;
@@ -286,7 +286,7 @@ export async function analyzeBarcode(barcode: string): Promise<NutritionData | n
 }
 
 export async function analyzeFood(foodName: string, highGYCount: number = 0, profileContext: string = "", staticData?: NutritionData & { mScore?: number, nScore?: number }): Promise<AnalysisResult> {
-  const model = "gemini-3.1-flash-lite-preview";
+  const model = "gemini-3-flash-preview";
   
   let staticContext = "";
   if (staticData) {
