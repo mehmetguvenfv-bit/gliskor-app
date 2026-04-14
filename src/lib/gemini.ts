@@ -1,12 +1,12 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 
 // Using the API key provided by the environment
 const getApiKey = () => {
-  // Vite will replace this exact string with the value
-  const key = "process.env.GEMINI_API_KEY";
+  // Vite will replace process.env.GEMINI_API_KEY with the actual string value (including quotes)
+  // because of the 'define' configuration in vite.config.ts
+  const key = process.env.GEMINI_API_KEY;
   
-  // If Vite replaced it, it won't be the string "process.env.GEMINI_API_KEY"
-  if (key !== "process.env.GEMINI_API_KEY" && key) return key;
+  if (key && key !== "process.env.GEMINI_API_KEY") return key;
   
   // Fallback for different environments
   try {
@@ -79,7 +79,7 @@ export interface NutritionData {
 }
 
 export async function getNutritionData(foodName: string): Promise<NutritionData> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-3.1-flash-lite-preview";
   
   const systemInstruction = `Sen bir besin değerleri veri tabanısın. Verilen besin adı için 100g porsiyon bazında besin değerlerini sağla.
   Kategoriler: Tahıllar, Meyveler, Sebzeler, İçecekler, Süt ürünleri, Baklagiller, Türk yemekleri, Alkol, Kuruyemişler, Protein Kaynakları.`;
@@ -89,9 +89,10 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
   try {
     const response = await getGenAI().models.generateContent({
       model,
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: prompt,
       config: {
         systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -117,9 +118,9 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
     }
 
     return JSON.parse(response.text);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Besin verisi hatası:", error);
-    throw new Error("Besin verileri alınamadı.");
+    throw new Error(`Besin verileri alınamadı: ${error?.message || 'Bilinmeyen hata'}`);
   }
 }
 
@@ -137,7 +138,7 @@ export interface PlateAnalysisResult {
 }
 
 export async function analyzePlateImage(base64Image: string, profileContext: string = ""): Promise<PlateAnalysisResult> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-3.1-flash-lite-preview";
   
   const systemInstruction = `Sen uzman bir görsel besin analistisin. Bir tabak fotoğrafındaki besinleri tanımlar, porsiyonlarını tahmin eder ve metabolik sağlık (insülin direnci) açısından puanlarsın.
   
@@ -166,6 +167,7 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
       },
       config: {
         systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -200,14 +202,14 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
     }
 
     return JSON.parse(response.text);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Tabak analizi hatası:", error);
-    throw new Error("Tabak analizi yapılamadı.");
+    throw new Error(`Tabak analizi yapılamadı: ${error?.message || 'Bilinmeyen hata'}`);
   }
 }
 
 export async function getCoachResponse(messages: {role: 'user' | 'assistant', content: string}[], profileContext: string = ""): Promise<string> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-3.1-flash-lite-preview";
   
   const systemInstruction = `Sen GliSkor uygulamasının uzman AI Beslenme Koçusun. Kullanıcılara insülin direnci, glisemik indeks ve sağlıklı beslenme konularında rehberlik edersin.
   
@@ -228,6 +230,7 @@ export async function getCoachResponse(messages: {role: 'user' | 'assistant', co
       })),
       config: {
         systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
       }
     });
 
@@ -242,7 +245,7 @@ export async function getCoachResponse(messages: {role: 'user' | 'assistant', co
 }
 
 export async function analyzeBarcode(barcode: string): Promise<NutritionData | null> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-3.1-flash-lite-preview";
   
   const systemInstruction = `Sen bir barkod ve ürün veri tabanısın. Verilen barkod numarası için ürünün adını ve 100g porsiyon bazında besin değerlerini sağla.
   Eğer ürünü bulamazsan null döndür.`;
@@ -252,9 +255,10 @@ export async function analyzeBarcode(barcode: string): Promise<NutritionData | n
   try {
     const response = await getGenAI().models.generateContent({
       model,
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: prompt,
       config: {
         systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -282,7 +286,7 @@ export async function analyzeBarcode(barcode: string): Promise<NutritionData | n
 }
 
 export async function analyzeFood(foodName: string, highGYCount: number = 0, profileContext: string = "", staticData?: NutritionData & { mScore?: number, nScore?: number }): Promise<AnalysisResult> {
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-3.1-flash-lite-preview";
   
   let staticContext = "";
   if (staticData) {
@@ -327,9 +331,10 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
   try {
     const response = await getGenAI().models.generateContent({
       model,
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: prompt,
       config: {
         systemInstruction,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -387,8 +392,8 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
     }
 
     return JSON.parse(response.text);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Besin analizi hatası:", error);
-    throw new Error("Besin analizi yapılamadı.");
+    throw new Error(`Besin analizi yapılamadı: ${error?.message || 'Bilinmeyen hata'}`);
   }
 }
