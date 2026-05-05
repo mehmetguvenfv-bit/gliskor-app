@@ -2062,49 +2062,46 @@ function GliSkorApp() {
           </div>
           
           <div className="flex gap-1 xs:gap-2 sm:gap-4 items-center">
-            {/* Gamification Stats */}
-            <div className="hidden sm:flex items-center gap-3 mr-4" role="status" aria-label="Kullanıcı İstatistikleri">
+            {/* Gamification Stats - Mobile Compact / Desktop Full */}
+            <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 sm:mr-4" role="status" aria-label="Kullanıcı İstatistikleri">
+              {/* Level/Points */}
               <div 
                 onClick={() => setIsAchievementsOpen(true)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full border cursor-pointer transition-all hover:scale-105 ${darkMode ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-black/5 border-black/10 hover:bg-black/10'}`}
-                aria-label={`Seviye ${userStats.level}, ${userStats.points} puan. Başarımları görmek için tıklayın.`}
+                className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full border cursor-pointer transition-all hover:scale-105 ${darkMode ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-black/5 border-black/10 hover:bg-black/10'}`}
+                aria-label={`Seviye ${userStats.level}, ${userStats.points} puan`}
               >
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg" aria-hidden="true">
-                  <span className="text-[0.7rem] font-black text-white">{userStats.level}</span>
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg" aria-hidden="true">
+                  <span className="text-[0.6rem] sm:text-[0.7rem] font-black text-white">{userStats.level}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[0.55rem] font-black text-zinc-500 uppercase leading-none">Seviye</span>
-                  <span className={`text-[0.75rem] font-black leading-none mt-0.5 ${darkMode ? 'text-white' : 'text-black'}`}>{userStats.points} Puan</span>
+                  <span className={`text-[0.65rem] sm:text-[0.75rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{userStats.points} <span className="hidden xs:inline">Puan</span></span>
                 </div>
               </div>
 
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${darkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`} aria-label={`Günlük Glikoz Yükü: ${Math.round(dailyTotals.gl)} / 100`}>
-                <Activity size={14} aria-hidden="true" className={dailyTotals.gl > 100 ? "text-red-500" : "text-[#2DFF73]"} />
+              {/* GY Stats - Hidden on very small, visible from xs */}
+              <div className={`hidden min-[400px]:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full border ${darkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`} aria-label={`Günlük Glikoz Yükü: ${Math.round(dailyTotals.gl)} / 100`}>
+                <Activity size={12} aria-hidden="true" className={`sm:w-3.5 sm:h-3.5 ${dailyTotals.gl > 100 ? "text-red-500" : "text-[#2DFF73]"}`} />
                 <div className="flex flex-col">
-                  <span className="text-[0.55rem] font-black text-zinc-500 uppercase leading-none">Günlük GY</span>
-                  <span className={`text-[0.75rem] font-black leading-none mt-0.5 ${darkMode ? 'text-white' : 'text-black'}`}>{Math.round(dailyTotals.gl)} / 100</span>
+                  <span className={`text-[0.65rem] sm:text-[0.75rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{Math.round(dailyTotals.gl)}<span className="hidden sm:inline"> / 100</span></span>
                 </div>
               </div>
 
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${darkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`} aria-label={`Seri: ${userStats.streak} gün`}>
-                <Flame size={14} aria-hidden="true" className={userStats.streak > 0 ? "text-orange-500 fill-orange-500 animate-pulse" : "text-zinc-500"} />
-                <div className="flex flex-col">
-                  <span className="text-[0.55rem] font-black text-zinc-500 uppercase leading-none">Seri</span>
-                  <span className={`text-[0.75rem] font-black leading-none mt-0.5 ${darkMode ? 'text-white' : 'text-black'}`}>{userStats.streak} Gün</span>
-                </div>
+              {/* Streak */}
+              <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full border ${darkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`} aria-label={`Seri: ${userStats.streak} gün`}>
+                <Flame size={12} aria-hidden="true" className={`sm:w-3.5 sm:h-3.5 ${userStats.streak > 0 ? "text-orange-500 fill-orange-500 animate-pulse" : "text-zinc-500"}`} />
+                <span className={`text-[0.65rem] sm:text-[0.75rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{userStats.streak} <span className="hidden xs:inline">Gün</span></span>
               </div>
 
               <button 
                 onClick={() => setIsChallengeOpen(true)}
-                className={`p-2 rounded-full border transition-all hover:scale-110 ${darkMode ? 'bg-white/5 border-white/10 text-[#2DFF73]' : 'bg-black/5 border-black/10 text-emerald-600'}`}
+                className={`p-1.5 sm:p-2 rounded-full border transition-all hover:scale-110 hidden xs:flex ${darkMode ? 'bg-white/5 border-white/10 text-[#2DFF73]' : 'bg-black/5 border-black/10 text-emerald-600'}`}
                 title="Günün Görevi"
-                aria-label="Günün Görevini Görüntüle"
               >
-                <Target size={18} aria-hidden="true" />
+                <Target size={14} sm:size={18} aria-hidden="true" />
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5 xs:gap-2">
+            <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2">
               <button 
                 onClick={() => setDarkMode(!darkMode)}
                 className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
@@ -2112,32 +2109,37 @@ function GliSkorApp() {
               >
                 {darkMode ? <Sun size={16} aria-hidden="true" className="xs:w-[18px] xs:h-[18px] group-hover:rotate-45 transition-transform" /> : <Moon size={16} aria-hidden="true" className="xs:w-[18px] xs:h-[18px] group-hover:-rotate-12 transition-transform" />}
               </button>
-              <button 
-                onClick={() => setIsHistoryOpen(true)}
-                className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
-                aria-label="Analiz Geçmişi"
-              >
-                <History size={16} aria-hidden="true" className="xs:w-[18px] xs:h-[18px] group-hover:rotate-[-12deg] transition-transform" />
-              </button>
-              <button 
-                onClick={() => setIsTrackingOpen(true)}
-                className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group relative ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
-                aria-label="Günlük Takip"
-              >
-                <Activity size={16} aria-hidden="true" className="xs:w-[18px] xs:h-[18px] group-hover:scale-110 transition-transform" />
-                {dailyLog.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#2DFF73] text-black text-[0.6rem] font-black rounded-full flex items-center justify-center animate-pulse" aria-hidden="true">
-                    {dailyLog.length}
-                  </span>
-                )}
-              </button>
-              <button 
-                onClick={() => setIsProfileOpen(true)}
-                className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
-                aria-label="Profil Ayarları"
-              >
-                <User size={16} aria-hidden="true" className="xs:w-[18px] xs:h-[18px] group-hover:scale-110 transition-transform" />
-              </button>
+
+              {/* Desktop-only header buttons */}
+              <div className="hidden lg:flex items-center gap-1 xs:gap-1.5 sm:gap-2">
+                <button 
+                  onClick={() => setIsHistoryOpen(true)}
+                  className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+                  aria-label="Analiz Geçmişi"
+                >
+                  <History size={16} aria-hidden="true" className="xs:w-[18px] xs:h-[18px] group-hover:rotate-[-12deg] transition-transform" />
+                </button>
+                <button 
+                  onClick={() => setIsTrackingOpen(true)}
+                  className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group relative ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+                  aria-label="Günlük Takip"
+                >
+                  <Activity size={16} aria-hidden="true" className="xs:w-[18px] xs:h-[18px] group-hover:scale-110 transition-transform" />
+                  {dailyLog.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#2DFF73] text-black text-[0.6rem] font-black rounded-full flex items-center justify-center animate-pulse" aria-hidden="true">
+                      {dailyLog.length}
+                    </span>
+                  )}
+                </button>
+                <button 
+                  onClick={() => setIsProfileOpen(true)}
+                  className={`p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+                  aria-label="Profil Ayarları"
+                >
+                  <User size={16} aria-hidden="true" className="xs:w-[18px] xs:h-[18px] group-hover:scale-110 transition-transform" />
+                </button>
+              </div>
+
               {!currentUser ? (
                 <button 
                   onClick={handleLogin}
@@ -2180,7 +2182,7 @@ function GliSkorApp() {
             onKeyDown={(e) => e.key === 'Enter' && handleAiAnalysis(searchVal)}
             className={`flex-1 bg-transparent border-none py-4 sm:py-6 focus:outline-none font-medium text-[0.9rem] sm:text-[1rem] ${darkMode ? 'text-white placeholder-zinc-600' : 'text-black placeholder-zinc-400'}`}
           />
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
             <input 
               type="file" 
               id="plate-image-upload" 
@@ -2191,50 +2193,54 @@ function GliSkorApp() {
                 if (file) handlePlateImageAnalysis(file);
               }}
             />
-            <button 
-              onClick={() => document.getElementById('plate-image-upload')?.click()}
-              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
-              title="Fotoğraf Yükle"
-            >
-              <ImageIcon size={18} className="sm:w-5 sm:h-5" />
-            </button>
-            <button 
-              onClick={startListening}
-              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${isListening ? 'bg-red-500/20 text-red-500 border-red-500/30' : darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
-              title="Sesli Komut"
-            >
-              {isListening ? <MicOff size={18} className="sm:w-5 sm:h-5 animate-pulse" /> : <Mic size={18} className="sm:w-5 sm:h-5" />}
-            </button>
-            <button 
-              onClick={() => setIsBarcodeOpen(true)}
-              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
-              title="Barkod Tara"
-            >
-              <Search size={18} className="sm:w-5 sm:h-5" />
-            </button>
-            <button 
-              onClick={() => setIsCoachOpen(true)}
-              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-[#2DFF73]/10 text-[#2DFF73] border-[#2DFF73]/20 hover:bg-[#2DFF73]/20' : 'bg-[#2DFF73]/5 text-emerald-600 border-[#2DFF73]/10 hover:bg-[#2DFF73]/10'}`}
-              title="AI Koç"
-            >
-              <Brain size={18} className="sm:w-5 sm:h-5" />
-            </button>
-            <button 
-              onClick={() => setIsStatsOpen(true)}
-              className={`p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
-              title="İstatistikler"
-            >
-              <Activity size={18} className="sm:w-5 sm:h-5" />
-            </button>
-            <button 
-              onClick={() => handleAiAnalysis(searchVal)}
-              disabled={!searchVal || isAiLoading}
-              className="bg-[#2DFF73] text-black px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[0.7rem] sm:text-[0.8rem] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale flex items-center gap-2 shrink-0"
-            >
-              {isAiLoading ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
-              <span className="hidden xs:inline">Analiz Et</span>
-              <span className="xs:hidden">AI</span>
-            </button>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button 
+                onClick={() => document.getElementById('plate-image-upload')?.click()}
+                className={`p-2 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+                title="Fotoğraf Yükle"
+              >
+                <ImageIcon size={16} className="sm:w-5 sm:h-5" />
+              </button>
+              <button 
+                onClick={startListening}
+                className={`p-2 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${isListening ? 'bg-red-500/20 text-red-500 border-red-500/30' : darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+                title="Sesli Komut"
+              >
+                {isListening ? <MicOff size={16} className="sm:w-5 sm:h-5 animate-pulse" /> : <Mic size={16} className="sm:w-5 sm:h-5" />}
+              </button>
+              <button 
+                onClick={() => setIsBarcodeOpen(true)}
+                className={`p-2 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+                title="Barkod Tara"
+              >
+                <Search size={16} className="sm:w-5 sm:h-5" />
+              </button>
+              <button 
+                onClick={() => setIsCoachOpen(true)}
+                className={`p-2 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-[#2DFF73]/10 text-[#2DFF73] border-[#2DFF73]/20 hover:bg-[#2DFF73]/20' : 'bg-[#2DFF73]/5 text-emerald-600 border-[#2DFF73]/10 hover:bg-[#2DFF73]/10'}`}
+                title="AI Koç"
+              >
+                <Brain size={16} className="sm:w-5 sm:h-5" />
+              </button>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button 
+                onClick={() => setIsStatsOpen(true)}
+                className={`p-2 sm:p-3.5 rounded-xl sm:rounded-2xl transition-all border group ${darkMode ? 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 border-black/5 hover:bg-black/10 hover:text-black'}`}
+                title="İstatistikler"
+              >
+                <Activity size={16} className="sm:w-5 sm:h-5" />
+              </button>
+              <button 
+                onClick={() => handleAiAnalysis(searchVal)}
+                disabled={!searchVal || isAiLoading}
+                className="bg-[#2DFF73] text-black px-3 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[0.65rem] sm:text-[0.8rem] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale flex items-center gap-2 shrink-0"
+              >
+                {isAiLoading ? <Loader2 className="animate-spin" size={12} /> : <Sparkles size={12} />}
+                <span className="hidden xs:inline">Analiz Et</span>
+                <span className="xs:hidden">AI</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2295,7 +2301,7 @@ function GliSkorApp() {
                   {/* Header Section */}
                   <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8">
                     <div className="flex-1 pr-10 xs:pr-16 md:pr-0">
-                      <h2 className={`text-[1.8rem] xs:text-[3rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent break-words ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
+                      <h2 className={`text-[1.8rem] xs:text-[2.2rem] sm:text-[3rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent break-words ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
                         {aiResult.foodName}
                       </h2>
                       <div className="flex items-center gap-3">
@@ -2345,11 +2351,11 @@ function GliSkorApp() {
                 </div>
               </div>
 
-              <div className="p-4 sm:p-6 md:p-10 pt-4 relative z-10">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="p-3 xs:p-5 sm:p-8 md:p-10 pt-4 relative z-10 overflow-x-hidden">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
                   
                   {/* Row 1: Macro Chart & Metabolic Effect */}
-                  <div className="sm:col-span-2 md:col-span-1 md:row-span-2">
+                  <div className="sm:col-span-2 md:col-span-1 md:row-span-2 min-h-[300px] xs:min-h-[350px] sm:min-h-0">
                     <MacroDistribution 
                       karb={aiResult.karb} 
                       pro={aiResult.pro} 
@@ -2358,7 +2364,7 @@ function GliSkorApp() {
                     />
                   </div>
 
-                  <div className={`sm:col-span-2 md:col-span-3 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                  <div className={`sm:col-span-2 md:col-span-3 p-5 xs:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5 shadow-sm'}`}>
                     <div className="text-[0.55rem] sm:text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">METABOLİK ETKİ</div>
                     <p className={`text-[0.9rem] sm:text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
                       {aiResult.metabolicEffect}
@@ -2385,7 +2391,7 @@ function GliSkorApp() {
                   </div>
 
                   {/* Row 3: Circadian Rhythm Widget */}
-                  <div className="sm:col-span-2 md:col-span-4">
+                  <div className="sm:col-span-2 md:col-span-4 min-h-[300px] xs:min-h-[350px] sm:min-h-0">
                     <CircadianRhythmWidget data={aiResult.circadianData} darkMode={darkMode} />
                   </div>
 
@@ -2797,7 +2803,7 @@ function GliSkorApp() {
 
       {/* Control Panel - More Dashboard-like */}
       <div className="max-w-[900px] mx-auto mt-8 px-4 sm:px-8 flex flex-col gap-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div className={`p-1.5 rounded-2xl border flex gap-1 ${darkMode ? 'bg-white/[0.02] border-white/5' : 'bg-black/[0.02] border-black/5'}`}>
             {[
               { id: 'hot', label: 'SICAK', active: isCooked && !isResistant, onClick: () => { setIsCooked(true); setIsResistant(false); } },
@@ -2807,7 +2813,7 @@ function GliSkorApp() {
               <button
                 key={t.id}
                 onClick={t.onClick}
-                className={`flex-1 py-2.5 rounded-xl text-[0.65rem] font-black tracking-widest transition-all ${t.active ? (darkMode ? 'bg-white text-black' : 'bg-black text-white') : 'opacity-40 hover:opacity-100'}`}
+                className={`flex-1 py-3 sm:py-2.5 rounded-xl text-[0.6rem] sm:text-[0.65rem] font-black tracking-widest transition-all ${t.active ? (darkMode ? 'bg-white text-black' : 'bg-black text-white') : 'opacity-40 hover:opacity-100'}`}
               >
                 {t.label}
               </button>
@@ -2823,7 +2829,7 @@ function GliSkorApp() {
               <button
                 key={m.id}
                 onClick={m.onClick}
-                className={`flex-1 py-2.5 rounded-xl text-[0.65rem] font-black tracking-widest transition-all ${m.active ? (darkMode ? 'bg-white text-black' : 'bg-black text-white') : 'opacity-40 hover:opacity-100'}`}
+                className={`flex-1 py-3 sm:py-2.5 rounded-xl text-[0.6rem] sm:text-[0.65rem] font-black tracking-widest transition-all ${m.active ? (darkMode ? 'bg-white text-black' : 'bg-black text-white') : 'opacity-40 hover:opacity-100'}`}
               >
                 {m.label}
               </button>
@@ -2840,10 +2846,10 @@ function GliSkorApp() {
             <button
               key={f.id}
               onClick={f.onClick}
-              className={`flex-1 py-3 rounded-2xl border flex items-center justify-center gap-2 text-[0.65rem] font-black tracking-widest transition-all ${f.active ? 'bg-red-500/20 border-red-500/40 text-red-500' : (darkMode ? 'bg-white/[0.02] border-white/5 opacity-40 hover:opacity-100' : 'bg-black/[0.02] border-black/5 opacity-40 hover:opacity-100')}`}
+              className={`flex-1 py-3 sm:py-4 rounded-xl sm:rounded-2xl border flex items-center justify-center gap-1.5 sm:gap-2 text-[0.6rem] sm:text-[0.65rem] font-black tracking-widest transition-all ${f.active ? 'bg-red-500/20 border-red-500/40 text-red-500 shadow-lg' : (darkMode ? 'bg-white/[0.02] border-white/5 opacity-40 hover:opacity-100' : 'bg-black/[0.02] border-black/5 opacity-40 hover:opacity-100')}`}
             >
               {f.icon}
-              {f.label}
+              <span className="xs:inline">{f.label}</span>
             </button>
           ))}
         </div>
@@ -2967,7 +2973,7 @@ function GliSkorApp() {
         ))}
       </div>
 
-      <div className="max-w-[1000px] mx-auto mt-8 px-4 sm:px-8 grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4 sm:gap-6">
+                    <div className="max-w-[1000px] mx-auto mt-10 px-4 sm:px-8 grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {filteredFoods.length === 0 ? (
           <div className="col-span-full text-center py-20 text-zinc-600 text-[1.1rem] font-medium">Bu arama için sonuç bulunamadı.</div>
         ) : (
@@ -4115,8 +4121,70 @@ function GliSkorApp() {
 
       </main>
 
-      {/* Plate Builder Floating Panel */}
-      <div className="fixed bottom-8 right-8 z-[150]">
+      {/* Bottom Navigation for Mobile */}
+      <div className="fixed bottom-0 left-0 right-0 z-[160] lg:hidden">
+        <div className={`flex items-center justify-around p-3 pb-6 border-t backdrop-blur-2xl transition-colors ${darkMode ? 'bg-black/80 border-white/10' : 'bg-white/80 border-black/10 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]'}`}>
+          <button 
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              setSearchVal('');
+              setActiveCat('Tümü');
+            }}
+            className={`flex flex-col items-center gap-1 transition-all ${!isTrackingOpen && !isCoachOpen && !isProfileOpen ? 'text-[#2DFF73]' : 'text-zinc-500'}`}
+          >
+            <Utensils size={20} />
+            <span className="text-[0.6rem] font-bold uppercase tracking-widest">Katalog</span>
+          </button>
+          <button 
+            onClick={() => {
+              setIsTrackingOpen(true);
+              setIsCoachOpen(false);
+              setIsProfileOpen(false);
+            }}
+            className={`flex flex-col items-center gap-1 transition-all ${isTrackingOpen ? 'text-[#2DFF73]' : 'text-zinc-500'}`}
+          >
+            <Activity size={20} />
+            <span className="text-[0.6rem] font-bold uppercase tracking-widest">Takip</span>
+          </button>
+          <button 
+            onClick={() => {
+              setIsCoachOpen(true);
+              setIsTrackingOpen(false);
+              setIsProfileOpen(false);
+            }}
+            className={`flex flex-col items-center gap-1 transition-all ${isCoachOpen ? 'text-[#2DFF73]' : 'text-zinc-500'}`}
+          >
+            <Brain size={20} />
+            <span className="text-[0.6rem] font-bold uppercase tracking-widest">Koç</span>
+          </button>
+          <button 
+            onClick={() => {
+              setIsHistoryOpen(true);
+              setIsTrackingOpen(false);
+              setIsCoachOpen(false);
+              setIsProfileOpen(false);
+            }}
+            className={`flex flex-col items-center gap-1 transition-all ${isHistoryOpen ? 'text-[#2DFF73]' : 'text-zinc-500'}`}
+          >
+            <History size={20} />
+            <span className="text-[0.6rem] font-bold uppercase tracking-widest">Geçmiş</span>
+          </button>
+          <button 
+            onClick={() => {
+              setIsProfileOpen(true);
+              setIsTrackingOpen(false);
+              setIsCoachOpen(false);
+            }}
+            className={`flex flex-col items-center gap-1 transition-all ${isProfileOpen ? 'text-[#2DFF73]' : 'text-zinc-500'}`}
+          >
+            <User size={20} />
+            <span className="text-[0.6rem] font-bold uppercase tracking-widest">Profil</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Plate Builder Floating Panel - Adjusted for Bottom Nav */}
+      <div className="fixed bottom-24 lg:bottom-8 right-4 xs:right-8 z-[150]">
         <motion.button
           whileHover={{ scale: 1.05, y: -5 }}
           whileTap={{ scale: 0.95 }}
