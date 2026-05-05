@@ -35,6 +35,66 @@ const getGenAI = () => {
   return genAIInstance;
 };
 
+// Akıllı Önbellek Yapıları
+const ANALYSIS_CACHE_KEY = 'gliskor_analysis_cache';
+const NUTRITION_CACHE_KEY = 'gliskor_nutrition_cache';
+
+interface CachedAnalysis {
+  timestamp: number;
+  result: AnalysisResult;
+}
+
+interface CachedNutrition {
+  timestamp: number;
+  data: NutritionData;
+}
+
+function getCache(): Record<string, CachedAnalysis> {
+  try {
+    const saved = localStorage.getItem(ANALYSIS_CACHE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+}
+
+function getNutritionCache(): Record<string, CachedNutrition> {
+  try {
+    const saved = localStorage.getItem(NUTRITION_CACHE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+}
+
+function setCache(foodName: string, result: AnalysisResult) {
+  try {
+    const cache = getCache();
+    cache[foodName.toLowerCase()] = {
+      timestamp: Date.now(),
+      result
+    };
+    const keys = Object.keys(cache);
+    if (keys.length > 50) delete cache[keys[0]];
+    localStorage.setItem(ANALYSIS_CACHE_KEY, JSON.stringify(cache));
+  } catch (e) {
+    console.error("Cache save error:", e);
+  }
+}
+
+function setNutritionCache(foodName: string, data: NutritionData) {
+  try {
+    const cache = getNutritionCache();
+    cache[foodName.toLowerCase()] = {
+      timestamp: Date.now(),
+      data
+    };
+    localStorage.setItem(NUTRITION_CACHE_KEY, JSON.stringify(cache));
+  } catch (e) {
+    console.error("Nutrition Cache save error:", e);
+  }
+}
+
 export interface AnalysisResult {
   foodName: string;
   gi: number;
@@ -107,6 +167,16 @@ export interface NutritionData {
 }
 
 export async function getNutritionData(foodName: string): Promise<NutritionData> {
+  // Önce önbelleğe bak
+  const cache = getNutritionCache();
+  const cached = cache[foodName.toLowerCase()];
+  const CACHE_TTL = 1000 * 60 * 60 * 24 * 7; // 1 hafta
+
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    console.log("Using cached nutrition for:", foodName);
+    return cached.data;
+  }
+
   const model = "gemini-3-flash-preview";
   
   const systemInstruction = `Sen bir besin değerleri veri tabanısın. Verilen besin adı için 100g porsiyon bazında besin değerlerini sağla.
@@ -145,7 +215,9 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
       throw new Error("Boş yanıt alındı.");
     }
 
-    return JSON.parse(response.text);
+    const result = JSON.parse(response.text);
+    setNutritionCache(foodName, result);
+    return result;
   } catch (error: any) {
     console.error("Besin verisi hatası:", error);
     throw new Error(`Besin verileri alınamadı: ${error?.message || 'Bilinmeyen hata'}`);
@@ -320,23 +392,25 @@ export async function analyzeFood(
   staticData?: NutritionData & { mScore?: number, nScore?: number },
   historyContext: string = ""
 ): Promise<AnalysisResult> {
+  // 1. ÖNCE ÖNBELLEĞE BAK (KOTA TASARRUFU - ADIM 1)
+  const cache = getCache();
+  const cached = cache[foodName.toLowerCase()];
+  const CACHE_TTL = 1000 * 60 * 60 * 6; // 6 saat geçerli
+
+  // Eğer tarihçe veya profil değişmişse önbelleği atla (Opsiyonel: Daha sıkı kontrol eklenebilir)
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    console.log("Using cached analysis for:", foodName);
+    return cached.result;
+  }
+
   const model = "gemini-3-flash-preview";
   
   let staticContext = "";
   if (staticData) {
+    // 2. VERİTABANI VARSA AI'YA "DAHA AZ DÜŞÜN" DE (KOTA TASARRUFU - ADIM 2)
     staticContext = `
-    BU BESİN VERİTABANIMIZDA KAYITLI. LÜTFEN ANALİZİ BU DEĞERLERE GÖRE YAP:
-    - Glisemik İndeks (GI): ${staticData.gi}
-    - Karbonhidrat: ${staticData.karb}g
-    - Lif: ${staticData.lif}g
-    - Protein: ${staticData.pro}g
-    - Yağ: ${staticData.yag}g
-    - Kalori: ${staticData.kal}kcal
-    - Hesaplanan Metabolik Skor: ${staticData.mScore || 'Bilinmiyor'}
-    - Hesaplanan Sağlık Skoru: ${staticData.nScore || 'Bilinmiyor'}
-    
-    ÖNEMLİ: Çıktıdaki 'gi', 'gy', 'lp', 'kal', 'score' ve 'healthScore' değerlerini bu verilere sadık kalarak belirle. 
-    'score' için 'mScore' değerini, 'healthScore' için 'nScore' değerini temel al.
+    BU BESİN VERİTABANIMIZDA KAYITLI (DATA_EXISTS). LÜTFEN HESAPLAMA YAPMAK YERİNE BU VERİLERİ YORUMLA:
+    GI: ${staticData.gi}, Karb: ${staticData.karb}g, Lif: ${staticData.lif}g, Pro: ${staticData.pro}g, Yağ: ${staticData.yag}g, Kalori: ${staticData.kal}kcal
     `;
   }
 
@@ -509,7 +583,10 @@ export async function analyzeFood(
       throw new Error("Boş yanıt alındı.");
     }
 
-    return JSON.parse(response.text);
+    const finalResult = JSON.parse(response.text);
+    // Analizi önbelleğe kaydet
+    setCache(foodName, finalResult);
+    return finalResult;
   } catch (error: any) {
     console.error("Besin analizi hatası:", error);
     throw new Error(`Besin analizi yapılamadı: ${error?.message || 'Bilinmeyen hata'}`);

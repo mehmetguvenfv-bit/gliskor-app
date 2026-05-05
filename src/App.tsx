@@ -1768,6 +1768,16 @@ function GliSkorApp() {
       setFormErrors({ isim: 'Önce bir besin adı girmelisiniz' });
       return;
     }
+    
+    // VERİTABANI ÖNCELİĞİ (KOTA TASARRUFU)
+    // Eğer veritabanımızda (foodList) zaten varsa direkt oradan al, AI'yı yorma
+    const existingFood = foodList.find(f => f.isim.toLowerCase() === formData.isim.trim().toLowerCase());
+    if (existingFood) {
+      console.log("Using local database for filling form:", formData.isim);
+      setFormData(existingFood);
+      return;
+    }
+
     setIsFilling(true);
     setFormErrors({});
     try {
