@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo, useEffect, useCallback, ReactNode, ErrorInfo } from 'react';
-import { Search, X, ChevronRight, Info, Brain, Loader2, AlertTriangle, Lightbulb, Droplets, Beef, Wheat, Plus, Minus, Edit2, Trash2, Moon, Activity, Leaf, Thermometer, CheckCircle2, Zap, Utensils, ShoppingBasket, Sparkles, User, History, Sun, Waves, Camera, Upload, Image as ImageIcon, Trophy, Star, Target, Flame, Award, RefreshCcw, Mic, MicOff } from 'lucide-react';
+import { Search, X, ChevronRight, Info, Brain, Loader2, AlertTriangle, Lightbulb, Droplets, Beef, Wheat, Plus, Minus, Edit2, Trash2, Moon, Activity, Leaf, Thermometer, CheckCircle2, Zap, Utensils, ShoppingBasket, Sparkles, User, History, Sun, Waves, Camera, Upload, Image as ImageIcon, Trophy, Star, Target, Flame, Award, RefreshCcw, Mic, MicOff, TrendingUp } from 'lucide-react';
 
 // Error Boundary Component
 interface ErrorBoundaryProps {
@@ -599,7 +599,9 @@ function SkeletonLoader({ darkMode }: { darkMode: boolean }) {
               <div className={`h-16 w-2/3 rounded-2xl animate-pulse mb-4 ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
               <div className={`h-6 w-1/4 rounded-full animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-3 flex-wrap justify-end">
+              <div className={`w-12 h-12 rounded-full animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
+              <div className={`w-12 h-12 rounded-full animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
               <div className={`w-12 h-12 rounded-full animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
               <div className={`w-12 h-12 rounded-full animate-pulse ${darkMode ? 'bg-white/5' : 'bg-black/5'}`} />
             </div>
@@ -1652,8 +1654,13 @@ function GliSkorApp() {
       // Include user profile context in the analysis
       const profileContext = `Kullanıcı Profili: Yaş ${userProfile.age || 'Bilinmiyor'}, Kilo ${userProfile.weight || 'Bilinmiyor'}, Boy ${userProfile.height || 'Bilinmiyor'}, Cinsiyet ${userProfile.gender}, Aktivite Seviyesi ${userProfile.activityLevel}, Hedef ${userProfile.goal}, HbA1c ${userProfile.hba1c || 'Bilinmiyor'}, İnsülin Direnci Seviyesi ${userProfile.insulinResistance || 'Bilinmiyor'}.`;
       
+      // Build history context (last 7-30 days)
+      const recentAnalyses = history.map(h => h.foodName).join(", ");
+      const logSummary = dailyLog.map(l => l.isim).join(", ");
+      const historyContext = `Son analizler: ${recentAnalyses}. Bugüne kadarki kayıtlar: ${logSummary}. Kullanıcının son 30 günlük beslenme trendlerini buna göre analiz et.`;
+
       console.log("Calling analyzeFood with context...");
-      const result = await analyzeFood(name, highGYCount, profileContext, staticData);
+      const result = await analyzeFood(name, highGYCount, profileContext, staticData, historyContext);
       console.log("AI Analysis Result received:", result);
       
       setAiResult(result);
@@ -1665,7 +1672,7 @@ function GliSkorApp() {
     } finally {
       setIsAiLoading(false);
     }
-  }, [highGYCount, userProfile, foodList, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, isLowSleep, isStressed]);
+  }, [highGYCount, userProfile, foodList, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, isLowSleep, isStressed, history, dailyLog]);
 
   const startListening = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -2291,13 +2298,30 @@ function GliSkorApp() {
               
               <div className={`sticky top-0 z-50 p-4 xs:p-8 md:p-12 pb-4 backdrop-blur-xl border-b ${darkMode ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F5F5F0]/80 border-black/5'}`}>
                 <button 
-                  onClick={() => setAiResult(null)}
-                  className={`absolute top-4 right-4 xs:top-8 xs:right-8 transition-all hover:rotate-90 z-50 p-2 rounded-full ${darkMode ? 'text-zinc-500 hover:text-white bg-white/5' : 'text-zinc-400 hover:text-black bg-black/5'}`}
+                   onClick={() => setAiResult(null)}
+                   className={`absolute top-4 right-4 xs:top-8 xs:right-8 transition-all hover:rotate-90 z-[100] p-1.5 xs:p-2 rounded-full ${darkMode ? 'text-zinc-500 hover:text-white bg-white/5' : 'text-zinc-400 hover:text-black bg-black/5'}`}
                 >
                   <X size={20} className="sm:w-6 sm:h-6" />
                 </button>
                 
-                <div className="relative z-10">
+                <div className="relative z-10 pr-12 xs:pr-16 md:pr-0">
+                  {/* Traffic Light Banner */}
+                  <div className={`mb-6 p-4 rounded-2xl border flex items-center gap-4 transition-all ${
+                    aiResult.lightStatus === 'GREEN' ? (darkMode ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700') :
+                    aiResult.lightStatus === 'YELLOW' ? (darkMode ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-700') :
+                    (darkMode ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-rose-50 border-rose-200 text-rose-700')
+                  }`}>
+                    <div className={`w-4 h-4 rounded-full animate-pulse shrink-0 ${
+                      aiResult.lightStatus === 'GREEN' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]' :
+                      aiResult.lightStatus === 'YELLOW' ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]' :
+                      'bg-rose-500 shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                    }`} />
+                    <div className="flex flex-col">
+                      <span className="text-[0.6rem] font-black uppercase tracking-[0.2em] opacity-60">Nihai Karar</span>
+                      <span className="text-[0.9rem] sm:text-[1rem] font-bold leading-tight">{aiResult.lightDescription}</span>
+                    </div>
+                  </div>
+
                   {/* Header Section */}
                   <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8">
                     <div className="flex-1 pr-10 xs:pr-16 md:pr-0">
@@ -2312,9 +2336,25 @@ function GliSkorApp() {
                     </div>
                     <div className="flex items-center gap-4 shrink-0">
                       {/* Scores in Bento Style */}
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4">
+                        {/* Final Suitability Score */}
+                        <div className="flex flex-col items-center mr-2 sm:mr-4 pr-4 border-r border-white/10">
+                          <div className={`w-[50px] h-[50px] sm:w-[64px] sm:h-[64px] rounded-full flex flex-col items-center justify-center border-2 ${
+                            aiResult.lightStatus === 'GREEN' ? 'border-emerald-500 bg-emerald-500/10' :
+                            aiResult.lightStatus === 'YELLOW' ? 'border-amber-500 bg-amber-500/10' :
+                            'border-rose-500 bg-rose-500/10'
+                          }`}>
+                            <span className={`text-[1rem] sm:text-[1.2rem] font-black ${
+                              aiResult.lightStatus === 'GREEN' ? 'text-emerald-500' :
+                              aiResult.lightStatus === 'YELLOW' ? 'text-amber-500' :
+                              'text-rose-500'
+                            }`}>{aiResult.eatingSuitabilityScore}</span>
+                          </div>
+                          <span className="text-[0.4rem] sm:text-[0.45rem] text-zinc-400 font-black tracking-widest mt-1 uppercase">UYGUNLUK</span>
+                        </div>
+
                         <div className="flex flex-col items-center">
-                          <div className="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] relative">
+                          <div className="w-[40px] h-[40px] sm:w-[54px] sm:h-[54px] relative">
                             <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
                               <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
                               <circle 
@@ -2323,14 +2363,15 @@ function GliSkorApp() {
                                 strokeLinecap="round"
                               />
                             </svg>
-                            <div className="absolute inset-0 flex items-center justify-center text-[0.8rem] sm:text-[1rem] font-black" style={{ color: getRingColor(aiResult.score) }}>
-                              {aiResult.score}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className="text-[0.7rem] sm:text-[1rem] font-black" style={{ color: getRingColor(aiResult.score) }}>{aiResult.score}</span>
                             </div>
                           </div>
                           <span className="text-[0.4rem] sm:text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Metabolik</span>
                         </div>
+                        
                         <div className="flex flex-col items-center">
-                          <div className="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] relative">
+                          <div className="w-[40px] h-[40px] sm:w-[54px] sm:h-[54px] relative">
                             <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
                               <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
                               <circle 
@@ -2339,11 +2380,45 @@ function GliSkorApp() {
                                 strokeLinecap="round"
                               />
                             </svg>
-                            <div className="absolute inset-0 flex items-center justify-center text-[0.8rem] sm:text-[1rem] font-black" style={{ color: getRingColor(aiResult.healthScore) }}>
-                              {aiResult.healthScore}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className="text-[0.7rem] sm:text-[1rem] font-black" style={{ color: getRingColor(aiResult.healthScore) }}>{aiResult.healthScore}</span>
                             </div>
                           </div>
                           <span className="text-[0.4rem] sm:text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Sağlık</span>
+                        </div>
+
+                        <div className="flex flex-col items-center">
+                          <div className="w-[40px] h-[40px] sm:w-[54px] sm:h-[54px] relative">
+                            <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
+                              <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
+                              <circle 
+                                cx="24" cy="24" r="21" fill="none" stroke="#3B82F6" strokeWidth="4"
+                                strokeDasharray={`${((aiResult.satietyScore / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className="text-[0.7rem] sm:text-[1rem] font-black text-blue-500">{aiResult.satietyScore}</span>
+                            </div>
+                          </div>
+                          <span className="text-[0.4rem] sm:text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Tokluk</span>
+                        </div>
+
+                        <div className="flex flex-col items-center">
+                          <div className="w-[40px] h-[40px] sm:w-[54px] sm:h-[54px] relative">
+                            <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
+                              <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
+                              <circle 
+                                cx="24" cy="24" r="21" fill="none" stroke={aiResult.inflammatoryScore > 7 ? "#EF4444" : aiResult.inflammatoryScore > 4 ? "#F59E0B" : "#10B981"} strokeWidth="4"
+                                strokeDasharray={`${((aiResult.inflammatoryScore / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
+                                strokeLinecap="round"
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className="text-[0.7rem] sm:text-[1rem] font-black" style={{ color: aiResult.inflammatoryScore > 7 ? "#EF4444" : aiResult.inflammatoryScore > 4 ? "#F59E0B" : "#10B981" }}>{aiResult.inflammatoryScore}</span>
+                            </div>
+                          </div>
+                          <span className="text-[0.4rem] sm:text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Enflamasyon</span>
                         </div>
                       </div>
                     </div>
@@ -2416,14 +2491,150 @@ function GliSkorApp() {
                     </div>
                   </div>
 
-                  <div className={`sm:col-span-1 md:col-span-2 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                  <div className={`sm:col-span-1 md:col-span-2 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/10 shadow-sm'}`}>
+                    <div className="text-[0.55rem] sm:text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">PIŞIRME YÖNTEMI ANALIZI</div>
+                    <p className={`text-[0.85rem] sm:text-[0.95rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                      {aiResult.cookingMethodImpact}
+                    </p>
+                  </div>
+
+                  <div className={`sm:col-span-2 md:col-span-4 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border flex flex-col justify-center ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
                     <div className="text-[0.55rem] sm:text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em] mb-3">FONKSİYONEL FAYDA</div>
                     <p className={`text-[0.9rem] sm:text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
                       {aiResult.functionalBenefit}
                     </p>
                   </div>
 
-                  {/* Row 4: Warning & Profile Comments */}
+                  {/* Row 5: Eşleşme Tavsiyesi & Biyoyararlanım */}
+                  <div className={`sm:col-span-2 md:col-span-4 p-6 xs:p-8 rounded-[2rem] sm:rounded-[3rem] border relative overflow-hidden group ${darkMode ? 'bg-[#2DFF73]/5 border-[#2DFF73]/20' : 'bg-[#2DFF73]/5 border-[#2DFF73]/10'}`}>
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#2DFF73]/5 blur-[80px] -mr-32 -mt-32" />
+                    
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-2xl bg-[#2DFF73] flex items-center justify-center shadow-lg shadow-[#2DFF73]/20">
+                          <Plus size={20} className="text-black" strokeWidth={3} />
+                        </div>
+                        <div>
+                          <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.3em]">BİYOYARARLANIM & EŞLEŞME</div>
+                          <div className={`text-[1.1rem] font-black ${darkMode ? 'text-white' : 'text-black'}`}>İdeal Eşleşme Tavsiyesi</div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                          <p className={`text-[0.9rem] leading-relaxed mb-6 font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                            {aiResult.foodPairingAdvice}
+                          </p>
+                          <div className="flex flex-wrap gap-3">
+                            {aiResult.pairingSuggestions?.map((p, i) => (
+                              <div key={i} className={`flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all hover:scale-105 ${darkMode ? 'bg-white/5 border-white/10 hover:border-[#2DFF73]/30' : 'bg-white border-black/5 shadow-sm hover:border-[#2DFF73]/30'}`}>
+                                <span className="text-[1.2rem]">{p.icon}</span>
+                                <div className="flex flex-col">
+                                  <span className={`text-[0.75rem] font-black ${darkMode ? 'text-white' : 'text-black'}`}>{p.name}</span>
+                                  <span className="text-[0.6rem] text-zinc-500 font-medium leading-none mt-1">{p.reason}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className={`hidden md:flex items-center justify-center p-6 rounded-[2rem] border border-dashed ${darkMode ? 'border-white/10 bg-white/5' : 'border-black/10 bg-black/5'}`}>
+                            <div className="text-center group-hover:scale-110 transition-transform duration-700">
+                                <div className="text-[3rem] mb-2">🥗</div>
+                                <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-widest mt-2">Dengeli Tabak</div>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Row Kümülatif: Cumulative Impact & Projection */}
+                  {aiResult.threeMonthProjection && (
+                    <div className="sm:col-span-2 md:col-span-4 mt-4">
+                      <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-[0.4em] mb-4 text-center">ZAMAN İÇİNDEKİ KÜMÜLATİF ETKİ</div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        
+                        {/* Metabolic Memory & Feedback */}
+                        <div className={`p-6 rounded-[2rem] border overflow-hidden relative ${darkMode ? 'bg-indigo-500/5 border-indigo-500/20' : 'bg-indigo-500/5 border-indigo-500/10'}`}>
+                          <div className="absolute -top-4 -right-4 w-20 h-20 bg-indigo-500/10 blur-2xl" />
+                          <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-3">
+                              <History size={16} className="text-indigo-500" />
+                              <span className="text-[0.6rem] font-black text-indigo-500 uppercase tracking-widest">METABOLİK HAFIZA</span>
+                            </div>
+                            <p className={`text-[0.85rem] leading-relaxed font-bold mb-4 ${darkMode ? 'text-indigo-100' : 'text-indigo-900'}`}>
+                              {aiResult.cumulativeFeedback}
+                            </p>
+                            <div className={`text-[0.75rem] p-3 rounded-xl ${darkMode ? 'bg-black/20 text-zinc-400' : 'bg-white/50 text-zinc-600'} italic border border-dashed ${darkMode ? 'border-indigo-500/20' : 'border-indigo-500/10'}`}>
+                              "{aiResult.metabolicMemory}"
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Nutrient & Inflammation */}
+                        <div className={`p-6 rounded-[2rem] border relative ${darkMode ? 'bg-rose-500/5 border-rose-500/20' : 'bg-rose-500/5 border-rose-500/10'}`}>
+                          <div className="flex items-center gap-2 mb-4">
+                            <Activity size={16} className="text-rose-500" />
+                            <span className="text-[0.6rem] font-black text-rose-500 uppercase tracking-widest">SİSTEMİK YÜK</span>
+                          </div>
+                          <div className="space-y-4">
+                            <div>
+                              <div className="flex justify-between items-end mb-1.5">
+                                <span className={`text-[0.75rem] font-bold ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>Enflamatuar Risk</span>
+                                <span className={`text-[0.75rem] font-black ${aiResult.systemicInflammationRisk?.level > 7 ? 'text-red-500' : 'text-emerald-500'}`}>{aiResult.systemicInflammationRisk?.level}/10</span>
+                              </div>
+                              <div className={`h-1.5 w-full rounded-full ${darkMode ? 'bg-white/5' : 'bg-black/5'} overflow-hidden`}>
+                                <div className="h-full bg-rose-500" style={{ width: `${(aiResult.systemicInflammationRisk?.level || 0) * 10}%` }} />
+                              </div>
+                              <p className="text-[0.65rem] text-zinc-500 mt-1.5 line-clamp-2">{aiResult.systemicInflammationRisk?.warning}</p>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <span className={`text-[0.75rem] font-bold ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>Mikrobiyota Direnci</span>
+                                <span className="text-[0.75rem] font-black text-emerald-500">{aiResult.microbiotaResilience?.score}/10</span>
+                              </div>
+                              <p className="text-[0.65rem] text-zinc-500 line-clamp-2">{aiResult.microbiotaResilience?.description}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 3-Month Projection */}
+                        <div className={`p-6 rounded-[2rem] border relative overflow-hidden ${darkMode ? 'bg-blue-500/5 border-blue-500/20' : 'bg-blue-500/5 border-blue-500/10'}`}>
+                          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-500/5 blur-3xl" />
+                          <div className="flex items-center gap-2 mb-4">
+                            <TrendingUp size={16} className="text-blue-500" />
+                            <span className="text-[0.6rem] font-black text-blue-500 uppercase tracking-widest">3 AY SONRASI TAHMİNLEME</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className={`p-2 rounded-2xl text-center ${darkMode ? 'bg-black/20' : 'bg-white/40'}`}>
+                              <div className="text-[0.6rem] text-zinc-500 font-black mb-1 uppercase">KİLO</div>
+                              <div className={`text-[0.8rem] font-black ${(aiResult.threeMonthProjection?.weightChange || '').includes('-') ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                {aiResult.threeMonthProjection?.weightChange}
+                              </div>
+                            </div>
+                            <div className={`p-2 rounded-2xl text-center ${darkMode ? 'bg-black/20' : 'bg-white/40'}`}>
+                              <div className="text-[0.6rem] text-zinc-500 font-black mb-1 uppercase">İNSÜLİN</div>
+                              <div className={`text-[0.8rem] font-black ${(aiResult.threeMonthProjection?.insulinImpact || '').includes('iyileşme') || (aiResult.threeMonthProjection?.insulinImpact || '').includes('%-') ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                {aiResult.threeMonthProjection?.insulinImpact}
+                              </div>
+                            </div>
+                            <div className={`p-2 rounded-2xl text-center ${darkMode ? 'bg-black/20' : 'bg-white/40'}`}>
+                              <div className="text-[0.6rem] text-zinc-500 font-black mb-1 uppercase">ENERJİ</div>
+                              <div className={`text-[0.8rem] font-black ${(aiResult.threeMonthProjection?.energyLevel || '').includes('Yüksek') || (aiResult.threeMonthProjection?.energyLevel || '').includes('Artış') ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                {aiResult.threeMonthProjection?.energyLevel}
+                              </div>
+                            </div>
+                          </div>
+                          <div className={`mt-4 p-2.5 rounded-xl border border-dashed ${darkMode ? 'border-blue-500/20 bg-blue-500/5' : 'border-blue-500/10 bg-blue-500/5'}`}>
+                            <span className="text-[0.65rem] text-zinc-500 font-medium leading-tight line-clamp-2">
+                              Mevcut kümülatif alımınıza ve metabolik direncinize göre 90 günlük projeksiyon.
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Row 6: Warning & Profile Comments */}
                   <div className={`sm:col-span-2 md:col-span-4 p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border border-orange-500/20 bg-orange-500/5 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center`}>
                     <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500 shrink-0" />
                     <p className={`text-[0.85rem] sm:text-[0.95rem] font-bold leading-relaxed ${darkMode ? 'text-orange-200' : 'text-orange-900'}`}>

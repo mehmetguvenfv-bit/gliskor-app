@@ -56,6 +56,15 @@ export interface AnalysisResult {
   };
   warning: string;
   suggestion: string;
+  satietyScore: number;
+  inflammatoryScore: number;
+  cookingMethodImpact: string;
+  foodPairingAdvice: string;
+  pairingSuggestions: {
+    name: string;
+    icon: string;
+    reason: string;
+  }[];
   kal: number;
   karb: number;
   pro: number;
@@ -65,6 +74,25 @@ export interface AnalysisResult {
     impact: number;
     label: string;
   }[];
+  metabolicMemory: string;
+  nutrientAccumulation: string;
+  systemicInflammationRisk: {
+    level: number;
+    warning: string;
+  };
+  microbiotaResilience: {
+    score: number;
+    description: string;
+  };
+  threeMonthProjection: {
+    weightChange: string;
+    insulinImpact: string;
+    energyLevel: string;
+  };
+  cumulativeFeedback: string;
+  eatingSuitabilityScore: number;
+  lightStatus: 'GREEN' | 'YELLOW' | 'RED';
+  lightDescription: string;
 }
 
 export interface NutritionData {
@@ -285,7 +313,13 @@ export async function analyzeBarcode(barcode: string): Promise<NutritionData | n
   }
 }
 
-export async function analyzeFood(foodName: string, highGYCount: number = 0, profileContext: string = "", staticData?: NutritionData & { mScore?: number, nScore?: number }): Promise<AnalysisResult> {
+export async function analyzeFood(
+  foodName: string, 
+  highGYCount: number = 0, 
+  profileContext: string = "", 
+  staticData?: NutritionData & { mScore?: number, nScore?: number },
+  historyContext: string = ""
+): Promise<AnalysisResult> {
   const model = "gemini-3-flash-preview";
   
   let staticContext = "";
@@ -309,24 +343,53 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
   const systemInstruction = `Sen kıdemli bir Biyokimya Uzmanı ve Beslenme Analistisin. Besinleri modern tıp ve NOVA gıda sınıflandırmasına göre analiz edersin.
   
   Analiz Kriterleri:
-  - Gi (Glisemik İndeks), Gy (Glisemik Yük), Ii (İnsülin İndeksi), Fr (Fruktoz Oranı), Lp (Lif/Posa), Mx (Besin Matrisi: liquid/solid), Kal (Kalori), Karb (Karbonhidrat), Pro (Protein), Yag (Yağ).
+  - Gi, Gy, Ii, Fr, Lp, Mx, Kal, Karb, Pro, Yag.
+  - Advanced: Pişirme yöntemi etkisi, Anti-besin içeriği ve emilim, Doygunluk Endeksi, Enflamatuar Skor.
+  - Cumulative System:
+    1. Metabolik Hafıza: Son 7 gündeki tüketim sıklığının etkisi.
+    2. Besin Birikimi: 30 günlük periyotta mikro besin doygunluğu (örn: Magnezyum).
+    3. Enflamatuar Yük: Üst üste gelen enflamatuar gıdaların yarattığı sistemik yangı riski.
+    4. Mikrobiyota Adaptasyonu: Lif çeşitliliği ve fermente gıda sıklığı üzerinden bağırsak florası direnci.
+    5. Tahminleme: Bu alışkanlık 3 ay sürerse kilo, insülin direnci ve enerji değişimi.
   
-  Skorlama Mantığı:
-  1. İnsülin Direnci Etki Skoru (score): 1-10 arası. 10 en sağlıklı (düşük risk), 1 en riskli. 
-  2. Sağlık Skoru (healthScore): 1-10 arası. 10 en besleyici, 1 en boş kalorili.
+  - score (Metabolik): 1-10.
+  - healthScore (Sağlık): 1-10.
+  - satietyScore (Tokluk): 1-10.
+  - inflammatoryScore (Enflamasyon): 1-10 (10 en kötü/yüksek risk).
   
-  Eğer sana veritabanı değerleri (staticContext) verilmişse, o değerleri kaynak olarak kullan. Verilmemişse kendi bilgilerine göre tahmin et.
+  ÖZEL KURALLAR:
+  1. Korelasyon: Eğer enflamasyon skoru 4'ten YÜKSEKSE (yani riskli ise), sağlık ve metabolik puanlar yüksek olsa bile final skorunu 6'nın üzerine çıkarma.
+  2. Sirkadiyen Ceza: Analiz edilen saat gece ise (21:00 sonrası), karbonhidrat ve yağ ağırlıklı yemeklere %20 ceza uygula.
+  3. Kümülatif: Kullanıcı geçmişi (historyContext) üst üste kötü seçimler içeriyorsa skoru extra düşür (-2 puan) ve sert uyar.
+  4. Yeme Uygunluk Skoru (eatingSuitabilityScore): Şu formülle hesapla (10 üzerinden):
+     (HealthScore * 0.35) + (Score * 0.30) + (SatietyScore * 0.15) - (InflammatoryScore * 0.20)
+  
+  Işık Kategorileri (lightStatus):
+  - [9-10] -> GREEN: "YEŞİL IŞIK: Mükemmel seçim, hemen yiyebilirsin."
+  - [6-8.9] -> YELLOW: "SARI IŞIK: Yiyebilirsin ama şu değişikliği yap: [Öneri]."
+  - [6 altı] -> RED: "KIRMIZI IŞIK: Yemesen daha iyi veya porsiyonu %50 azalt."
+  
+  Eğer sana veritabanı değerleri (staticContext) verilmişse, o değerleri kaynak olarak kullan.
+  Kullanıcının geçmiş verileri (historyContext) verilmişse, kümülatif analizi buna dayandır.
   
   Çıktı Formatı Gereksinimleri:
-  - insulinEffect: "Düşük", "Orta-Düşük", "Orta", "Yüksek" gibi sözel bir ifade.
-  - metabolicEffect: Besinin metabolizma üzerindeki etkisi hakkında 2-3 cümlelik teknik açıklama.
-  - functionalBenefit: Besinin içerdiği vitamin, mineral veya lif gibi faydalı bileşenler hakkında açıklama.
-  - profileComments: 4 farklı profil için (kilo vermek isteyen, diyabetik, sporcu, çölyak) kısa, aksiyon odaklı tavsiyeler.
-  - warning: Pişirme süresi, sos içeriği veya porsiyon kontrolü gibi kritik bir uyarı.
-  - suggestion: Genel bir biyohack veya eşleşme tavsiyesi.
-  - circadianData: Besinin günün farklı saatlerindeki (08:00, 12:00, 16:00, 20:00, 00:00) metabolik etkisini (1-10 arası puan) ve kısa bir etiketi sağla.`;
+  - eatingSuitabilityScore: Hesaplanan final puan.
+  - lightStatus: "GREEN", "YELLOW" veya "RED".
+  - lightDescription: Işık kategorisine göre kullanıcıya verilecek nihai karar cümlesi.
+  - metabolicEffect: Teknik açıklama.
+  - metabolicMemory: 7 günlük tüketim sıklığının etkisi.
+  - nutrientAccumulation: 30 günlük mikro besin doygunluğu yorumu.
+  - systemicInflammationRisk: {level: 1-10, warning: "açıklama"}.
+  - microbiotaResilience: {score: 1-10, description: "açıklama"}.
+  - threeMonthProjection: {weightChange: "+2kg", insulinImpact: "%10 iyileşme" vb., energyLevel: "Düşüş" vb.}.
+  - cumulativeFeedback: "Bu öğün tek başına sağlıklı, ancak haftalık rutininizde X maddesinin birikmesine neden oluyor" gibi stratejik bir cümle.`;
 
-  const prompt = `"${foodName}" besini için analiz yap. Kullanıcının günlük yüksek GY öğün sayısı: ${highGYCount}. ${profileContext} ${staticContext} Yanıtı JSON formatında sağla.`;
+  const prompt = `"${foodName}" besini için analiz yap. 
+  Kullanıcının günlük yüksek GY öğün sayısı: ${highGYCount}. 
+  Profil: ${profileContext} 
+  Statik Veri: ${staticContext} 
+  Geçmiş Veriler (Kümülatif Analiz İçin): ${historyContext} 
+  Yanıtı JSON formatında sağla.`;
 
   try {
     const response = await getGenAI().models.generateContent({
@@ -363,6 +426,22 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
             },
             warning: { type: Type.STRING },
             suggestion: { type: Type.STRING },
+            satietyScore: { type: Type.NUMBER },
+            inflammatoryScore: { type: Type.NUMBER },
+            cookingMethodImpact: { type: Type.STRING },
+            foodPairingAdvice: { type: Type.STRING },
+            pairingSuggestions: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  name: { type: Type.STRING },
+                  icon: { type: Type.STRING },
+                  reason: { type: Type.STRING }
+                },
+                required: ["name", "icon", "reason"]
+              }
+            },
             kal: { type: Type.NUMBER },
             karb: { type: Type.NUMBER },
             pro: { type: Type.NUMBER },
@@ -378,9 +457,48 @@ export async function analyzeFood(foodName: string, highGYCount: number = 0, pro
                 },
                 required: ["hour", "impact", "label"]
               }
-            }
+            },
+            metabolicMemory: { type: Type.STRING },
+            nutrientAccumulation: { type: Type.STRING },
+            systemicInflammationRisk: {
+              type: Type.OBJECT,
+              properties: {
+                level: { type: Type.NUMBER },
+                warning: { type: Type.STRING }
+              },
+              required: ["level", "warning"]
+            },
+            microbiotaResilience: {
+              type: Type.OBJECT,
+              properties: {
+                score: { type: Type.NUMBER },
+                description: { type: Type.STRING }
+              },
+              required: ["score", "description"]
+            },
+            threeMonthProjection: {
+              type: Type.OBJECT,
+              properties: {
+                weightChange: { type: Type.STRING },
+                insulinImpact: { type: Type.STRING },
+                energyLevel: { type: Type.STRING }
+              },
+              required: ["weightChange", "insulinImpact", "energyLevel"]
+            },
+            cumulativeFeedback: { type: Type.STRING },
+            eatingSuitabilityScore: { type: Type.NUMBER },
+            lightStatus: { type: Type.STRING, enum: ["GREEN", "YELLOW", "RED"] },
+            lightDescription: { type: Type.STRING }
           },
-          required: ["foodName", "gi", "gy", "ii", "fr", "lp", "mx", "score", "healthScore", "insulinEffect", "metabolicEffect", "functionalBenefit", "profileComments", "warning", "suggestion", "kal", "karb", "pro", "yag", "circadianData"]
+          required: [
+            "foodName", "gi", "gy", "ii", "fr", "lp", "mx", "score", "healthScore", 
+            "satietyScore", "inflammatoryScore", "cookingMethodImpact", "foodPairingAdvice", 
+            "pairingSuggestions", "insulinEffect", "metabolicEffect", "functionalBenefit", 
+            "profileComments", "warning", "suggestion", "kal", "karb", "pro", "yag", 
+            "circadianData", "metabolicMemory", "nutrientAccumulation", "systemicInflammationRisk",
+            "microbiotaResilience", "threeMonthProjection", "cumulativeFeedback",
+            "eatingSuitabilityScore", "lightStatus", "lightDescription"
+          ]
         }
       }
     });
