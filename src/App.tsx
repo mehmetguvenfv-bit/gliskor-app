@@ -3241,16 +3241,16 @@ function GliSkorApp() {
                   </div>
 
                   {/* Name and Scores Row */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className={`text-[1.2rem] sm:text-[1.5rem] font-black leading-[1.1] tracking-tight group-hover:text-[#2DFF73] transition-colors ${darkMode ? 'text-white' : 'text-zinc-900'} line-clamp-2`}>
+                  <div className="flex items-center justify-between gap-3 sm:gap-4">
+                    <div className="min-w-0 flex-1 py-1">
+                      <div className={`text-[1.1rem] sm:text-[1.5rem] font-black leading-[1.2] tracking-tight group-hover:text-[#2DFF73] transition-colors ${darkMode ? 'text-white' : 'text-zinc-900'} line-clamp-3 overflow-hidden text-ellipsis`}>
                         {f.isim}
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-auto">
                       {/* Metabolic Score Ring */}
-                      <div className="w-[32px] h-[32px] sm:w-[38px] sm:h-[38px] shrink-0 relative" title="Metabolik Skor">
+                      <div className="w-[28px] h-[28px] sm:w-[36px] sm:h-[36px] shrink-0 relative" title="Metabolik Skor">
                         <svg width="100%" height="100%" viewBox="0 0 40 40" className="-rotate-90">
                           <circle cx="20" cy="20" r="18" fill="none" stroke={darkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"} strokeWidth="4"/>
                           <circle 
@@ -3259,13 +3259,13 @@ function GliSkorApp() {
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center text-[0.6rem] sm:text-[0.65rem] font-black" style={{ color: getRingColor(mScore) }}>
+                        <div className="absolute inset-0 flex items-center justify-center text-[0.55rem] sm:text-[0.65rem] font-black" style={{ color: getRingColor(mScore) }}>
                           {mScore}
                         </div>
                       </div>
 
                       {/* Health Score Ring */}
-                      <div className="w-[44px] h-[44px] sm:w-[52px] sm:h-[52px] shrink-0 relative" title="Sağlık Skoru">
+                      <div className="w-[38px] h-[38px] sm:w-[48px] sm:h-[48px] shrink-0 relative" title="Sağlık Skoru">
                         <svg width="100%" height="100%" viewBox="0 0 56 56" className="-rotate-90">
                           <circle cx="28" cy="28" r="25" fill="none" stroke={darkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"} strokeWidth="6"/>
                           <circle 
@@ -3274,7 +3274,7 @@ function GliSkorApp() {
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center text-[0.9rem] sm:text-[1.1rem] font-black" style={{ color: col }}>
+                        <div className="absolute inset-0 flex items-center justify-center text-[0.8rem] sm:text-[1rem] font-black" style={{ color: col }}>
                           {nScore}
                         </div>
                       </div>

@@ -18,6 +18,12 @@ window.addEventListener('unhandledrejection', function(event) {
 });
 
 function showError(type: string, message: string, source: string, lineno: number, colno: number, error: any) {
+  // WebSocket hatalarını görmezden gel (Genellikle HMR ile ilgili teknik hatalardır)
+  if (message.includes('WebSocket')) {
+    console.warn('Zararsız WebSocket hatası engellendi:', message);
+    return;
+  }
+
   const errorDiv = document.createElement('div');
   errorDiv.style.position = 'fixed';
   errorDiv.style.top = '0';
