@@ -2050,10 +2050,10 @@ function GliSkorApp() {
         )}
       </AnimatePresence>
 
-      <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-colors duration-500 ${darkMode ? 'bg-black/50 border-white/5' : 'bg-white/50 border-black/5'} px-3 sm:px-8 py-2.5 sm:py-5`}>
-        <div className="max-w-[1200px] mx-auto flex justify-between items-center">
+      <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-colors duration-500 ${darkMode ? 'bg-black/50 border-white/5' : 'bg-white/50 border-black/5'} px-3 md:px-6 lg:px-8 py-2.5 sm:py-4`}>
+        <div className="max-w-[1200px] mx-auto flex justify-between items-center px-1">
           <div role="banner">
-            <div className={`logo text-[1.1rem] xs:text-[1.8rem] sm:text-[2.5rem] font-bold tracking-tighter transition-colors flex items-center ${darkMode ? 'text-white' : 'text-black'}`}>
+            <div className={`logo text-[1.1rem] xs:text-[1.6rem] sm:text-[1.8rem] md:text-[2.2rem] lg:text-[2.5rem] font-bold tracking-tighter transition-colors flex items-center ${darkMode ? 'text-white' : 'text-black'}`}>
               <span>Gli</span>
               <Utensils aria-hidden="true" className={`text-[#2DFF73] mx-1 sm:mx-2 w-5 h-5 xs:w-6 xs:h-6 sm:w-8 sm:h-8`} />
               <span className="text-[#2DFF73] italic">Skor</span>
@@ -2074,7 +2074,7 @@ function GliSkorApp() {
                   <span className="text-[0.6rem] sm:text-[0.7rem] font-black text-white">{userStats.level}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className={`text-[0.65rem] sm:text-[0.75rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{userStats.points} <span className="hidden xs:inline">Puan</span></span>
+                  <span className={`text-[0.65rem] sm:text-[0.7rem] lg:text-[0.75rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{userStats.points} <span className="hidden lg:inline">Puan</span></span>
                 </div>
               </div>
 
@@ -2082,14 +2082,14 @@ function GliSkorApp() {
               <div className={`hidden min-[400px]:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full border ${darkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`} aria-label={`Günlük Glikoz Yükü: ${Math.round(dailyTotals.gl)} / 100`}>
                 <Activity size={12} aria-hidden="true" className={`sm:w-3.5 sm:h-3.5 ${dailyTotals.gl > 100 ? "text-red-500" : "text-[#2DFF73]"}`} />
                 <div className="flex flex-col">
-                  <span className={`text-[0.65rem] sm:text-[0.75rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{Math.round(dailyTotals.gl)}<span className="hidden sm:inline"> / 100</span></span>
+                  <span className={`text-[0.65rem] sm:text-[0.7rem] lg:text-[0.75rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{Math.round(dailyTotals.gl)}<span className="hidden lg:inline"> / 100</span></span>
                 </div>
               </div>
 
               {/* Streak */}
               <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full border ${darkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`} aria-label={`Seri: ${userStats.streak} gün`}>
                 <Flame size={12} aria-hidden="true" className={`sm:w-3.5 sm:h-3.5 ${userStats.streak > 0 ? "text-orange-500 fill-orange-500 animate-pulse" : "text-zinc-500"}`} />
-                <span className={`text-[0.65rem] sm:text-[0.75rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{userStats.streak} <span className="hidden xs:inline">Gün</span></span>
+                <span className={`text-[0.65rem] sm:text-[0.7rem] lg:text-[0.75rem] font-black leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{userStats.streak} <span className="hidden lg:inline">Gün</span></span>
               </div>
 
               <button 
@@ -2143,10 +2143,10 @@ function GliSkorApp() {
               {!currentUser ? (
                 <button 
                   onClick={handleLogin}
-                  className="bg-white text-black p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl hover:bg-zinc-200 transition-all shadow-lg flex items-center gap-2 font-black text-[0.65rem] xs:text-[0.7rem] sm:text-[0.8rem] uppercase tracking-widest px-3 xs:px-4 sm:px-6"
+                  className="bg-white text-black p-2 xs:p-2.5 sm:p-3 sm:py-3.5 rounded-xl sm:rounded-2xl hover:bg-zinc-200 transition-all shadow-lg flex items-center gap-2 font-black text-[0.65rem] xs:text-[0.7rem] sm:text-[0.75rem] uppercase tracking-widest px-3 xs:px-4 sm:px-5 md:px-6"
                 >
                   <Sparkles size={16} />
-                  <span className="hidden sm:inline">Giriş Yap</span>
+                  <span className="hidden lg:inline">Giriş Yap</span>
                 </button>
               ) : (
                 <button 
@@ -2159,11 +2159,11 @@ function GliSkorApp() {
               )}
               <button 
                 onClick={openAddModal}
-                className="bg-[#2DFF73] text-black p-2 xs:p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl hover:bg-[#2DFF73]/90 transition-all shadow-[0_0_30px_rgba(45,255,115,0.3)] hover:scale-105 active:scale-95 flex items-center gap-1.5 xs:gap-2 font-black text-[0.65rem] xs:text-[0.7rem] sm:text-[0.8rem] uppercase tracking-widest px-3 xs:px-4 sm:px-6"
+                className="bg-[#2DFF73] text-black p-2 xs:p-2.5 sm:p-3 sm:py-3.5 rounded-xl sm:rounded-2xl hover:bg-[#2DFF73]/90 transition-all shadow-[0_0_30px_rgba(45,255,115,0.3)] hover:scale-105 active:scale-95 flex items-center gap-1.5 xs:gap-2 font-black text-[0.65rem] xs:text-[0.7rem] sm:text-[0.75rem] uppercase tracking-widest px-3 xs:px-4 sm:px-5 md:px-6"
                 aria-label="Yeni Besin Ekle"
               >
                 <Plus size={16} aria-hidden="true" className="w-[16px] h-[16px] xs:w-[18px] xs:h-[18px]" strokeWidth={3} />
-                <span className="hidden sm:inline">Besin Ekle</span>
+                <span className="hidden lg:inline">Besin Ekle</span>
               </button>
             </div>
           </div>
