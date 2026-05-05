@@ -1126,7 +1126,15 @@ function GliSkorApp() {
   const [foodList, setFoodList] = useState<Food[]>(() => {
     try {
       const saved = localStorage.getItem('gliskor_foods');
-      return saved ? JSON.parse(saved) : foods;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Fallback ve göç mantığı:isim alanı eksikse name veya foodName'den kurtar
+        return parsed.map((f: any) => ({
+          ...f,
+          isim: f.isim || f.name || f.foodName || 'Tanımsız Besin'
+        }));
+      }
+      return foods;
     } catch (e) {
       console.error("Foods parse error:", e);
       return foods;
@@ -3208,17 +3216,41 @@ function GliSkorApp() {
                 {/* Decorative background glow */}
                 <div className="absolute top-0 right-0 w-32 h-32 blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity rounded-full -mr-16 -mt-16" style={{ backgroundColor: col }} />
                 
-                <div className="flex items-start justify-between mb-6 sm:mb-8 gap-4 relative z-10">
-                  <div className="flex items-start gap-4 flex-1 min-w-0">
-                    <div className="min-w-0 flex-1 flex flex-col min-h-[70px] sm:min-h-[85px]">
-                      <div className={`text-[1.25rem] sm:text-[1.4rem] font-black leading-[1.1] line-clamp-2 tracking-tight group-hover:text-[#2DFF73] transition-colors ${darkMode ? 'text-white' : 'text-black'}`}>{f.isim}</div>
-                      <div className={`text-[0.65rem] sm:text-[0.7rem] font-black mt-auto pt-2 uppercase tracking-[0.25em] opacity-70 ${darkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>{f.kat}</div>
+                <div className="relative z-10 flex flex-col gap-4 mb-6 sm:mb-8">
+                  {/* Top Row: Category and Action Buttons */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className={`text-[0.6rem] sm:text-[0.65rem] font-black uppercase tracking-[0.25em] opacity-60 ${darkMode ? 'text-zinc-400' : 'text-zinc-500'}`}>
+                      {f.kat}
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); addToLog(f, 100, 'Atıştırmalık', mScore); }}
+                        className={`w-9 h-9 sm:w-11 sm:h-11 border rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:scale-110 transition-all shrink-0 group/log ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'}`}
+                        title="Günlüğe Ekle"
+                      >
+                        <Activity size={18} className="sm:w-5 sm:h-5 group-hover/log:scale-110 transition-transform" strokeWidth={3} />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); addToPlate(f); }}
+                        className={`w-9 h-9 sm:w-11 sm:h-11 border rounded-xl sm:rounded-2xl shadow-lg flex items-center justify-center hover:bg-[#2DFF73] hover:text-black hover:border-[#2DFF73] hover:scale-110 transition-all shrink-0 group/add ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'}`}
+                        title="Tabağa Ekle"
+                      >
+                        <Plus size={18} className="sm:w-5 sm:h-5 group-hover/add:rotate-90 transition-transform" strokeWidth={3} />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                    <div className="flex items-center gap-2">
-                      {/* Metabolic Score Ring (Smaller) */}
-                      <div className="w-[36px] h-[36px] sm:w-[40px] sm:h-[40px] shrink-0 relative" title="Metabolik Skor">
+
+                  {/* Name and Scores Row */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className={`text-[1.2rem] sm:text-[1.5rem] font-black leading-[1.1] tracking-tight group-hover:text-[#2DFF73] transition-colors ${darkMode ? 'text-white' : 'text-zinc-900'} line-clamp-2`}>
+                        {f.isim}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                      {/* Metabolic Score Ring */}
+                      <div className="w-[32px] h-[32px] sm:w-[38px] sm:h-[38px] shrink-0 relative" title="Metabolik Skor">
                         <svg width="100%" height="100%" viewBox="0 0 40 40" className="-rotate-90">
                           <circle cx="20" cy="20" r="18" fill="none" stroke={darkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"} strokeWidth="4"/>
                           <circle 
@@ -3227,12 +3259,13 @@ function GliSkorApp() {
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center text-[0.6rem] sm:text-[0.7rem] font-black" style={{ color: getRingColor(mScore) }}>
+                        <div className="absolute inset-0 flex items-center justify-center text-[0.6rem] sm:text-[0.65rem] font-black" style={{ color: getRingColor(mScore) }}>
                           {mScore}
                         </div>
                       </div>
-                      {/* Health Score Ring (Main) */}
-                      <div className="w-[48px] h-[48px] sm:w-[56px] sm:h-[56px] shrink-0 relative" title="Sağlık Skoru">
+
+                      {/* Health Score Ring */}
+                      <div className="w-[44px] h-[44px] sm:w-[52px] sm:h-[52px] shrink-0 relative" title="Sağlık Skoru">
                         <svg width="100%" height="100%" viewBox="0 0 56 56" className="-rotate-90">
                           <circle cx="28" cy="28" r="25" fill="none" stroke={darkMode ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"} strokeWidth="6"/>
                           <circle 
@@ -3241,25 +3274,11 @@ function GliSkorApp() {
                             strokeLinecap="round"
                           />
                         </svg>
-                        <div className="absolute inset-0 flex items-center justify-center text-[1rem] sm:text-[1.2rem] font-black" style={{ color: col }}>
+                        <div className="absolute inset-0 flex items-center justify-center text-[0.9rem] sm:text-[1.1rem] font-black" style={{ color: col }}>
                           {nScore}
                         </div>
                       </div>
                     </div>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); addToLog(f, 100, 'Atıştırmalık', mScore); }}
-                      className={`w-10 h-10 sm:w-12 sm:h-12 border rounded-xl sm:rounded-2xl shadow-xl flex items-center justify-center hover:bg-blue-500 hover:text-white hover:border-blue-500 hover:scale-110 transition-all shrink-0 group/log ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'}`}
-                      title="Günlüğe Ekle"
-                    >
-                      <Activity size={20} className="sm:w-6 sm:h-6 group-hover/log:scale-110 transition-transform" strokeWidth={3} />
-                    </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); addToPlate(f); }}
-                      className={`w-10 h-10 sm:w-12 sm:h-12 border rounded-xl sm:rounded-2xl shadow-xl flex items-center justify-center hover:bg-[#2DFF73] hover:text-black hover:border-[#2DFF73] hover:scale-110 transition-all shrink-0 group/add ${darkMode ? 'bg-white/5 border-white/10 text-white' : 'bg-black/5 border-black/10 text-black'}`}
-                      title="Tabağa Ekle"
-                    >
-                      <Plus size={20} className="sm:w-6 sm:h-6 group-hover/add:rotate-90 transition-transform" strokeWidth={3} />
-                    </button>
                   </div>
                 </div>
 
@@ -3276,9 +3295,10 @@ function GliSkorApp() {
                   ))}
                 </div>
 
-                <div className="flex-1 relative z-10">
-                  <div className={`inline-flex items-center gap-3 text-[0.75rem] font-black px-5 py-2.5 rounded-full uppercase tracking-widest border shadow-xl backdrop-blur-md ${st.cls}`}>
-                    <span className={`w-2.5 h-2.5 rounded-full ${st.dot} shadow-[0_0_8px_currentColor]`}></span>{st.label}
+                <div className="flex-1 flex flex-col justify-center relative z-10 mb-8 mt-2">
+                  <div className={`self-center flex items-center gap-2 text-[0.7rem] sm:text-[0.75rem] font-black px-6 py-2.5 rounded-full uppercase tracking-widest border shadow-lg backdrop-blur-md transition-all group-hover:scale-105 ${st.cls}`}>
+                    <span className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${st.dot} shadow-[0_0_8px_currentColor]`}></span>
+                    {st.label}
                   </div>
                 </div>
 
@@ -3963,6 +3983,20 @@ function GliSkorApp() {
                 </div>
 
                 <div className="pt-4 space-y-4">
+                  <button 
+                    onClick={() => {
+                      if (window.confirm("Tüm kişiselleştirilmiş veriler silinecek ve varsayılan veritabanına dönülecek. Onaylıyor musunuz?")) {
+                        setFoodList(foods);
+                        localStorage.removeItem('gliskor_foods');
+                        setIsProfileOpen(false);
+                      }
+                    }}
+                    className={`w-full py-4 rounded-2xl border flex items-center justify-center gap-3 transition-all ${darkMode ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20' : 'bg-red-50 border-red-100 text-red-600 hover:bg-red-100'}`}
+                  >
+                    <Trash2 size={18} />
+                    <span className="font-bold">Veritabanını Sıfırla</span>
+                  </button>
+
                   <button 
                     onClick={syncDatabaseWithAi}
                     disabled={isSyncing}
