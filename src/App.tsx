@@ -1146,6 +1146,7 @@ function GliSkorApp() {
   const [selectedFood, setSelectedFood] = useState<Food | null>(null);
   const [aiResult, setAiResult] = useState<AnalysisResult | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isDeepAnalysing, setIsDeepAnalysing] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiSuccess, setAiSuccess] = useState<string | null>(null);
   const [quickFilter, setQuickFilter] = useState<'none' | 'super' | 'protein' | 'lowcarb'>('none');
@@ -1663,6 +1664,7 @@ function GliSkorApp() {
     }
 
     setIsAiLoading(true);
+    setIsDeepAnalysing(true);
     setAiError(null);
     setAiResult(null);
     const searchName = name.trim();
@@ -1824,11 +1826,13 @@ function GliSkorApp() {
       }
       
       setIsAiLoading(false);
+      setIsDeepAnalysing(false);
 
     } catch (err: any) {
       console.error("AI Analysis major failure:", err);
       setAiError(err?.message || "Analiz sırasında bir hata oluştu.");
       setIsAiLoading(false);
+      setIsDeepAnalysing(false);
     }
   }, [highGYCount, userProfile, foodList, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, isLowSleep, isStressed, history, dailyLog, generateLocalComment]);
 
@@ -2506,6 +2510,11 @@ function GliSkorApp() {
                         {aiResult.isFromCache && (
                           <span className={`px-2 py-0.5 rounded-lg text-[0.55rem] font-black uppercase tracking-widest flex items-center gap-1 ${darkMode ? 'bg-[#2DFF73]/10 text-[#2DFF73]' : 'bg-[#2DFF73]/20 text-emerald-700'}`}>
                             <Zap size={10} strokeWidth={3} /> ÖNBELLEKTEN
+                          </span>
+                        )}
+                        {isDeepAnalysing && (
+                          <span className={`px-2 py-0.5 rounded-lg text-[0.55rem] font-black uppercase tracking-widest flex items-center gap-1 bg-blue-500/10 text-blue-500 animate-pulse`}>
+                            <Loader2 size={10} className="animate-spin" /> DERİN ANALİZ YAPILIYOR...
                           </span>
                         )}
                         <span className={`px-2 py-0.5 border rounded-lg text-[0.55rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
