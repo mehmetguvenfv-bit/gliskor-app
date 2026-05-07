@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo, useEffect, useCallback, ReactNode, ErrorInfo } from 'react';
-import { Search, X, ChevronRight, Info, Brain, Loader2, AlertTriangle, Lightbulb, Droplets, Beef, Wheat, Plus, Minus, Edit2, Trash2, Moon, Activity, Leaf, Thermometer, CheckCircle2, Zap, Utensils, ShoppingBasket, Sparkles, User, History, Sun, Waves, Camera, Upload, Image as ImageIcon, Trophy, Star, Target, Flame, Award, RefreshCcw, Mic, MicOff, TrendingUp } from 'lucide-react';
+import { Search, X, ChevronRight, Info, Brain, Loader2, AlertTriangle, Lightbulb, Droplets, Beef, Wheat, Plus, Minus, Edit2, Trash2, Moon, Activity, Leaf, Thermometer, CheckCircle2, Zap, Utensils, ShoppingBasket, Sparkles, User, History, Sun, Waves, Camera, Upload, Image as ImageIcon, Trophy, Star, Target, Flame, Award, RefreshCcw, Mic, MicOff, TrendingUp, Check } from 'lucide-react';
 
 // Error Boundary Component
 interface ErrorBoundaryProps {
@@ -1233,6 +1233,14 @@ function GliSkorApp() {
                 streak: data.streak || 0
               }));
             }
+            if (data.foodList && Array.isArray(data.foodList)) {
+              // Local listeyi Firestore'dan gelenle birleştir (Tekrar edenleri temizle)
+              setFoodList(prev => {
+                const combined = [...prev, ...data.foodList];
+                const unique = Array.from(new Map(combined.map(item => [item.isim.toLowerCase(), item])).values());
+                return unique;
+              });
+            }
           } else {
             // Create initial profile
             setDoc(userRef, {
@@ -1437,7 +1445,13 @@ function GliSkorApp() {
 
   useEffect(() => {
     localStorage.setItem('gliskor_foods', JSON.stringify(foodList));
-  }, [foodList]);
+    if (currentUser) {
+      const userRef = doc(db, 'users', currentUser.uid);
+      // Sadece standart listede olmayan (kullanıcının eklediği) besinleri senkronize etsek daha iyi ama 
+      // tüm listeyi senkronize etmek daha kolay ve güvenli
+      setDoc(userRef, { foodList }, { merge: true }).catch(err => console.error("Error syncing foods:", err));
+    }
+  }, [foodList, currentUser]);
 
   useEffect(() => {
     localStorage.setItem('gliskor_plate', JSON.stringify(plate));
@@ -2065,7 +2079,7 @@ function GliSkorApp() {
     });
 
     return list;
-  }, [searchVal, activeCat, sortMode, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, highGYCount, isLowSleep, isStressed]);
+  }, [foodList, searchVal, activeCat, sortMode, quickFilter, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, highGYCount, isLowSleep, isStressed]);
 
   return (
     <div className={`min-h-screen overflow-x-hidden transition-colors duration-500 ${darkMode ? 'bg-[#0A0A0A] text-[#E4E3E0]' : 'bg-[#F5F5F0] text-[#141414] light-mode'} pb-20 font-sans selection:bg-[#2DFF73] selection:text-black`}>
@@ -2518,8 +2532,44 @@ function GliSkorApp() {
                           </span>
                         )}
                         <span className={`px-2 py-0.5 border rounded-lg text-[0.55rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
-                          {foods.find(f => f.isim === aiResult.foodName)?.kat || "Besin"}
+                          {foodList.find(f => f.isim.toLowerCase() === aiResult.foodName.toLowerCase())?.kat || "Besin"}
                         </span>
+                        
+                        {/* Save to Database Button */}
+                        {!foodList.some(f => f.isim.toLowerCase() === aiResult.foodName.toLowerCase()) ? (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              const newFood: Food = {
+                                isim: aiResult.foodName,
+                                kat: aiResult.kat || "AnalizEdilen",
+                                gi: aiResult.gi,
+                                karb: aiResult.karb,
+                                lif: aiResult.lp,
+                                pro: aiResult.pro,
+                                yag: aiResult.yag,
+                                kal: aiResult.kal
+                              };
+                              setFoodList(prev => [...prev, newFood]);
+                              setAiSuccess(`${aiResult.foodName} başarıyla besin listenize eklendi!`);
+                              setTimeout(() => setAiSuccess(null), 3000);
+                            }}
+                            className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[0.55rem] font-black uppercase tracking-widest transition-all ${
+                              darkMode 
+                                ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500/20' 
+                                : 'bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200'
+                            }`}
+                          >
+                            <Plus size={10} strokeWidth={3} /> LİSTEME EKLE
+                          </motion.button>
+                        ) : (
+                          <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[0.55rem] font-black uppercase tracking-widest ${
+                            darkMode ? 'bg-emerald-500/10 text-emerald-500' : 'bg-emerald-100 text-emerald-700'
+                          }`}>
+                            <Check size={10} strokeWidth={3} /> LİSTENİZDE KAYITLI
+                          </span>
+                        )}
                       </div>
                       <h2 className={`text-[1.8rem] xs:text-[2.2rem] sm:text-[3rem] md:text-[4rem] lg:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent break-words ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
                         {aiResult.foodName}
@@ -3526,77 +3576,150 @@ function GliSkorApp() {
 
               {(() => {
                 const staticAnalysis = generateStaticAnalysis(selectedFood);
-                const healthScore = Math.round((metabolicScore + nutritionalScore) / 2);
-                
+                const localComment = generateLocalComment(selectedFood, metabolicScore);
+                const suitabilityScoreValue = Math.round((metabolicScore * 0.6 + nutritionalScore * 0.4) * 10);
+
                 return (
                   <>
-                    <div className="mb-8 sm:mb-12">
-                      <h2 className={`text-[1.8rem] xs:text-[3rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-6 bg-gradient-to-b bg-clip-text text-transparent pr-20 xs:pr-24 ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'} break-words`}>
-                        {selectedFood.isim}
-                      </h2>
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <span className={`px-4 py-1.5 border rounded-full text-[0.7rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
-                            {selectedFood.kat}
-                          </span>
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={() => openEditModal(selectedFood)}
-                              className="p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all"
-                              title="Düzenle"
-                            >
-                              <Edit2 size={16} />
-                            </button>
-                            <button 
-                              onClick={() => {
-                                if(window.confirm(`${selectedFood.isim} silinsin mi?`)) handleDeleteFood(selectedFood.isim);
-                              }}
-                              className="p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
-                              title="Sil"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                    {/* NIHAI KARAR Banner */}
+                    <div className="mb-6 px-4">
+                      <div className={`p-4 rounded-2xl border flex items-center gap-4 transition-all ${
+                        metabolicScore >= 8.5 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                        metabolicScore < 5.5 ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                        'bg-zinc-500/10 border-white/10 text-zinc-400'
+                      }`}>
+                        <div className={`w-3 h-3 rounded-full animate-pulse ${
+                          metabolicScore >= 8.5 ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]' :
+                          metabolicScore < 5.5 ? 'bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]' :
+                          'bg-zinc-500'
+                        }`} />
+                        <div>
+                          <div className="text-[0.65rem] font-black uppercase tracking-[0.2em] mb-0.5 opacity-60">NİHAİ KARAR</div>
+                          <div className="text-[0.9rem] font-bold tracking-tight leading-tight">
+                            {localComment.lightDescription}
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-4">
-                          {/* Metabolic Score */}
-                          <div className="flex flex-col items-center">
-                            <div className="w-[48px] h-[48px] relative">
-                              <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
-                                <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
-                                <circle 
-                                  cx="24" cy="24" r="21" fill="none" stroke={getRingColor(metabolicScore)} strokeWidth="4"
-                                  strokeDasharray={`${((metabolicScore / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
-                                  strokeLinecap="round"
-                                />
-                              </svg>
-                              <div className="absolute inset-0 flex items-center justify-center text-[1rem] font-black" style={{ color: getRingColor(metabolicScore) }}>
-                                {metabolicScore}
-                              </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-8 overflow-hidden px-4">
+                      <div className="flex flex-col md:flex-row justify-between items-start gap-8">
+                        {/* Title & Category Area */}
+                        <div className="flex-1 pr-12 md:pr-0">
+                          <div className="flex items-center gap-2 mb-4">
+                            <span className={`px-2 py-0.5 border rounded-lg text-[0.55rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
+                              {selectedFood.kat}
+                            </span>
+                            <div className="flex gap-2 ml-4">
+                              <button 
+                                onClick={() => openEditModal(selectedFood)}
+                                className={`p-1.5 rounded-lg border transition-all ${darkMode ? 'bg-white/5 border-white/10 text-zinc-500 hover:text-white' : 'bg-black/5 border-black/10 text-zinc-400 hover:text-black'}`}
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  if(window.confirm(`${selectedFood.isim} silinsin mi?`)) handleDeleteFood(selectedFood.isim);
+                                }}
+                                className={`p-1.5 rounded-lg border transition-all ${darkMode ? 'bg-white/5 border-white/10 text-zinc-500 hover:text-red-400' : 'bg-black/5 border-black/10 text-zinc-400 hover:text-red-600'}`}
+                              >
+                                <Trash2 size={12} />
+                              </button>
                             </div>
-                            <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Metabolik</span>
                           </div>
-                          {/* Health Score */}
-                          <div className="flex flex-col items-center">
-                            <div className="relative w-24 h-24 flex items-center justify-center">
-                              <svg className="w-full h-full -rotate-90">
-                                <circle cx="48" cy="48" r="40" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="8" />
-                                <motion.circle 
-                                  cx="48" cy="48" r="40" fill="none" 
-                                  stroke={getRingColor(nutritionalScore)} 
-                                  strokeWidth="8"
-                                  strokeDasharray="251.2"
-                                  initial={{ strokeDashoffset: 251.2 }}
-                                  animate={{ strokeDashoffset: 251.2 - (nutritionalScore / 10) * 251.2 }}
-                                  transition={{ duration: 1.5, ease: "circOut" }}
-                                  strokeLinecap="round"
-                                />
-                              </svg>
-                              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-[1.8rem] font-black leading-none tracking-tighter" style={{ color: getRingColor(nutritionalScore) }}>{nutritionalScore}</span>
-                                <span className="text-[0.5rem] text-zinc-500 font-black tracking-widest mt-0.5">SAĞLIK</span>
+                          <h2 className={`text-[2rem] xs:text-[3rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter bg-gradient-to-b bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'} break-words`}>
+                            {selectedFood.isim}
+                          </h2>
+                        </div>
+
+                        {/* Unified Bento Scores (Matching AI Results) */}
+                        <div className="flex items-center gap-4 shrink-0 self-end md:self-center">
+                          <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4">
+                            {/* Final Suitability Score */}
+                            <div className="flex flex-col items-center mr-2 sm:mr-4 pr-4 border-r border-white/10">
+                              <div className={`w-[56px] h-[56px] sm:w-[72px] sm:h-[72px] rounded-full flex flex-col items-center justify-center border-2 ${
+                                metabolicScore >= 8.5 ? 'border-emerald-500 bg-emerald-500/10' :
+                                metabolicScore < 5.5 ? 'border-rose-500 bg-rose-500/10' :
+                                'border-amber-500 bg-amber-500/10'
+                              }`}>
+                                <span className={`text-[1.2rem] sm:text-[1.5rem] font-black ${
+                                  metabolicScore >= 8.5 ? 'text-emerald-500' :
+                                  metabolicScore < 5.5 ? 'text-rose-500' :
+                                  'text-amber-500'
+                                }`}>{suitabilityScoreValue}</span>
                               </div>
+                              <span className="text-[0.45rem] sm:text-[0.5rem] text-zinc-400 font-black tracking-widest mt-1 uppercase">UYGUNLUK</span>
+                            </div>
+
+                            {/* Metabolic Score */}
+                            <div className="flex flex-col items-center">
+                              <div className="w-[45px] h-[45px] sm:w-[58px] sm:h-[58px] relative">
+                                <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
+                                  <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
+                                  <circle 
+                                    cx="24" cy="24" r="21" fill="none" stroke={getRingColor(metabolicScore)} strokeWidth="4"
+                                    strokeDasharray={`${((metabolicScore / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                  <span className="text-[0.8rem] sm:text-[1.1rem] font-black" style={{ color: getRingColor(metabolicScore) }}>{metabolicScore}</span>
+                                </div>
+                              </div>
+                              <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Metabolik</span>
+                            </div>
+
+                            {/* Health Score */}
+                            <div className="flex flex-col items-center">
+                              <div className="w-[45px] h-[45px] sm:w-[58px] sm:h-[58px] relative">
+                                <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
+                                  <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
+                                  <circle 
+                                    cx="24" cy="24" r="21" fill="none" stroke={getRingColor(nutritionalScore)} strokeWidth="4"
+                                    strokeDasharray={`${((nutritionalScore / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                  <span className="text-[0.8rem] sm:text-[1.1rem] font-black" style={{ color: getRingColor(nutritionalScore) }}>{nutritionalScore}</span>
+                                </div>
+                              </div>
+                              <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Sağlık</span>
+                            </div>
+
+                            {/* Tokluk & Enflamasyon (Estimated for database food) */}
+                            <div className="flex flex-col items-center">
+                              <div className="w-[45px] h-[45px] sm:w-[58px] sm:h-[58px] relative">
+                                <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
+                                  <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
+                                  <circle 
+                                    cx="24" cy="24" r="21" fill="none" stroke="#3B82F6" strokeWidth="4"
+                                    strokeDasharray={`${(((selectedFood.pro > 15 || selectedFood.lif > 4 ? 9 : 6) / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                  <span className="text-[0.8rem] sm:text-[1.1rem] font-black text-blue-500">{selectedFood.pro > 15 || selectedFood.lif > 4 ? 9 : 6}</span>
+                                </div>
+                              </div>
+                              <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Tokluk</span>
+                            </div>
+
+                            <div className="flex flex-col items-center">
+                              <div className="w-[45px] h-[45px] sm:w-[58px] sm:h-[58px] relative">
+                                <svg width="100%" height="100%" viewBox="0 0 48 48" className="-rotate-90">
+                                  <circle cx="24" cy="24" r="21" fill="none" stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} strokeWidth="4"/>
+                                  <circle 
+                                    cx="24" cy="24" r="21" fill="none" stroke="#10B981" strokeWidth="4"
+                                    strokeDasharray={`${(((selectedFood.gi > 70 ? 8 : 2) / 10) * 2 * Math.PI * 21).toFixed(1)} ${(2 * Math.PI * 21).toFixed(1)}`}
+                                    strokeLinecap="round"
+                                  />
+                                </svg>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                  <span className="text-[0.8rem] sm:text-[1.1rem] font-black text-[#10B981]">{selectedFood.gi > 70 ? 8 : 2}</span>
+                                </div>
+                              </div>
+                              <span className="text-[0.45rem] text-zinc-500 font-black tracking-widest mt-1 uppercase">Enflamasyon</span>
                             </div>
                           </div>
                         </div>
@@ -3621,7 +3744,7 @@ function GliSkorApp() {
                     </div>
 
                     {/* Insulin Effect Bar */}
-                    <div className="mb-12">
+                    <div className="mb-12 px-4">
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-[0.75rem] font-black uppercase tracking-widest text-zinc-500">İnsülin Etkisi</span>
                         <span className={`text-[0.85rem] font-black ${metabolicScore < 4 ? 'text-red-500' : metabolicScore < 7 ? 'text-orange-500' : 'text-emerald-500'}`}>
@@ -3631,13 +3754,35 @@ function GliSkorApp() {
                       <div className={`h-3 w-full rounded-full overflow-hidden ${darkMode ? 'bg-white/5' : 'bg-black/5'}`}>
                         <motion.div 
                           initial={{ width: 0 }}
-                          animate={{ width: `${(10 - metabolicScore + 1) * 10}%` }}
-                          transition={{ duration: 1, ease: "circOut" }}
+                          animate={{ width: `${(metabolicScore / 10) * 100}%` }}
+                          transition={{ duration: 1.5, ease: "circOut" }}
                           className="h-full rounded-full"
                           style={{ 
-                            background: `linear-gradient(90deg, #10B981 0%, #F59E0B 50%, #EF4444 100%)`,
+                            background: `linear-gradient(90deg, #EF4444 0%, #F59E0B 50%, #10B981 100%)`,
                           }}
                         />
+                      </div>
+                    </div>
+
+                    {/* Local Analysis Summary (Parallel to AI Analysis) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12 px-4">
+                      <div className={`p-6 rounded-[2rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <Brain size={18} className="text-zinc-500" />
+                          <span className="text-[0.7rem] font-black uppercase tracking-widest text-zinc-500">Metabolik Mekanizma</span>
+                        </div>
+                        <p className={`text-[0.95rem] font-bold leading-relaxed ${darkMode ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                          {localComment.metabolicEffect}
+                        </p>
+                      </div>
+                      <div className={`p-6 rounded-[2rem] border ${darkMode ? 'bg-amber-500/5 border-amber-500/20' : 'bg-amber-500/5 border-amber-500/10'}`}>
+                        <div className="flex items-center gap-3 mb-3">
+                          <Lightbulb size={18} className="text-amber-500" />
+                          <span className="text-[0.7rem] font-black uppercase tracking-widest text-amber-500">Analiz Özet</span>
+                        </div>
+                        <p className={`text-[0.95rem] font-bold leading-relaxed ${darkMode ? 'text-amber-200/80' : 'text-amber-900/80'}`}>
+                          {localComment.warning}
+                        </p>
                       </div>
                     </div>
 
