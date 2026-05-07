@@ -2343,14 +2343,19 @@ function GliSkorApp() {
                   {/* Header Section */}
                   <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8">
                     <div className="flex-1 pr-10 xs:pr-16 md:pr-0">
-                      <h2 className={`text-[1.8rem] xs:text-[2.2rem] sm:text-[3rem] md:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent break-words ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
-                        {aiResult.foodName}
-                      </h2>
-                      <div className="flex items-center gap-3">
-                        <span className={`px-4 py-1.5 border rounded-full text-[0.6rem] sm:text-[0.7rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        {aiResult.isFromCache && (
+                          <span className={`px-2 py-0.5 rounded-lg text-[0.55rem] font-black uppercase tracking-widest flex items-center gap-1 ${darkMode ? 'bg-[#2DFF73]/10 text-[#2DFF73]' : 'bg-[#2DFF73]/20 text-emerald-700'}`}>
+                            <Zap size={10} strokeWidth={3} /> ÖNBELLEKTEN
+                          </span>
+                        )}
+                        <span className={`px-2 py-0.5 border rounded-lg text-[0.55rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
                           {foods.find(f => f.isim === aiResult.foodName)?.kat || "Besin"}
                         </span>
                       </div>
+                      <h2 className={`text-[1.8rem] xs:text-[2.2rem] sm:text-[3rem] md:text-[4rem] lg:text-[4.5rem] font-black leading-[0.9] tracking-tighter mb-4 bg-gradient-to-b bg-clip-text text-transparent break-words ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>
+                        {aiResult.foodName}
+                      </h2>
                     </div>
                     <div className="flex items-center gap-4 shrink-0">
                       {/* Scores in Bento Style */}

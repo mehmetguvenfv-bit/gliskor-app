@@ -153,6 +153,7 @@ export interface AnalysisResult {
   eatingSuitabilityScore: number;
   lightStatus: 'GREEN' | 'YELLOW' | 'RED';
   lightDescription: string;
+  isFromCache?: boolean;
 }
 
 export interface NutritionData {
@@ -170,7 +171,7 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
   // Önce önbelleğe bak
   const cache = getNutritionCache();
   const cached = cache[foodName.toLowerCase()];
-  const CACHE_TTL = 1000 * 60 * 60 * 24 * 7; // 1 hafta
+  const CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 gün
 
   if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
     console.log("Using cached nutrition for:", foodName);
@@ -179,8 +180,7 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
 
   const model = "gemini-3-flash-preview";
   
-  const systemInstruction = `Sen bir besin değerleri veri tabanısın. Verilen besin adı için 100g porsiyon bazında besin değerlerini sağla.
-  Kategoriler: Tahıllar, Meyveler, Sebzeler, İçecekler, Süt ürünleri, Baklagiller, Türk yemekleri, Alkol, Kuruyemişler, Protein Kaynakları.`;
+  const systemInstruction = `Besin veri tabanısın. 100g için verileri JSON formatında sağla: { "isim": string, "gi": number, "karb": number, "lif": number, "pro": number, "yag": number, "kal": number }. Hata yapma, sadece JSON dön.`;
 
   const prompt = `"${foodName}" besini için besin değerlerini JSON formatında sağla.`;
 
@@ -395,12 +395,73 @@ export async function analyzeFood(
   // 1. ÖNCE ÖNBELLEĞE BAK (KOTA TASARRUFU - ADIM 1)
   const cache = getCache();
   const cached = cache[foodName.toLowerCase()];
-  const CACHE_TTL = 1000 * 60 * 60 * 6; // 6 saat geçerli
+  const CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 gün
 
-  // Eğer tarihçe veya profil değişmişse önbelleği atla (Opsiyonel: Daha sıkı kontrol eklenebilir)
   if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
     console.log("Using cached analysis for:", foodName);
-    return cached.result;
+    return { ...cached.result, isFromCache: true };
+  }
+
+  // 2. YEREL ANALİZ MOTORU (Eğer veritabanında puanlar varsa AI'yı beklemeden sonuç dön)
+  if (staticData && staticData.mScore !== undefined && staticData.nScore !== undefined) {
+    console.log("Maximum Speed: Local Heuristic used for", foodName);
+    const gi = staticData.gi;
+    const gy = Number(((gi * staticData.karb) / 100).toFixed(1));
+    
+    let status: 'GREEN' | 'YELLOW' | 'RED' = 'YELLOW';
+    if (staticData.mScore >= 8.5) status = 'GREEN';
+    else if (staticData.mScore < 5.5) status = 'RED';
+
+    const localResult: AnalysisResult = {
+      foodName: foodName,
+      gi: gi,
+      gy: gy,
+      ii: gi * 0.9,
+      fr: 0,
+      lp: staticData.lif,
+      mx: staticData.karb > 20 ? "solid" : "liquid",
+      score: staticData.mScore,
+      healthScore: staticData.nScore,
+      insulinEffect: status === 'GREEN' ? "Düşük/Stabil" : status === 'YELLOW' ? "Orta Şeker Yanıtı" : "Yüksek İnsülin Salınımı",
+      metabolicEffect: `Bu besin ${gi} GI ve ${gy} GY değerine sahip. Karbonhidrat: ${staticData.karb}g, Lif: ${staticData.lif}g.`,
+      functionalBenefit: "Yerel veri tabanı eşleşmesi ile saniyeler içinde analiz edildi.",
+      profileComments: {
+        weightLoss: "Porsiyon kontrolü ile uygun.",
+        diabetic: gi < 55 ? "Düşük riskli." : "Dikkatli olunmalı.",
+        athlete: "Enerji kaynağı olarak kullanılabilir.",
+        celiac: "İçerik kontrolü önerilir."
+      },
+      warning: status === 'RED' ? "Porsiyonu küçültün veya protein ile dengeleyin." : "Dengeli tüketim önerilir.",
+      suggestion: "Yanına yeşil yapraklı sebze ekleyerek emilimi yavaşlatabilirsiniz.",
+      satietyScore: Math.min(10, Math.round((staticData.pro || 0) * 0.5 + (staticData.lif || 0) * 2)),
+      inflammatoryScore: (staticData.lif || 0) > 3 ? 2 : 5,
+      cookingMethodImpact: "Pişirme yöntemi GI değerini %10-20 etkileyebilir.",
+      foodPairingAdvice: "Sirke veya limon eklemek sindirimi yavaşlatır.",
+      pairingSuggestions: [
+        { name: "Ceviz", icon: "🥜", reason: "Sağlıklı yağlar emilimi yavaşlatır" },
+        { name: "Yoğurt", icon: "🥛", reason: "Protein glisemik yükü dengeler" }
+      ],
+      kal: staticData.kal,
+      karb: staticData.karb,
+      pro: staticData.pro,
+      yag: staticData.yag,
+      circadianData: [
+        { hour: "08:00", impact: 8, label: "İdeal" },
+        { hour: "14:00", impact: 7, label: "Uygun" },
+        { hour: "21:00", impact: 3, label: "Riskli" }
+      ],
+      metabolicMemory: "Fizyolojik denge aralığında.",
+      nutrientAccumulation: "Bilinmiyor (Detaylı AI analizi gerekir).",
+      systemicInflammationRisk: { level: 4, warning: "Normal." },
+      microbiotaResilience: { score: 6, description: "Lif orta seviye." },
+      threeMonthProjection: { weightChange: "Stabil", insulinImpact: "Nötr", energyLevel: "Dengeli" },
+      cumulativeFeedback: "Bu analiz yerel veritabanı hesaplamaları ile anında üretilmiştir.",
+      eatingSuitabilityScore: Number(((staticData.nScore * 0.35) + (staticData.mScore * 0.4) + (Math.min(10, (staticData.pro || 0) + (staticData.lif || 0)) * 0.25)).toFixed(1)),
+      lightStatus: status,
+      lightDescription: status === 'GREEN' ? "YEŞİL IŞIK: Mükemmel seçim." : status === 'YELLOW' ? "SARI IŞIK: Uygun ama porsiyona dikkat." : "KIRMIZI IŞIK: Porsiyonu azaltın.",
+      isFromCache: true
+    };
+    return localResult;
   }
 
   const model = "gemini-3-flash-preview";
@@ -408,55 +469,16 @@ export async function analyzeFood(
   let staticContext = "";
   if (staticData) {
     // 2. VERİTABANI VARSA AI'YA "DAHA AZ DÜŞÜN" DE (KOTA TASARRUFU - ADIM 2)
-    staticContext = `
-    BU BESİN VERİTABANIMIZDA KAYITLI (DATA_EXISTS). LÜTFEN HESAPLAMA YAPMAK YERİNE BU VERİLERİ YORUMLA:
-    GI: ${staticData.gi}, Karb: ${staticData.karb}g, Lif: ${staticData.lif}g, Pro: ${staticData.pro}g, Yağ: ${staticData.yag}g, Kalori: ${staticData.kal}kcal
-    `;
+    staticContext = `VERİ MEVCUT: GI:${staticData.gi}, Karb:${staticData.karb}g, Lif:${staticData.lif}g, Pro:${staticData.pro}g, Yağ:${staticData.yag}g, Kal:${staticData.kal}kcal. HESAPLAMA YAPMA, BU VERİLERİ YORUMLA.`;
   }
 
-  const systemInstruction = `Sen kıdemli bir Biyokimya Uzmanı ve Beslenme Analistisin. Besinleri modern tıp ve NOVA gıda sınıflandırmasına göre analiz edersin.
-  
-  Analiz Kriterleri:
-  - Gi, Gy, Ii, Fr, Lp, Mx, Kal, Karb, Pro, Yag.
-  - Advanced: Pişirme yöntemi etkisi, Anti-besin içeriği ve emilim, Doygunluk Endeksi, Enflamatuar Skor.
-  - Cumulative System:
-    1. Metabolik Hafıza: Son 7 gündeki tüketim sıklığının etkisi.
-    2. Besin Birikimi: 30 günlük periyotta mikro besin doygunluğu (örn: Magnezyum).
-    3. Enflamatuar Yük: Üst üste gelen enflamatuar gıdaların yarattığı sistemik yangı riski.
-    4. Mikrobiyota Adaptasyonu: Lif çeşitliliği ve fermente gıda sıklığı üzerinden bağırsak florası direnci.
-    5. Tahminleme: Bu alışkanlık 3 ay sürerse kilo, insülin direnci ve enerji değişimi.
-  
-  - score (Metabolik): 1-10.
-  - healthScore (Sağlık): 1-10.
-  - satietyScore (Tokluk): 1-10.
-  - inflammatoryScore (Enflamasyon): 1-10 (10 en kötü/yüksek risk).
-  
-  ÖZEL KURALLAR:
-  1. Korelasyon: Eğer enflamasyon skoru 4'ten YÜKSEKSE (yani riskli ise), sağlık ve metabolik puanlar yüksek olsa bile final skorunu 6'nın üzerine çıkarma.
-  2. Sirkadiyen Ceza: Analiz edilen saat gece ise (21:00 sonrası), karbonhidrat ve yağ ağırlıklı yemeklere %20 ceza uygula.
-  3. Kümülatif: Kullanıcı geçmişi (historyContext) üst üste kötü seçimler içeriyorsa skoru extra düşür (-2 puan) ve sert uyar.
-  4. Yeme Uygunluk Skoru (eatingSuitabilityScore): Şu formülle hesapla (10 üzerinden):
-     (HealthScore * 0.35) + (Score * 0.30) + (SatietyScore * 0.15) - (InflammatoryScore * 0.20)
-  
-  Işık Kategorileri (lightStatus):
-  - [9-10] -> GREEN: "YEŞİL IŞIK: Mükemmel seçim, hemen yiyebilirsin."
-  - [6-8.9] -> YELLOW: "SARI IŞIK: Yiyebilirsin ama şu değişikliği yap: [Öneri]."
-  - [6 altı] -> RED: "KIRMIZI IŞIK: Yemesen daha iyi veya porsiyonu %50 azalt."
-  
-  Eğer sana veritabanı değerleri (staticContext) verilmişse, o değerleri kaynak olarak kullan.
-  Kullanıcının geçmiş verileri (historyContext) verilmişse, kümülatif analizi buna dayandır.
-  
-  Çıktı Formatı Gereksinimleri:
-  - eatingSuitabilityScore: Hesaplanan final puan.
-  - lightStatus: "GREEN", "YELLOW" veya "RED".
-  - lightDescription: Işık kategorisine göre kullanıcıya verilecek nihai karar cümlesi.
-  - metabolicEffect: Teknik açıklama.
-  - metabolicMemory: 7 günlük tüketim sıklığının etkisi.
-  - nutrientAccumulation: 30 günlük mikro besin doygunluğu yorumu.
-  - systemicInflammationRisk: {level: 1-10, warning: "açıklama"}.
-  - microbiotaResilience: {score: 1-10, description: "açıklama"}.
-  - threeMonthProjection: {weightChange: "+2kg", insulinImpact: "%10 iyileşme" vb., energyLevel: "Düşüş" vb.}.
-  - cumulativeFeedback: "Bu öğün tek başına sağlıklı, ancak haftalık rutininizde X maddesinin birikmesine neden oluyor" gibi stratejik bir cümle.`;
+  const systemInstruction = `Kıdemli Biyokimya Uzmanı olarak besinleri modern tıp ve NOVA'ya göre analiz et.
+  KRİTER: Gi, Gy, Ii, Fr, Lp, Mx, Kal, Karb, Pro, Yag, Doygunluk, Enflamasyon.
+  ÖZEL:
+  - Enflamasyon > 4 ise Skor max 6.
+  - Gece (21:00+) Karb/Yağ %20 ceza.
+  - eatingSuitabilityScore: (Health*0.35)+(Score*0.3)+(Satiety*0.15)-(Inflight*0.2).
+  - JSON formatında tam veri dön.`;
 
   const prompt = `"${foodName}" besini için analiz yap. 
   Kullanıcının günlük yüksek GY öğün sayısı: ${highGYCount}. 
