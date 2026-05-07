@@ -1625,6 +1625,37 @@ function GliSkorApp() {
     }
   };
 
+  // YEREL YORUM MOTORU (Maximum Hız İçin)
+  const generateLocalComment = useCallback((data: any, mScore: number) => {
+    const gi = data.gi;
+    const pro = data.pro || 0;
+    const lif = data.lif || 0;
+    
+    let lightStatus: 'GREEN' | 'YELLOW' | 'RED' = 'YELLOW';
+    let lightDescription = '';
+    let warning = '';
+    
+    if (mScore >= 8.5) {
+      lightStatus = 'GREEN';
+      lightDescription = 'YEŞİL IŞIK: Metabolizmanız için mükemmel bir seçim.';
+      warning = 'Huzurla tüketebilirsiniz.';
+    } else if (mScore < 5.5) {
+      lightStatus = 'RED';
+      lightDescription = 'KIRMIZI IŞIK: Yüksek glisemik yük riski.';
+      warning = 'Porsiyonu %50 azaltın veya protein ile dengeleyin.';
+    } else {
+      lightDescription = 'SARI IŞIK: Dengeli bir seçim, ancak porsiyona dikkat.';
+      warning = 'Yanına bir miktar lif/yeşillik eklemek daha iyi olur.';
+    }
+
+    return { 
+      lightStatus, 
+      lightDescription, 
+      warning,
+      metabolicEffect: `GI: ${gi} | Karb: ${data.karb}g | Lif: ${lif}g. İnsülin yanıtı ${mScore > 8 ? 'stabil' : 'kontrollü'} görünüyor.`
+    };
+  }, []);
+
   const handleAiAnalysis = useCallback(async (name: string) => {
     if (!name || name.trim().length < 2) {
       setAiError("Lütfen analiz etmek için geçerli bir besin adı girin.");
@@ -1633,54 +1664,173 @@ function GliSkorApp() {
 
     setIsAiLoading(true);
     setAiError(null);
-    console.log("Starting AI Analysis for:", name);
+    setAiResult(null);
+    const searchName = name.trim();
+    console.log("Starting Maximum Speed AI Analysis for:", searchName);
     
     try {
-      // Find food in database to provide context
-      const staticFood = foodList.find(f => f.isim.toLowerCase() === name.toLowerCase());
-      let staticData = undefined;
+      // 1. CONTEXT HAZIRLA
+      const profileContext = `Kullanıcı Profili: Yaş ${userProfile.age || 'Bilinmiyor'}, Kilo ${userProfile.weight || 'Bilinmiyor'}, Boy ${userProfile.height || 'Bilinmiyor'}, Cinsiyet ${userProfile.gender}, Aktivite Seviyesi ${userProfile.activityLevel}, Hedef ${userProfile.goal}, HbA1c ${userProfile.hba1c || 'Bilinmiyor'}, İnsülin Direnci Seviyesi ${userProfile.insulinResistance || 'Bilinmiyor'}.`;
+      const recentAnalyses = history.map(h => h.foodName).join(", ");
+      const logSummary = dailyLog.map(l => l.isim).join(", ");
+      const historyContext = `Son analizler: ${recentAnalyses}. Bugüne kadarki kayıtlar: ${logSummary}.`;
+
+      // 2. AKILLI EŞLEŞME (DB) - %100 Hız
+      const nameLower = searchName.toLowerCase();
+      const staticFood = foodList.find(f => 
+        f.isim.toLowerCase() === nameLower || 
+        nameLower.includes(f.isim.toLowerCase()) ||
+        f.isim.toLowerCase().includes(nameLower)
+      );
+
+      let staticDataForDeep = undefined;
       
       if (staticFood) {
         const mScore = calculateMetabolicScore(
-          staticFood, 
-          isCooked, 
-          mealSequence, 
-          hasAcid, 
-          isLiquid, 
-          isResistant, 
-          consumptionHour, 
-          isProcessed, 
-          hasMovement, 
-          highGYCount, 
-          isLowSleep, 
-          isStressed
+          staticFood, isCooked, mealSequence, hasAcid, isLiquid, isResistant, 
+          consumptionHour, isProcessed, hasMovement, highGYCount, isLowSleep, isStressed
         );
         const nScore = calculateNutritionalScore(staticFood);
-        staticData = { ...staticFood, mScore, nScore };
+        staticDataForDeep = { ...staticFood, mScore, nScore };
+
+        // YEREL MOTORLA ANINDA KARAR OLUŞTUR
+        const localDecision = generateLocalComment(staticFood, mScore);
+
+        const preliminaryResult: AnalysisResult = {
+          foodName: searchName,
+          gi: staticFood.gi,
+          gy: Number(((staticFood.gi * staticFood.karb) / 100).toFixed(1)),
+          ii: staticFood.gi,
+          fr: 0,
+          lp: staticFood.lif,
+          mx: staticFood.karb > 20 ? "solid" : "liquid",
+          kat: staticFood.kat,
+          score: mScore,
+          healthScore: nScore,
+          insulinEffect: "Glikoz yanıtı hesaplandı.",
+          metabolicEffect: localDecision.metabolicEffect,
+          functionalBenefit: "Veritabanı eşleşmesi.",
+          profileComments: { weightLoss: "", diabetic: "", athlete: "", celiac: "" },
+          warning: localDecision.warning,
+          suggestion: "Derin detaylar yükleniyor...",
+          satietyScore: 5,
+          inflammatoryScore: 5,
+          cookingMethodImpact: "",
+          foodPairingAdvice: "",
+          pairingSuggestions: [],
+          kal: staticFood.kal,
+          karb: staticFood.karb,
+          pro: staticFood.pro,
+          yag: staticFood.yag,
+          circadianData: [],
+          metabolicMemory: "",
+          nutrientAccumulation: "",
+          systemicInflammationRisk: { level: 5, warning: "" },
+          microbiotaResilience: { score: 5, description: "" },
+          threeMonthProjection: { weightChange: "", insulinImpact: "", energyLevel: "" },
+          cumulativeFeedback: "Hızlı Veri Modu",
+          eatingSuitabilityScore: Number(((nScore * 0.4) + (mScore * 0.6)).toFixed(1)),
+          lightStatus: localDecision.lightStatus,
+          lightDescription: localDecision.lightDescription,
+          isFromCache: true
+        };
+        setAiResult(preliminaryResult);
+        setIsAiLoading(false);
       }
 
-      // Include user profile context in the analysis
-      const profileContext = `Kullanıcı Profili: Yaş ${userProfile.age || 'Bilinmiyor'}, Kilo ${userProfile.weight || 'Bilinmiyor'}, Boy ${userProfile.height || 'Bilinmiyor'}, Cinsiyet ${userProfile.gender}, Aktivite Seviyesi ${userProfile.activityLevel}, Hedef ${userProfile.goal}, HbA1c ${userProfile.hba1c || 'Bilinmiyor'}, İnsülin Direnci Seviyesi ${userProfile.insulinResistance || 'Bilinmiyor'}.`;
-      
-      // Build history context (last 7-30 days)
-      const recentAnalyses = history.map(h => h.foodName).join(", ");
-      const logSummary = dailyLog.map(l => l.isim).join(", ");
-      const historyContext = `Son analizler: ${recentAnalyses}. Bugüne kadarki kayıtlar: ${logSummary}. Kullanıcının son 30 günlük beslenme trendlerini buna göre analiz et.`;
+      // Paralle AI Call Deep
+      const deepPromise = analyzeFood(searchName, highGYCount, profileContext, staticDataForDeep, historyContext);
 
-      console.log("Calling analyzeFood with context...");
-      const result = await analyzeFood(name, highGYCount, profileContext, staticData, historyContext);
-      console.log("AI Analysis Result received:", result);
+      // 3. FAST-PATH AI (Eğer DB'de yoksa sadece sayıları getir)
+      if (!staticFood) {
+        getNutritionData(searchName).then(data => {
+          setAiResult(prev => {
+            if (prev && !prev.isFromCache) return prev;
+            const mScore = calculateMetabolicScore(data as any, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, highGYCount, isLowSleep, isStressed);
+            const nScore = calculateNutritionalScore(data as any);
+            const localDecision = generateLocalComment(data, mScore);
+
+            return {
+              foodName: searchName,
+              gi: data.gi,
+              gy: Number(((data.gi * data.karb) / 100).toFixed(1)),
+              ii: data.gi,
+              fr: 0,
+              lp: data.lif,
+              mx: data.karb > 20 ? "solid" : "liquid",
+              kat: data.kat,
+              score: mScore,
+              healthScore: nScore,
+              insulinEffect: "Hızlı veriler hazır.",
+              metabolicEffect: localDecision.metabolicEffect,
+              functionalBenefit: "Anlık analiz.",
+              profileComments: { weightLoss: "", diabetic: "", athlete: "", celiac: "" },
+              warning: localDecision.warning,
+              suggestion: "Derin yorumlar geliyor...",
+              satietyScore: 5,
+              inflammatoryScore: 5,
+              cookingMethodImpact: "",
+              foodPairingAdvice: "",
+              pairingSuggestions: [],
+              kal: data.kal,
+              karb: data.karb,
+              pro: data.pro,
+              yag: data.yag,
+              circadianData: [],
+              metabolicMemory: "",
+              nutrientAccumulation: "",
+              systemicInflammationRisk: { level: 5, warning: "" },
+              microbiotaResilience: { score: 5, description: "" },
+              threeMonthProjection: { weightChange: "", insulinImpact: "", energyLevel: "" },
+              cumulativeFeedback: "Hızlı Analiz",
+              eatingSuitabilityScore: Number(((nScore * 0.4) + (mScore * 0.6)).toFixed(1)),
+              lightStatus: localDecision.lightStatus,
+              lightDescription: localDecision.lightDescription,
+              isFromCache: true
+            };
+          });
+          setIsAiLoading(false);
+          
+          // Akışta veritabanına ekle (Hızlı Yol)
+          setFoodList(prev => {
+            const lowName = data.isim.toLowerCase();
+            if (prev.some(f => f.isim.toLowerCase() === lowName)) return prev;
+            return [...prev, data as Food];
+          });
+        }).catch(e => console.log("Fast nutrition error:", e));
+      }
+
+      const finalResult = await deepPromise;
+      setAiResult({ ...finalResult, isFromCache: false });
+      setHistory(prev => [finalResult, ...prev].slice(0, 20));
       
-      setAiResult(result);
-      setHistory(prev => [result, ...prev].slice(0, 20)); // Keep last 20
+      // Kalıcı Veritabanı Kaydı (Derin Analiz Sonrası)
+      if (!staticFood) {
+        setFoodList(prev => {
+          const lowName = finalResult.foodName.toLowerCase();
+          if (prev.some(f => f.isim.toLowerCase() === lowName)) return prev;
+          const newFood: Food = {
+            isim: finalResult.foodName,
+            kat: finalResult.kat || "Besin",
+            gi: finalResult.gi,
+            karb: finalResult.karb,
+            lif: finalResult.lp,
+            pro: finalResult.pro,
+            yag: finalResult.yag,
+            kal: finalResult.kal
+          };
+          return [...prev, newFood];
+        });
+      }
+      
+      setIsAiLoading(false);
+
     } catch (err: any) {
-      console.error("AI Analysis Error Details:", err);
-      const errorMessage = err?.message || "Analiz sırasında bir hata oluştu.";
-      setAiError(`${errorMessage} Lütfen tekrar deneyin.`);
-    } finally {
+      console.error("AI Analysis major failure:", err);
+      setAiError(err?.message || "Analiz sırasında bir hata oluştu.");
       setIsAiLoading(false);
     }
-  }, [highGYCount, userProfile, foodList, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, isLowSleep, isStressed, history, dailyLog]);
+  }, [highGYCount, userProfile, foodList, isCooked, mealSequence, hasAcid, isLiquid, isResistant, consumptionHour, isProcessed, hasMovement, isLowSleep, isStressed, history, dailyLog, generateLocalComment]);
 
   const startListening = useCallback(() => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -1769,12 +1919,21 @@ function GliSkorApp() {
       return;
     }
     
-    // VERİTABANI ÖNCELİĞİ (KOTA TASARRUFU)
-    // Eğer veritabanımızda (foodList) zaten varsa direkt oradan al, AI'yı yorma
-    const existingFood = foodList.find(f => f.isim.toLowerCase() === formData.isim.trim().toLowerCase());
+    // VERİTABANI ÖNCELİĞİ (KOTA VE HIZ TASARRUFU)
+    // Akıllı Eşleşme: Eğer veritabanımızda benzer bir isim varsa AI'yı beklemeden getir
+    const nameLower = formData.isim.trim().toLowerCase();
+    const existingFood = foodList.find(f => 
+      f.isim.toLowerCase() === nameLower || 
+      nameLower.includes(f.isim.toLowerCase()) ||
+      f.isim.toLowerCase().includes(nameLower)
+    );
+
     if (existingFood) {
-      console.log("Using local database for filling form:", formData.isim);
-      setFormData(existingFood);
+      console.log("Maximum Speed: Match found in database for", formData.isim);
+      setFormData({
+        ...existingFood,
+        isim: formData.isim // Kullanıcının girdiği ismi koru
+      });
       return;
     }
 

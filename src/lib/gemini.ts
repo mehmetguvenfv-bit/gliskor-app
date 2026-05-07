@@ -103,6 +103,7 @@ export interface AnalysisResult {
   fr: number;
   lp: number;
   mx: "liquid" | "solid";
+  kat: string;
   score: number;
   healthScore: number;
   insulinEffect: string;
@@ -180,9 +181,9 @@ export async function getNutritionData(foodName: string): Promise<NutritionData>
 
   const model = "gemini-3-flash-preview";
   
-  const systemInstruction = `Besin veri tabanısın. 100g için verileri JSON formatında sağla: { "isim": string, "gi": number, "karb": number, "lif": number, "pro": number, "yag": number, "kal": number }. Hata yapma, sadece JSON dön.`;
+  const systemInstruction = `Besin veri tabanısın. 100g için verileri JSON formatında sağla: { "isim": string, "gi": number, "karb": number, "lif": number, "pro": number, "yag": number, "kal": number }. Sadece JSON dön.`;
 
-  const prompt = `"${foodName}" besini için besin değerlerini JSON formatında sağla.`;
+  const prompt = `${foodName} verisi.`;
 
   try {
     const response = await getGenAI().models.generateContent({
@@ -420,6 +421,7 @@ export async function analyzeFood(
       fr: 0,
       lp: staticData.lif,
       mx: staticData.karb > 20 ? "solid" : "liquid",
+      kat: staticData.kat || "Besin",
       score: staticData.mScore,
       healthScore: staticData.nScore,
       insulinEffect: status === 'GREEN' ? "Düşük/Stabil" : status === 'YELLOW' ? "Orta Şeker Yanıtı" : "Yüksek İnsülin Salınımı",
@@ -472,20 +474,11 @@ export async function analyzeFood(
     staticContext = `VERİ MEVCUT: GI:${staticData.gi}, Karb:${staticData.karb}g, Lif:${staticData.lif}g, Pro:${staticData.pro}g, Yağ:${staticData.yag}g, Kal:${staticData.kal}kcal. HESAPLAMA YAPMA, BU VERİLERİ YORUMLA.`;
   }
 
-  const systemInstruction = `Kıdemli Biyokimya Uzmanı olarak besinleri modern tıp ve NOVA'ya göre analiz et.
-  KRİTER: Gi, Gy, Ii, Fr, Lp, Mx, Kal, Karb, Pro, Yag, Doygunluk, Enflamasyon.
-  ÖZEL:
-  - Enflamasyon > 4 ise Skor max 6.
-  - Gece (21:00+) Karb/Yağ %20 ceza.
-  - eatingSuitabilityScore: (Health*0.35)+(Score*0.3)+(Satiety*0.15)-(Inflight*0.2).
-  - JSON formatında tam veri dön.`;
+  const systemInstruction = `Kıdemli Biyokimya Uzmanı. Besini analiz et.
+  KURALLAR: Enflamasyon>4 ise Skor max 6. Gece Karb/Yağ %20 ceza.
+  STİL: Telegram tarzı (max 5-10 kelime). JSON formatında tam veri dön.`;
 
-  const prompt = `"${foodName}" besini için analiz yap. 
-  Kullanıcının günlük yüksek GY öğün sayısı: ${highGYCount}. 
-  Profil: ${profileContext} 
-  Statik Veri: ${staticContext} 
-  Geçmiş Veriler (Kümülatif Analiz İçin): ${historyContext} 
-  Yanıtı JSON formatında sağla.`;
+  const prompt = `Analiz: ${foodName}. Context: ${profileContext.slice(0,50)}. ${staticContext}`;
 
   try {
     const response = await getGenAI().models.generateContent({
@@ -505,6 +498,7 @@ export async function analyzeFood(
             fr: { type: Type.NUMBER },
             lp: { type: Type.NUMBER },
             mx: { type: Type.STRING, enum: ["liquid", "solid"] },
+            kat: { type: Type.STRING },
             score: { type: Type.NUMBER },
             healthScore: { type: Type.NUMBER },
             insulinEffect: { type: Type.STRING },
