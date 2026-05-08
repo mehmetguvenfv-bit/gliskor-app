@@ -35,6 +35,8 @@ const getGenAI = () => {
   return genAIInstance;
 };
 
+import { Food, AnalysisResult } from '../types';
+
 // Akıllı Önbellek Yapıları
 const ANALYSIS_CACHE_KEY = 'gliskor_analysis_cache';
 const NUTRITION_CACHE_KEY = 'gliskor_nutrition_cache';
@@ -46,7 +48,7 @@ interface CachedAnalysis {
 
 interface CachedNutrition {
   timestamp: number;
-  data: NutritionData;
+  data: Food;
 }
 
 function getCache(): Record<string, CachedAnalysis> {
@@ -82,7 +84,7 @@ function setCache(foodName: string, result: AnalysisResult) {
   }
 }
 
-function setNutritionCache(foodName: string, data: NutritionData) {
+function setNutritionCache(foodName: string, data: Food) {
   try {
     const cache = getNutritionCache();
     cache[foodName.toLowerCase()] = {
@@ -95,80 +97,9 @@ function setNutritionCache(foodName: string, data: NutritionData) {
   }
 }
 
-export interface AnalysisResult {
-  foodName: string;
-  gi: number;
-  gy: number;
-  ii: number;
-  fr: number;
-  lp: number;
-  mx: "liquid" | "solid";
-  kat: string;
-  score: number;
-  healthScore: number;
-  insulinEffect: string;
-  metabolicEffect: string;
-  functionalBenefit: string;
-  profileComments: {
-    weightLoss: string;
-    diabetic: string;
-    athlete: string;
-    celiac: string;
-  };
-  warning: string;
-  suggestion: string;
-  satietyScore: number;
-  inflammatoryScore: number;
-  cookingMethodImpact: string;
-  foodPairingAdvice: string;
-  pairingSuggestions: {
-    name: string;
-    icon: string;
-    reason: string;
-  }[];
-  kal: number;
-  karb: number;
-  pro: number;
-  yag: number;
-  circadianData: {
-    hour: string;
-    impact: number;
-    label: string;
-  }[];
-  metabolicMemory: string;
-  nutrientAccumulation: string;
-  systemicInflammationRisk: {
-    level: number;
-    warning: string;
-  };
-  microbiotaResilience: {
-    score: number;
-    description: string;
-  };
-  threeMonthProjection: {
-    weightChange: string;
-    insulinImpact: string;
-    energyLevel: string;
-  };
-  cumulativeFeedback: string;
-  eatingSuitabilityScore: number;
-  lightStatus: 'GREEN' | 'YELLOW' | 'RED';
-  lightDescription: string;
-  isFromCache?: boolean;
-}
+export type { AnalysisResult };
 
-export interface NutritionData {
-  isim: string;
-  kat: string;
-  gi: number;
-  karb: number;
-  lif: number;
-  pro: number;
-  yag: number;
-  kal: number;
-}
-
-export async function getNutritionData(foodName: string): Promise<NutritionData> {
+export async function getNutritionData(foodName: string): Promise<Food> {
   // Önce önbelleğe bak
   const cache = getNutritionCache();
   const cached = cache[foodName.toLowerCase()];
@@ -345,11 +276,11 @@ export async function getCoachResponse(messages: {role: 'user' | 'assistant', co
   }
 }
 
-export async function analyzeBarcode(barcode: string): Promise<NutritionData | null> {
+export async function analyzeBarcode(barcode: string): Promise<Food | null> {
   const model = "gemini-3-flash-preview";
   
-  const systemInstruction = `Sen bir barkod ve ürün veri tabanısın. Verilen barkod numarası için ürünün adını ve 100g porsiyon bazında besin değerlerini sağla.
-  Eğer ürünü bulamazsan null döndür.`;
+  const systemInstruction = `Teknik Ürün Analisti. Girdi: Barkod. Beklenen: JSON (100g). Ek metin yasak.
+Şablon: { "isim": string, "kat": string, "gi": number, "karb": number, "lif": number, "pro": number, "yag": number, "kal": number }`;
 
   const prompt = `"${barcode}" barkodlu ürünün besin değerlerini JSON formatında sağla.`;
 
@@ -390,7 +321,7 @@ export async function analyzeFood(
   foodName: string, 
   highGYCount: number = 0, 
   profileContext: string = "", 
-  staticData?: NutritionData & { mScore?: number, nScore?: number },
+  staticData?: Food & { mScore?: number, nScore?: number },
   historyContext: string = ""
 ): Promise<AnalysisResult> {
   // 1. ÖNCE ÖNBELLEĞE BAK (KOTA TASARRUFU - ADIM 1)
@@ -417,51 +348,33 @@ export async function analyzeFood(
       foodName: foodName,
       gi: gi,
       gy: gy,
-      ii: gi * 0.9,
-      fr: 0,
-      lp: staticData.lif,
-      mx: staticData.karb > 20 ? "solid" : "liquid",
+      lif: staticData.lif,
       kat: staticData.kat || "Besin",
-      score: staticData.mScore,
-      healthScore: staticData.nScore,
-      insulinEffect: status === 'GREEN' ? "Düşük/Stabil" : status === 'YELLOW' ? "Orta Şeker Yanıtı" : "Yüksek İnsülin Salınımı",
-      metabolicEffect: `Bu besin ${gi} GI ve ${gy} GY değerine sahip. Karbonhidrat: ${staticData.karb}g, Lif: ${staticData.lif}g.`,
-      functionalBenefit: "Yerel veri tabanı eşleşmesi ile saniyeler içinde analiz edildi.",
-      profileComments: {
-        weightLoss: "Porsiyon kontrolü ile uygun.",
-        diabetic: gi < 55 ? "Düşük riskli." : "Dikkatli olunmalı.",
-        athlete: "Enerji kaynağı olarak kullanılabilir.",
-        celiac: "İçerik kontrolü önerilir."
-      },
-      warning: status === 'RED' ? "Porsiyonu küçültün veya protein ile dengeleyin." : "Dengeli tüketim önerilir.",
-      suggestion: "Yanına yeşil yapraklı sebze ekleyerek emilimi yavaşlatabilirsiniz.",
-      satietyScore: Math.min(10, Math.round((staticData.pro || 0) * 0.5 + (staticData.lif || 0) * 2)),
-      inflammatoryScore: (staticData.lif || 0) > 3 ? 2 : 5,
-      cookingMethodImpact: "Pişirme yöntemi GI değerini %10-20 etkileyebilir.",
-      foodPairingAdvice: "Sirke veya limon eklemek sindirimi yavaşlatır.",
-      pairingSuggestions: [
-        { name: "Ceviz", icon: "🥜", reason: "Sağlıklı yağlar emilimi yavaşlatır" },
-        { name: "Yoğurt", icon: "🥛", reason: "Protein glisemik yükü dengeler" }
-      ],
+      score: staticData.mScore || 70,
       kal: staticData.kal,
       karb: staticData.karb,
       pro: staticData.pro,
       yag: staticData.yag,
-      circadianData: [
-        { hour: "08:00", impact: 8, label: "İdeal" },
-        { hour: "14:00", impact: 7, label: "Uygun" },
-        { hour: "21:00", impact: 3, label: "Riskli" }
-      ],
-      metabolicMemory: "Fizyolojik denge aralığında.",
-      nutrientAccumulation: "Bilinmiyor (Detaylı AI analizi gerekir).",
-      systemicInflammationRisk: { level: 4, warning: "Normal." },
-      microbiotaResilience: { score: 6, description: "Lif orta seviye." },
-      threeMonthProjection: { weightChange: "Stabil", insulinImpact: "Nötr", energyLevel: "Dengeli" },
-      cumulativeFeedback: "Bu analiz yerel veritabanı hesaplamaları ile anında üretilmiştir.",
-      eatingSuitabilityScore: Number(((staticData.nScore * 0.35) + (staticData.mScore * 0.4) + (Math.min(10, (staticData.pro || 0) + (staticData.lif || 0)) * 0.25)).toFixed(1)),
       lightStatus: status,
       lightDescription: status === 'GREEN' ? "YEŞİL IŞIK: Mükemmel seçim." : status === 'YELLOW' ? "SARI IŞIK: Uygun ama porsiyona dikkat." : "KIRMIZI IŞIK: Porsiyonu azaltın.",
-      isFromCache: true
+      isFromCache: true,
+      citizenAnalysis: {
+        scores: {
+          kanSekeri: { score: status === 'GREEN' ? 28 : 15, max: 30, desc: status === 'GREEN' ? "Kan şekerini yavaş yükseltir." : "Kan şekerini hızlı yükseltebilir." },
+          besinYogunlugu: { score: staticData.lif > 3 ? 22 : 15, max: 25, desc: staticData.lif > 3 ? "Yüksek vitamin/mineral." : "Orta yoğunluk." },
+          yagKalitesi: { score: 15, max: 20, desc: "Besin değerleri dengeli." },
+          lifOrani: { score: Math.round(staticData.lif * 2), max: 15, desc: staticData.lif > 3 ? "Bağırsak dostudur." : "Lif oranı artırılabilir." },
+          islenmislik: { score: 9, max: 10, desc: "Az işlenmiş ürün." }
+        },
+        aiNote: "Mevcut verilerle hızlı analiz yapıldı.",
+        eforKarsiligi: `${Math.round(staticData.kal / 5)} dakika yürüyüş`,
+        hataAlarmlari: ["Aşırı porsiyon", "Hızlı tüketim", "Susuz bırakmak"],
+        iyilestirmeHack: "Yeşillik ekleyerektüketin.",
+        vatandasSorulari: {
+          kiloVerme: "Kontrollü tüketim önerilir.",
+          tansiyonSeker: "Dengeli bir besindir."
+        }
+      }
     };
     return localResult;
   }
@@ -474,11 +387,15 @@ export async function analyzeFood(
     staticContext = `VERİ MEVCUT: GI:${staticData.gi}, Karb:${staticData.karb}g, Lif:${staticData.lif}g, Pro:${staticData.pro}g, Yağ:${staticData.yag}g, Kal:${staticData.kal}kcal. HESAPLAMA YAPMA, BU VERİLERİ YORUMLA.`;
   }
 
-  const systemInstruction = `Kıdemli Biyokimya Uzmanı. Besini analiz et.
-  KURALLAR: Enflamasyon>4 ise Skor max 6. Gece Karb/Yağ %20 ceza.
-  STİL: Telegram tarzı (max 5-10 kelime). JSON formatında tam veri dön.`;
+  const systemInstruction = `Metabolik Veri Analisti. Girdi: Besin Adı. Beklenen: JSON (100g).
+Kurallar: 
+1. TDK uyumlu isim.
+2. Bilimsel veriye dayalı makrolar.
+3. 100 üzerinden skor (score).
+4. Öz, teknik, dolambaçsız açıklamalar.
+5. Sadece JSON.`;
 
-  const prompt = `Analiz: ${foodName}. Context: ${profileContext.slice(0,50)}. ${staticContext}`;
+  const prompt = `Lütfen şu besini profesyonel bir uzman gözüyle ve TDK kurallarına uygun şekilde analiz et: ${foodName}. ${staticContext}`;
 
   try {
     const response = await getGenAI().models.generateContent({
@@ -492,102 +409,51 @@ export async function analyzeFood(
           type: Type.OBJECT,
           properties: {
             foodName: { type: Type.STRING },
-            gi: { type: Type.NUMBER },
-            gy: { type: Type.NUMBER },
-            ii: { type: Type.NUMBER },
-            fr: { type: Type.NUMBER },
-            lp: { type: Type.NUMBER },
-            mx: { type: Type.STRING, enum: ["liquid", "solid"] },
             kat: { type: Type.STRING },
             score: { type: Type.NUMBER },
-            healthScore: { type: Type.NUMBER },
-            insulinEffect: { type: Type.STRING },
-            metabolicEffect: { type: Type.STRING },
-            functionalBenefit: { type: Type.STRING },
-            profileComments: {
-              type: Type.OBJECT,
-              properties: {
-                weightLoss: { type: Type.STRING },
-                diabetic: { type: Type.STRING },
-                athlete: { type: Type.STRING },
-                celiac: { type: Type.STRING }
-              },
-              required: ["weightLoss", "diabetic", "athlete", "celiac"]
-            },
-            warning: { type: Type.STRING },
-            suggestion: { type: Type.STRING },
-            satietyScore: { type: Type.NUMBER },
-            inflammatoryScore: { type: Type.NUMBER },
-            cookingMethodImpact: { type: Type.STRING },
-            foodPairingAdvice: { type: Type.STRING },
-            pairingSuggestions: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  name: { type: Type.STRING },
-                  icon: { type: Type.STRING },
-                  reason: { type: Type.STRING }
-                },
-                required: ["name", "icon", "reason"]
-              }
-            },
+            lightStatus: { type: Type.STRING, enum: ["GREEN", "YELLOW", "RED"] },
+            lightDescription: { type: Type.STRING },
             kal: { type: Type.NUMBER },
             karb: { type: Type.NUMBER },
             pro: { type: Type.NUMBER },
             yag: { type: Type.NUMBER },
-            circadianData: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  hour: { type: Type.STRING },
-                  impact: { type: Type.NUMBER },
-                  label: { type: Type.STRING }
+            gi: { type: Type.NUMBER },
+            gy: { type: Type.NUMBER },
+            lif: { type: Type.NUMBER },
+            citizenAnalysis: {
+              type: Type.OBJECT,
+              properties: {
+                scores: {
+                  type: Type.OBJECT,
+                  properties: {
+                    kanSekeri: { type: Type.OBJECT, properties: { score: { type: Type.NUMBER }, max: { type: Type.NUMBER }, desc: { type: Type.STRING } }, required: ["score", "max", "desc"] },
+                    besinYogunlugu: { type: Type.OBJECT, properties: { score: { type: Type.NUMBER }, max: { type: Type.NUMBER }, desc: { type: Type.STRING } }, required: ["score", "max", "desc"] },
+                    yagKalitesi: { type: Type.OBJECT, properties: { score: { type: Type.NUMBER }, max: { type: Type.NUMBER }, desc: { type: Type.STRING } }, required: ["score", "max", "desc"] },
+                    lifOrani: { type: Type.OBJECT, properties: { score: { type: Type.NUMBER }, max: { type: Type.NUMBER }, desc: { type: Type.STRING } }, required: ["score", "max", "desc"] },
+                    islenmislik: { type: Type.OBJECT, properties: { score: { type: Type.NUMBER }, max: { type: Type.NUMBER }, desc: { type: Type.STRING } }, required: ["score", "max", "desc"] }
+                  },
+                  required: ["kanSekeri", "besinYogunlugu", "yagKalitesi", "lifOrani", "islenmislik"]
                 },
-                required: ["hour", "impact", "label"]
-              }
-            },
-            metabolicMemory: { type: Type.STRING },
-            nutrientAccumulation: { type: Type.STRING },
-            systemicInflammationRisk: {
-              type: Type.OBJECT,
-              properties: {
-                level: { type: Type.NUMBER },
-                warning: { type: Type.STRING }
+                aiNote: { type: Type.STRING },
+                eforKarsiligi: { type: Type.STRING },
+                hataAlarmlari: { type: Type.ARRAY, items: { type: Type.STRING } },
+                iyilestirmeHack: { type: Type.STRING },
+                vatandasSorulari: {
+                  type: Type.OBJECT,
+                  properties: {
+                    kiloVerme: { type: Type.STRING },
+                    tansiyonSeker: { type: Type.STRING }
+                  },
+                  required: ["kiloVerme", "tansiyonSeker"]
+                }
               },
-              required: ["level", "warning"]
-            },
-            microbiotaResilience: {
-              type: Type.OBJECT,
-              properties: {
-                score: { type: Type.NUMBER },
-                description: { type: Type.STRING }
-              },
-              required: ["score", "description"]
-            },
-            threeMonthProjection: {
-              type: Type.OBJECT,
-              properties: {
-                weightChange: { type: Type.STRING },
-                insulinImpact: { type: Type.STRING },
-                energyLevel: { type: Type.STRING }
-              },
-              required: ["weightChange", "insulinImpact", "energyLevel"]
-            },
-            cumulativeFeedback: { type: Type.STRING },
-            eatingSuitabilityScore: { type: Type.NUMBER },
-            lightStatus: { type: Type.STRING, enum: ["GREEN", "YELLOW", "RED"] },
-            lightDescription: { type: Type.STRING }
+              required: ["scores", "aiNote", "eforKarsiligi", "hataAlarmlari", "iyilestirmeHack", "vatandasSorulari"]
+            }
           },
           required: [
-            "foodName", "gi", "gy", "ii", "fr", "lp", "mx", "score", "healthScore", 
-            "satietyScore", "inflammatoryScore", "cookingMethodImpact", "foodPairingAdvice", 
-            "pairingSuggestions", "insulinEffect", "metabolicEffect", "functionalBenefit", 
-            "profileComments", "warning", "suggestion", "kal", "karb", "pro", "yag", 
-            "circadianData", "metabolicMemory", "nutrientAccumulation", "systemicInflammationRisk",
-            "microbiotaResilience", "threeMonthProjection", "cumulativeFeedback",
-            "eatingSuitabilityScore", "lightStatus", "lightDescription"
+            "foodName", "score", "lightStatus", "lightDescription", 
+            "kal", "karb", "pro", "yag", "gi", "gy", "lif",
+            "citizenAnalysis"
           ]
         }
       }
