@@ -713,6 +713,16 @@ function UnifiedFoodDetail({ food, ctx, profile, darkMode, onAdd, onPlate, onLog
             </div>
 
             {hackerAdvice}
+
+            {isAiResult && food.citizenAnalysis && (
+              <div className="mt-12 pt-12 border-t border-black/5 dark:border-white/5">
+                <div className="flex items-center gap-3 mb-8">
+                  <Brain className="text-[#2DFF73]" size={24} />
+                  <h3 className="text-[1.2rem] font-black tracking-tight uppercase">Derin Metabolik Analiz</h3>
+                </div>
+                <CitizenExpertAnalysis analysis={{ citizenAnalysis: food.citizenAnalysis }} darkMode={darkMode} />
+              </div>
+            )}
           </div>
 
           <div className="lg:col-span-5 space-y-8">
@@ -837,7 +847,8 @@ const transformAiResultToFood = (res: AnalysisResult, ctx: ConsumptionContext, p
     yag: res.yag,
     kal: res.kal,
     score: res.score,
-    isFromCache: res.isFromCache
+    isFromCache: res.isFromCache,
+    citizenAnalysis: res.citizenAnalysis
   };
   
   // Dennis Ritchie: "Stateless precision is key."

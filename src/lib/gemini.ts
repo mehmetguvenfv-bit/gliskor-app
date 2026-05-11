@@ -387,15 +387,32 @@ export async function analyzeFood(
     staticContext = `VERİ MEVCUT: GI:${staticData.gi}, Karb:${staticData.karb}g, Lif:${staticData.lif}g, Pro:${staticData.pro}g, Yağ:${staticData.yag}g, Kal:${staticData.kal}kcal. HESAPLAMA YAPMA, BU VERİLERİ YORUMLA.`;
   }
 
-  const systemInstruction = `Metabolik Veri Analisti. Girdi: Besin Adı. Beklenen: JSON (100g).
-Kurallar: 
-1. TDK uyumlu isim.
-2. Bilimsel veriye dayalı makrolar.
-3. 100 üzerinden skor (score).
-4. Öz, teknik, dolambaçsız açıklamalar.
-5. Sadece JSON.`;
+  const systemInstruction = `Sen; beslenme bilimi, metabolizma, glisemik yük, bağırsak mikrobiyotası, sporcu beslenmesi ve uzun ömür araştırmaları konusunda uzman bir fonksiyonel beslenme analistisin.
 
-  const prompt = `Lütfen şu besini profesyonel bir uzman gözüyle ve TDK kurallarına uygun şekilde analiz et: ${foodName}. ${staticContext}`;
+Sana verdiğim herhangi bir gıdayı yüzeysel değil; bilimsel, metabolik ve uzun vadeli sağlık etkileri açısından analiz et.
+
+Analiz formatın 'detailedReport' alanında HER ZAMAN şu sırayla olsun:
+1. Gıdanın temel yapısı (Makro besin profili, Kalori yoğunluğu, İşlenmişlik seviyesi)
+2. Karbonhidrat analizi (GI ve GL, Basit mi kompleks mi, İnsülin etkisi, Kan şekeri dalgalanması)
+3. Lif ve bağırsak etkisi (Lif miktarı, Prebiyotik etkiler, Mikrobiyotaya etkisi, Kabızlık/ishal üzerindeki etkileri)
+4. Yağ analizi (Omega 3/6 dengesi, Doymuş/doymamış oranı, Oksidasyon riski)
+5. Protein kalitesi (Amino asit profili, Tokluk etkisi, Kas koruma etkisi)
+6. Metabolik sağlık etkisi (İnsülin direnci, Diyabet, Yağ yakımı, Aralıklı oruç, Karaciğer sağlığı)
+7. İnflamasyon analizi (Enflamatuar mı antiinflamatuar mı, Ödem etkisi, Kronik hastalık riski)
+8. Vitamin ve mineral yoğunluğu
+9. Sporcu açısından değerlendirme (Antrenman öncesi/sonrası uygunluğu)
+10. Uzun ömür ve sağlık skoru (Longevity etkisi, Güncel bilimsel verilere göre sağlık puanı 10 üzerinden)
+11. Risk analizi (Kimler dikkat etmeli, Fazla tüketimde riskler)
+12. En iyi tüketim şekli (Günün hangi saatinde, Neyle birlikte tüketilmeli, En sağlıklı hazırlama yöntemi)
+13. Tier list değerlendirmesi (S tier / A tier / B tier vb.)
+
+Cevap verirken: Gereksiz kısa cevap verme, Net karar ver, Bilimsel ama anlaşılır konuş, Gerçek metabolik etkiyi anlat, Gıdayı romantize etme, Gerektiğinde sert eleştiri yap.
+
+Sonunda kısa özet ver: 'Bu gıda kim için çok iyi, kim için kötü?'
+
+Ayrıca teknik verileri JSON'ın diğer alanlarında belirt. Sadece JSON dön.`;
+
+  const prompt = `Lütfen şu besini profesyonel bir uzman gözüyle analiz et: ${foodName}. ${staticContext}`;
 
   try {
     const response = await getGenAI().models.generateContent({
@@ -435,6 +452,7 @@ Kurallar:
                   required: ["kanSekeri", "besinYogunlugu", "yagKalitesi", "lifOrani", "islenmislik"]
                 },
                 aiNote: { type: Type.STRING },
+                detailedReport: { type: Type.STRING },
                 eforKarsiligi: { type: Type.STRING },
                 hataAlarmlari: { type: Type.ARRAY, items: { type: Type.STRING } },
                 iyilestirmeHack: { type: Type.STRING },
@@ -447,7 +465,7 @@ Kurallar:
                   required: ["kiloVerme", "tansiyonSeker"]
                 }
               },
-              required: ["scores", "aiNote", "eforKarsiligi", "hataAlarmlari", "iyilestirmeHack", "vatandasSorulari"]
+              required: ["scores", "aiNote", "detailedReport", "eforKarsiligi", "hataAlarmlari", "iyilestirmeHack", "vatandasSorulari"]
             }
           },
           required: [

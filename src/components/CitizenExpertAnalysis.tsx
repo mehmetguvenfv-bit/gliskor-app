@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Brain, Sparkles, Zap, Activity } from 'lucide-react';
+import { Brain, Sparkles, Zap, Activity, FileText } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface CitizenExpertAnalysisProps {
   analysis: any;
@@ -79,6 +80,27 @@ export const CitizenExpertAnalysis = ({ analysis, darkMode }: CitizenExpertAnaly
           </div>
         </div>
       </div>
+
+      {/* Universal Food Analysis Report */}
+      {ca.detailedReport && (
+        <div className="px-4">
+          <div className={`p-8 rounded-[2rem] border ${darkMode ? 'bg-black/20 border-white/5' : 'bg-white border-black/5'} shadow-sm`}>
+            <div className="flex items-center gap-3 mb-6">
+              <FileText size={20} className="text-[#2DFF73]" />
+              <span className="text-[0.65rem] font-black uppercase tracking-[0.2em] text-[#2DFF73]">Fonksiyonel Analiz Raporu</span>
+            </div>
+            <div className={`text-[0.95rem] leading-relaxed ${darkMode ? 'text-zinc-400' : 'text-zinc-600'} space-y-4
+              [&>h1]:text-[0.8rem] [&>h1]:font-black [&>h1]:uppercase [&>h1]:tracking-widest [&>h1]:mb-2 [&>h1]:mt-6 [&>h1]:text-[#2DFF73]
+              [&>h2]:text-[0.8rem] [&>h2]:font-black [&>h2]:uppercase [&>h2]:tracking-widest [&>h2]:mb-2 [&>h2]:mt-6 [&>h2]:text-[#2DFF73]
+              [&>h3]:text-[0.8rem] [&>h3]:font-black [&>h3]:uppercase [&>h3]:tracking-widest [&>h3]:mb-2 [&>h3]:mt-6 [&>h3]:text-[#2DFF73]
+              [&>p]:mb-4
+              [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:my-4
+              [&>li]:mb-1`}>
+              <ReactMarkdown>{ca.detailedReport}</ReactMarkdown>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4">
         <div className={`p-6 rounded-[2rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>

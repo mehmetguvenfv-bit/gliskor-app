@@ -9,6 +9,7 @@ export interface Food {
   kal: number;
   score: number;
   isFromCache?: boolean;
+  citizenAnalysis?: AnalysisResult['citizenAnalysis'];
 }
 
 export type MealSequence = 'standard' | 'carbsFirst' | 'ideal';
@@ -52,6 +53,7 @@ export interface AnalysisResult {
       kiloVerme: string;
       tansiyonSeker: string;
     };
+    detailedReport?: string;
   };
   isFromCache?: boolean;
   kal: number;
