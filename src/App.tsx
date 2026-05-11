@@ -126,18 +126,14 @@ function PairingBox({ food, score, darkMode }: { food: Food, score: number, dark
   const selected = pairings.sort(() => 0.5 - Math.random()).slice(0, 2);
   
   return (
-    <div className={`mt-8 p-6 ${darkMode ? 'bg-[#2DFF73]/5 border-[#2DFF73]/20' : 'bg-emerald-50 border-emerald-100'} rounded-[2rem] relative overflow-hidden group/pairing`}>
-      <div className="absolute top-0 right-0 w-32 h-32 bg-[#2DFF73]/10 blur-[50px] -mr-16 -mt-16 group-hover/pairing:bg-[#2DFF73]/20 transition-colors" />
-      <div className="text-[0.75rem] font-black text-[#2DFF73] uppercase mb-4 flex items-center gap-2 tracking-[0.2em] relative z-10">
-        <div className="w-5 h-5 rounded-full bg-[#2DFF73]/20 flex items-center justify-center">
-          <Plus size={12} className="text-[#2DFF73]" strokeWidth={4} />
-        </div>
+    <div className={`mt-8 p-6 ${darkMode ? 'bg-white/5' : 'bg-zinc-50'} rounded-2xl relative overflow-hidden group/pairing`}>
+      <div className="text-[0.65rem] font-black text-zinc-500 uppercase mb-4 flex items-center gap-2 tracking-[0.2em] relative z-10">
         İDEAL EŞLEŞME
       </div>
-      <div className="flex gap-4 relative z-10">
+      <div className="flex flex-wrap gap-3 relative z-10">
         {selected.map(p => (
-          <div key={p.name} className={`flex items-center gap-3 ${darkMode ? 'bg-white/5 border-white/10' : 'bg-white border-black/5'} px-4 py-3 rounded-2xl text-[0.85rem] ${darkMode ? 'text-zinc-100' : 'text-zinc-900'} border shadow-xl hover:scale-105 transition-all cursor-default`}>
-            <span className="text-xl filter drop-shadow-[0_0_5px_rgba(255,255,255,0.2)]">{p.icon}</span> 
+          <div key={p.name} className={`flex items-center gap-2.5 ${darkMode ? 'bg-white/5 border-white/10 text-zinc-200' : 'bg-white border-black/5 text-zinc-800'} px-3.5 py-2 rounded-xl text-[0.8rem] border shadow-sm transition-all cursor-default`}>
+            <span className="text-lg">{p.icon}</span> 
             <span className="font-bold tracking-tight">{p.name}</span>
           </div>
         ))}
@@ -389,29 +385,28 @@ function getHackerAdvice(f: Food, s: number, darkMode: boolean) {
       </div>
     );
   }
-
   return (
     <div className="space-y-4">
-      <p className="text-[0.75rem] font-black text-zinc-400 uppercase tracking-[0.2em] flex items-center gap-2">
-        <Brain size={16} className="text-blue-400" />
-        Eşleşme Seçenekleri (Biyokimyasal Bariyerler)
+      <p className="text-[0.6rem] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+        <Brain size={14} className="text-blue-400" />
+        METABOLİK STRATEJİ
       </p>
       
       <div className="grid gap-3">
         {barriers.map((b, i) => (
-          <div key={i} className={`${darkMode ? 'glass border-white/10' : 'light-glass border-black/10'} rounded-2xl p-4`}>
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`p-2 rounded-xl border ${darkMode ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-500/5 border-blue-500/10'}`}>
+          <div key={i} className={`p-4 rounded-xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-zinc-50 border-black/5'}`}>
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className={`p-1.5 rounded-lg ${darkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-500/5 text-blue-500'}`}>
                 {b.icon}
               </div>
-              <span className={`text-[0.8rem] font-black uppercase tracking-widest ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>{b.title}</span>
+              <span className={`text-[0.75rem] font-bold uppercase tracking-widest ${darkMode ? 'text-zinc-200' : 'text-zinc-800'}`}>{b.title}</span>
             </div>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {b.suggestions.map((sug, j) => (
-                <li key={j} className={`text-[0.9rem] leading-relaxed ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                  <div className={`font-bold mb-1 ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>• {sug.text}</div>
-                  <div className="text-[0.75rem] text-zinc-500 italic pl-4 border-l-2 border-blue-500/30 ml-1">
-                    <span className="font-black not-italic text-blue-400">NEDEN?</span> {sug.why}
+                <li key={j} className="text-[0.85rem]">
+                  <div className={`font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>• {sug.text}</div>
+                  <div className="text-[0.7rem] text-zinc-500 italic mt-0.5 pl-3 border-l border-zinc-500/20">
+                    Neden: {sug.why}
                   </div>
                 </li>
               ))}
@@ -419,10 +414,6 @@ function getHackerAdvice(f: Food, s: number, darkMode: boolean) {
           </div>
         ))}
       </div>
-      
-      <p className="text-[0.7rem] italic text-zinc-500 pt-2">
-        * Bu bariyerler, glikozun kana karışma hızını mekanik ve kimyasal olarak yavaşlatır.
-      </p>
     </div>
   );
 }
@@ -433,57 +424,57 @@ const getStatusInfo = (s: number, hour: number = new Date().getHours(), karb: nu
   
   if (isNight) {
     return {
-      cls: 'bg-red-500/20 text-red-400 border-red-500/30 neon-red',
-      dot: 'bg-red-400',
-      label: 'KESİNLİKLE YEME',
+      cls: 'bg-red-500/10 text-red-400 border-red-500/20',
+      dot: 'bg-red-500',
+      label: 'Yeme',
       sub: 'Gece Karbonhidrat Riski',
       action: 'AVOID',
-      color: '#FF4444'
+      color: '#EF4444'
     };
   }
   
   if (s >= 8) return {
-    cls: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30 neon-green',
-    dot: 'bg-emerald-400',
-    label: 'GÜVENLE YE',
+    cls: 'bg-[#2DFF73]/10 text-[#2DFF73] border-[#2DFF73]/20',
+    dot: 'bg-[#2DFF73]',
+    label: 'Güvenle Ye',
     sub: 'Metabolik Dostu',
     action: 'ENJOY',
     color: '#2DFF73'
   };
   
   if (s >= 5) return {
-    cls: 'bg-blue-500/20 text-blue-400 border-blue-500/30 neon-blue',
-    dot: 'bg-blue-400',
-    label: 'ÖLÇÜLÜ YE',
+    cls: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    dot: 'bg-blue-500',
+    label: 'Ölçülü Ye',
     sub: 'Porsiyon Kontrolü',
     action: 'MODERATION',
-    color: '#4DA6FF'
+    color: '#3B82F6'
   };
   
   if (s >= 3.5) return {
-    cls: 'bg-orange-500/20 text-orange-400 border-orange-500/30 neon-orange',
-    dot: 'bg-orange-400',
-    label: 'DİKKATLİ OL',
+    cls: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+    dot: 'bg-orange-500',
+    label: 'Dikkatli Ol',
     sub: 'Glikoz Piki Riski',
     action: 'CAUTION',
-    color: '#FFA500'
+    color: '#F59E0B'
   };
   
   return {
-    cls: 'bg-red-500/20 text-red-400 border-red-500/30 neon-red',
-    dot: 'bg-red-400',
-    label: 'UZAK DUR',
-    sub: 'İnsülin Düşmanı',
+    cls: 'bg-red-500/10 text-red-400 border-red-500/20',
+    dot: 'bg-red-500',
+    label: 'Uzak Dur',
+    sub: 'Yüksek Glisemik Yük',
     action: 'AVOID',
-    color: '#FF4444'
+    color: '#EF4444'
   };
 };
 
 function getRingColor(s: number) {
   if (s >= 8) return '#2DFF73';
-  if (s >= 5) return '#4DA6FF';
-  if (s >= 3.5) return '#FFA500';
-  return '#FF4444';
+  if (s >= 5) return '#3B82F6';
+  if (s >= 3.5) return '#F59E0B';
+  return '#EF4444';
 }
 
 function getTip(f: Food, s: number, ctx: ConsumptionContext) {
@@ -572,7 +563,7 @@ function getDietitianNote(mScore: number, nScore: number, f: Food) {
     return {
       title: "Mükemmel Seçim (Süper Gıda)",
       text: `${f.isim} hem kan şekerini dengeler hem de vücudunu besler. Kilo verme sürecinde istediğin kadar (doyana kadar) güvenle tüketebilirsin.`,
-      color: "text-emerald-400",
+      color: "text-emerald-500",
       bg: "bg-emerald-500/10",
       border: "border-emerald-500/20",
       icon: <CheckCircle2 size={16} />
@@ -584,7 +575,7 @@ function getDietitianNote(mScore: number, nScore: number, f: Food) {
     return {
       title: "Besleyici ama Dikkatli Ol",
       text: `${f.isim} besin değeri yüksek olsa da kan şekerini yükseltebilir. ${advice}`,
-      color: "text-orange-400",
+      color: "text-orange-500",
       bg: "bg-orange-500/10",
       border: "border-orange-500/20",
       icon: <Info size={16} />
@@ -595,7 +586,7 @@ function getDietitianNote(mScore: number, nScore: number, f: Food) {
     return {
       title: "Düşük Kalorili / Boş Kalori",
       text: `${f.isim} kilo aldırmaz ama vücuduna pek bir faydası yok. Yanına mutlaka taze bir salata veya sebze ekleyerek öğünü zenginleştir.`,
-      color: "text-blue-400",
+      color: "text-blue-500",
       bg: "bg-blue-500/10",
       border: "border-blue-500/20",
       icon: <Zap size={16} />
@@ -605,7 +596,7 @@ function getDietitianNote(mScore: number, nScore: number, f: Food) {
   return {
     title: "Diyet Sürecinde Önerilmez",
     text: `${f.isim} hem metabolizmanı yavaşlatır hem de yağ depolanmasını tetikleyebilir. Kilo verme sürecindeysen bu gıdadan uzak durmanı veya çok nadir tüketmeni öneririm.`,
-    color: "text-red-400",
+    color: "text-red-500",
     bg: "bg-red-500/10",
     border: "border-red-500/20",
     icon: <AlertTriangle size={16} />
@@ -633,54 +624,38 @@ function UnifiedFoodDetail({ food, ctx, profile, darkMode, onAdd, onPlate, onLog
   const hackerAdvice = getHackerAdvice(food, mScore, darkMode);
 
   return (
-    <div className={`rounded-[2.5rem] sm:rounded-[3.5rem] w-full max-w-5xl relative max-h-[92vh] overflow-hidden border shadow-2xl flex flex-col ${darkMode ? 'bg-[#080808] text-white border-white/10' : 'bg-[#FAFAF9] text-black border-black/10'}`}>
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `radial-gradient(${darkMode ? '#fff' : '#000'} 1px, transparent 0)`, backgroundSize: '32px 32px' }} />
-      
+    <div className={`overflow-hidden max-w-5xl relative max-h-[92vh] flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white' : 'bg-white text-black'} rounded-3xl border ${darkMode ? 'border-white/5' : 'border-black/5'} shadow-2xl`}>
       {/* Header Controls */}
-      <div className={`sticky top-0 z-50 p-6 xs:p-8 border-b backdrop-blur-2xl ${darkMode ? 'bg-[#080808]/80 border-white/5' : 'bg-[#FAFAF9]/80 border-black/5'}`}>
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className={`flex-1 w-full p-4 xs:p-5 rounded-3xl border-2 flex items-center gap-4 xs:gap-6 shadow-xl ${status.cls}`}
-          >
-            <div className="relative shrink-0">
-              <div className={`w-10 h-10 rounded-full ${status.dot} flex items-center justify-center shadow-inner`}>
-                <Activity size={20} className="text-black/40" />
-              </div>
-              <div className={`absolute inset-0 w-10 h-10 rounded-full animate-ping opacity-20 ${status.dot}`} />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <div className="text-[0.55rem] font-black uppercase tracking-[0.3em] opacity-60 truncate">SİSTEM ANALİZİ / {status.action}</div>
-              <div className="text-[1.1rem] xs:text-[1.3rem] font-black tracking-tight leading-tight uppercase font-mono truncate">{status.label}</div>
-              <div className="text-[0.65rem] font-bold opacity-80 mt-0.5 truncate">{status.sub}</div>
-            </div>
-          </motion.div>
+      <div className={`sticky top-0 z-50 p-6 border-b ${darkMode ? 'bg-[#0A0A0A]/90 border-white/5' : 'bg-white/90 border-black/5'} backdrop-blur-xl`}>
+        <div className="flex justify-between items-center gap-6">
+          <div className={`flex-1 px-4 py-2 rounded-lg border flex items-center gap-2 ${status.cls}`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+            <div className="text-[0.65rem] font-bold uppercase tracking-widest">{status.label}</div>
+          </div>
 
-          <div className="flex gap-3 shrink-0">
+          <div className="flex gap-2">
             <button 
               onClick={onPlate}
-              className="w-12 h-12 rounded-2xl bg-[#2DFF73] text-black cursor-pointer flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#2DFF73]/20"
-              title="Tabağa Ekle"
+              className="w-10 h-10 rounded-lg bg-[#2DFF73] text-black cursor-pointer flex items-center justify-center hover:opacity-90 transition-all shadow-lg shadow-[#2DFF73]/20"
             >
-              <Plus size={24} strokeWidth={3} />
+              <Plus size={20} />
             </button>
             <button 
               onClick={onClose}
-              className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition-all hover:scale-105 active:scale-95 ${darkMode ? 'text-zinc-500 hover:text-white bg-white/5 border-white/10' : 'text-zinc-400 hover:text-black bg-black/5 border-black/10'}`}
+              className={`w-10 h-10 rounded-lg border flex items-center justify-center ${darkMode ? 'text-zinc-400 bg-white/5 border-white/5' : 'text-zinc-500 bg-white border-black/5'}`}
             >
-              <X size={24} />
+              <X size={20} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 xs:p-8 md:p-12 pt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16">
-          <div className="lg:col-span-7 space-y-12">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 xs:p-8 md:p-10 pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
+          <div className="lg:col-span-7 space-y-10">
             <div>
-              <div className="flex items-center gap-3 mb-8">
-                <span className={`px-3 py-1 border rounded-lg text-[0.6rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
+              <div className="flex items-center gap-3 mb-6">
+                <span className={`px-2.5 py-1 border rounded-lg text-[0.55rem] xs:text-[0.6rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
                   {food.kat}
                 </span>
                 {!isAiResult && onEdit && (
@@ -690,33 +665,33 @@ function UnifiedFoodDetail({ food, ctx, profile, darkMode, onAdd, onPlate, onLog
                   </div>
                 )}
                 {isAiResult && (
-                  <span className={`px-2 py-1 rounded-lg text-[0.6rem] font-black uppercase tracking-widest flex items-center gap-1 ${darkMode ? 'bg-[#2DFF73]/10 text-[#2DFF73]' : 'bg-[#2DFF73]/20 text-emerald-700'}`}>
-                    <Zap size={10} strokeWidth={3} /> AI ANALİZİ
+                  <span className={`px-2 py-1 rounded-lg text-[0.55rem] font-black uppercase tracking-widest flex items-center gap-1 ${darkMode ? 'bg-[#2DFF73]/10 text-[#2DFF73]' : 'bg-[#2DFF73]/20 text-emerald-700'}`}>
+                    <Sparkles size={10} /> AI ANALİZİ
                   </span>
                 )}
                 {isAiResult && food.isFromCache && (
-                  <span className={`px-2 py-1 rounded-lg text-[0.6rem] font-black uppercase tracking-widest flex items-center gap-1 ${darkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`px-2 py-1 rounded-lg text-[0.55rem] font-black uppercase tracking-widest flex items-center gap-1 ${darkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
                     <Database size={10} /> ÖNBELLEK
                   </span>
                 )}
               </div>
               
-              <h2 className={`text-[2.8rem] xs:text-[3.8rem] md:text-[5.5rem] font-black leading-[0.85] tracking-tighter mb-10 bg-gradient-to-br bg-clip-text text-transparent break-words ${darkMode ? 'from-white via-white to-zinc-600' : 'from-black to-zinc-600'}`}>
+              <h2 className={`text-[2rem] md:text-[3rem] font-black tracking-tighter mb-8 ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
                 {food.isim}
               </h2>
               
-              <div className="grid grid-cols-2 xs:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { label: 'Metabolik Skor', val: mScore, color: status.color, unit: '/10' },
-                  { label: 'Sistem Yükü', val: gy.toFixed(1), color: gy > 10 ? '#FF6B6B' : '#60A5FA', unit: 'gy' },
-                  { label: 'Glikoz Tepkisi', val: food.gi, color: food.gi > 55 ? '#FFA500' : '#2DFF73', unit: 'gi' },
-                  { label: 'Kalori', val: food.kal.toFixed(0), color: '#A1A1AA', unit: 'kcal' }
+                  { label: 'META SKOR', val: mScore, color: status.color, unit: '/10' },
+                  { label: 'GLİKOZ YÜKÜ', val: gy.toFixed(1), color: gy > 10 ? '#EF4444' : '#3B82F6', unit: 'gy' },
+                  { label: 'İNDEKS (GI)', val: food.gi, color: food.gi > 55 ? '#F59E0B' : '#2DFF73', unit: 'gi' },
+                  { label: 'KALORİ', val: food.kal.toFixed(0), color: '#A1A1AA', unit: 'kcal' }
                 ].map((s, i) => (
-                  <div key={i} className={`p-5 rounded-3xl border transition-all hover:scale-[1.02] ${darkMode ? 'bg-zinc-900 border-white/5' : 'bg-white border-black/5 shadow-sm'}`}>
-                    <span className="text-[0.55rem] font-black uppercase tracking-widest text-zinc-500 block mb-2">{s.label}</span>
+                  <div key={i} className={`p-4 rounded-xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-white border-black/5'}`}>
+                    <span className="text-[0.5rem] font-black text-zinc-500 mb-1 block">{s.label}</span>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[1.8rem] font-black font-mono leading-none" style={{ color: s.color }}>{s.val}</span>
-                      <span className="text-[0.6rem] font-bold text-zinc-500 opacity-60">{s.unit}</span>
+                      <span className="text-[1.2rem] font-black font-mono" style={{ color: s.color }}>{s.val}</span>
+                      <span className="text-[0.6rem] font-medium text-zinc-500">{s.unit}</span>
                     </div>
                   </div>
                 ))}
@@ -725,14 +700,14 @@ function UnifiedFoodDetail({ food, ctx, profile, darkMode, onAdd, onPlate, onLog
 
             <GlucoseCurve gi={food.gi} gy={gy} color={status.color} darkMode={darkMode} />
 
-            <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-white border-black/5 shadow-xl shadow-black/5'}`}>
-              <div className="flex items-center gap-3 mb-6">
-                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center border ${dietitian.bg} ${dietitian.border} ${dietitian.color}`}>
+            <div className={`p-6 rounded-[1.5rem] border ${darkMode ? 'bg-white/5 border-white/10' : 'bg-white border-black/5'} shadow-sm`}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dietitian.bg} ${dietitian.color}`}>
                   {dietitian.icon}
                 </div>
-                <h4 className={`text-[1.2rem] font-black tracking-tight ${dietitian.color}`}>{dietitian.title}</h4>
+                <h4 className={`text-[1.1rem] font-black tracking-tight ${dietitian.color}`}>{dietitian.title}</h4>
               </div>
-              <p className={`text-[1.1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
+              <p className={`text-[0.9rem] xs:text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
                 {dietitian.text}
               </p>
             </div>
@@ -740,14 +715,14 @@ function UnifiedFoodDetail({ food, ctx, profile, darkMode, onAdd, onPlate, onLog
             {hackerAdvice}
           </div>
 
-          <div className="lg:col-span-5 space-y-10">
+          <div className="lg:col-span-5 space-y-8">
             <MacroDistribution karb={food.karb} pro={food.pro} yag={food.yag} darkMode={darkMode} />
             
             <MentorCard food={food} ctx={ctx} profile={profile} darkMode={darkMode} />
 
-            <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-[#2DFF73]/5 border-[#2DFF73]/20' : 'bg-emerald-50 border-emerald-100/50'}`}>
-              <h4 className="text-[0.65rem] font-black uppercase tracking-[0.3em] text-[#2DFF73] mb-6">SİSTEM TAVSİYESİ</h4>
-              <p className={`text-[1rem] italic leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
+            <div className={`p-6 rounded-2xl border ${darkMode ? 'bg-emerald-400/5 text-emerald-400 border-emerald-400/10' : 'bg-emerald-50 text-emerald-800 border-black/5'}`}>
+              <h4 className="text-[0.55rem] font-bold uppercase tracking-widest mb-3 opacity-60">Özet Tavsiye</h4>
+              <p className="text-[0.95rem] italic leading-relaxed font-medium">
                 {getTip(food, mScore, ctx)}
               </p>
             </div>
@@ -755,9 +730,9 @@ function UnifiedFoodDetail({ food, ctx, profile, darkMode, onAdd, onPlate, onLog
             {isAiResult && onAdd && (
               <button 
                 onClick={onAdd}
-                className="w-full py-6 rounded-3xl bg-[#2DFF73] text-black font-black uppercase tracking-[0.2em] text-[1rem] shadow-[0_20px_50px_rgba(45,255,115,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                className="w-full py-5 rounded-2xl bg-[#2DFF73] text-black font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_30px_rgba(45,255,115,0.2)] flex items-center justify-center gap-2"
               >
-                <Plus size={24} strokeWidth={3} />
+                <Plus size={20} />
                 LİSTEYE KAYDET
               </button>
             )}
@@ -766,26 +741,25 @@ function UnifiedFoodDetail({ food, ctx, profile, darkMode, onAdd, onPlate, onLog
       </div>
 
       {/* Footer Actions */}
-      <div className={`p-8 border-t backdrop-blur-2xl ${darkMode ? 'bg-[#080808]/80 border-white/5' : 'bg-[#FAFAF9]/80 border-black/5'}`}>
+      <div className={`p-6 xs:p-8 border-t ${darkMode ? 'bg-[#0A0A0A]/50 border-white/5' : 'bg-[#FAFAF9]/50 border-black/5'}`}>
         <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto w-full">
           <button 
             onClick={() => {
               onLog(food, mScore);
             }}
-            className={`flex-1 py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[0.85rem] transition-all border shadow-2xl ${darkMode ? 'bg-blue-600 text-white border-blue-500 shadow-blue-500/20 hover:bg-blue-500' : 'bg-black text-white hover:bg-zinc-800'}`}
+            className="flex-1 py-4 rounded-2xl bg-blue-500 text-white font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
           >
             Günlüğe Kaydet
           </button>
           <button 
             onClick={onClose}
-            className={`flex-1 py-5 rounded-3xl font-black uppercase tracking-[0.2em] text-[0.85rem] transition-all border ${darkMode ? 'bg-zinc-800 text-white border-white/10 hover:bg-zinc-700' : 'bg-white text-black border-black/10 hover:bg-zinc-50'}`}
+            className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-black/5 border-black/10 text-black hover:bg-black/10'}`}
           >
             Sonucu Kapat
           </button>
         </div>
       </div>
     </div>
-
   );
 }
 
@@ -808,52 +782,41 @@ function MentorCard({ food, ctx, profile, darkMode }: { food: Food, ctx: Consump
   };
 
   return (
-    <div className={`p-8 rounded-[2.5rem] border overflow-hidden relative transition-all ${darkMode ? 'bg-zinc-900 border-white/5 hover:border-emerald-500/30' : 'bg-white border-black/5 hover:shadow-xl'}`}>
-      <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/5 blur-[60px] -mr-20 -mt-20" />
-      
-      <div className="flex items-center justify-between mb-8 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white shadow-xl shadow-emerald-500/20">
-            <Sparkles size={28} />
-          </div>
-          <div>
-            <h4 className="text-[1.1rem] font-black tracking-tight">DR. RHONDA PATRICK</h4>
-            <span className="text-[0.6rem] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-full">Longevity Expert</span>
-          </div>
+    <div className={`p-6 rounded-xl border ${darkMode ? 'bg-black/20 border-white/5' : 'bg-white border-black/5 shadow-sm'}`}>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-lg bg-[#2DFF73]/10 flex items-center justify-center text-[#2DFF73]">
+          <Sparkles size={20} />
+        </div>
+        <div>
+          <h4 className="text-[0.9rem] font-bold">DR. RHONDA PATRICK</h4>
+          <span className="text-[0.6rem] font-bold text-[#2DFF73] uppercase tracking-widest">Longevity</span>
         </div>
       </div>
 
-      <div className="relative z-10 min-h-[100px] flex flex-col justify-center">
+      <div className="min-h-[80px] flex flex-col justify-center">
         {loading ? (
-          <div className="flex flex-col items-center py-6 gap-3">
-             <Loader2 size={24} className="animate-spin text-emerald-500" />
-             <span className="text-[0.65rem] font-black uppercase text-zinc-500 tracking-[0.2em] animate-pulse">BİYOMETRİK ANALİZ YAPILIYOR...</span>
+          <div className="flex flex-col items-center py-4 gap-2">
+             <Loader2 size={24} className="animate-spin text-[#2DFF73]" />
+             <span className="text-[0.6rem] text-zinc-500 uppercase tracking-widest">Analiz ediliyor</span>
           </div>
         ) : advice ? (
           <motion.div 
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className={`text-[1rem] font-medium leading-relaxed italic border-l-4 border-emerald-500 pl-6 ${darkMode ? 'text-zinc-200' : 'text-zinc-800'}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={`text-[0.9rem] leading-relaxed italic border-l-2 border-[#2DFF73] pl-4 ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}
           >
             "{advice}"
-            <button 
-              onClick={() => setAdvice(null)}
-              className="mt-5 block text-[0.65rem] font-black text-emerald-500 uppercase tracking-[0.2em] hover:underline"
-            >
-              YENİ BİYOLOJİK ANALİZ
-            </button>
           </motion.div>
         ) : (
-          <div className="space-y-6">
-            <p className="text-[0.9rem] text-zinc-500 font-medium leading-relaxed">
-              Bu besinin hücresel düzeyde, epigenetik saatine ve metabolik yolaklarına (mTOR, AMPK) olan etkisini Rhonda Patrick perspektifiyle analiz edelim mi?
+          <div className="space-y-4">
+            <p className="text-[0.8rem] text-zinc-500 italic">
+              "Bu besinin hücresel düzeydeki biyolojik etkisini inceleyelim."
             </p>
             <button 
               onClick={getAdvice}
-              className={`w-full py-5 rounded-2xl font-black text-[0.85rem] uppercase tracking-widest transition-all ${darkMode ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' : 'bg-black text-white hover:bg-zinc-800'} hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2`}
+              className="w-full py-4 rounded-xl bg-[#2DFF73] text-black font-bold text-[0.75rem] uppercase tracking-widest hover:opacity-90 transition-all"
             >
-              <Activity size={16} />
-              BİYOLOJİK ANALİZ İSTE
+              ANALİZ ET
             </button>
           </div>
         )}
@@ -890,64 +853,51 @@ function CoachCard({ food, ctx, profile, darkMode }: { food: Food, ctx: Consumpt
   const getAdvice = async () => {
     setLoading(true);
     try {
-      const profileContext = `Yaş: ${profile.age}, Kilo: ${profile.weight}, Hedef: ${profile.goal}, İnsülin Direnci: ${profile.insulinResistance}`;
-      const prompt = `${food.isim} (GI: ${food.gi}, Karb: ${food.karb}g, Lif: ${food.lif}g) hakkında, günün bu saatinde (${ctx.hour}:00) ve şu anki bağlamda (Düşük Uyku: ${ctx.isLowSleep ? 'Evet' : 'Hayır'}) bana bir mentor/koç tavsiyesi ver. Kısa, öz ve Dennis Ritchie tarzında olsun.`;
-      const res = await getCoachResponse([{ role: 'user', content: prompt }], profileContext);
+      const prompt = `Rhonda Patrick görüşü. Besin: ${food.isim}. (15 kelime).`;
+      const res = await getCoachResponse([{ role: 'user', content: prompt }], profile.goal);
       setAdvice(res);
     } catch (e) {
-      setAdvice("Veri hattında bir parazit oluştu. Tekrar dene.");
+      setAdvice("Veri hatası.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={`mt-6 p-6 rounded-[2rem] border transition-all ${darkMode ? 'bg-zinc-900/50 border-white/10 shadow-[0_0_50px_rgba(45,255,115,0.05)]' : 'bg-white border-black/5 shadow-xl'}`}>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#2DFF73] to-emerald-400 flex items-center justify-center shadow-lg">
-            <Brain size={20} className="text-black" />
+    <div className={`mt-6 p-5 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-zinc-50 border-black/5'}`}>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-[#2DFF73]/20 flex items-center justify-center text-[#2DFF73] shrink-0">
+            <Brain size={18} />
           </div>
-          <div>
-            <h4 className={`text-[0.8rem] font-black tracking-tight ${darkMode ? 'text-white' : 'text-zinc-900'}`}>AI MENTOR</h4>
-            <p className="text-[0.6rem] text-zinc-500 font-bold uppercase tracking-widest">Sistem Analisti</p>
+          <div className="min-w-0">
+            <h4 className="text-[0.8rem] font-bold truncate">PROFESYONEL ÖNERİ</h4>
+            <p className="text-[0.6rem] text-zinc-500 uppercase tracking-widest truncate">Mentor Görüşü</p>
           </div>
         </div>
         {!advice && !loading && (
           <button 
             onClick={getAdvice}
-            className={`px-4 py-2 rounded-xl text-[0.7rem] font-black transition-all hover:scale-105 active:scale-95 ${darkMode ? 'bg-[#2DFF73] text-black shadow-[0_0_20px_rgba(45,255,115,0.4)]' : 'bg-black text-white'}`}
+            className={`px-4 py-2 rounded-lg text-[0.65rem] font-bold uppercase transition-all ${darkMode ? 'bg-[#2DFF73] text-black' : 'bg-black text-white'}`}
           >
-            FİKİR AL
+            ÖĞREN
           </button>
         )}
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-3 py-4">
-          <Loader2 size={16} className="animate-spin text-[#2DFF73]" />
-          <span className="text-[0.75rem] font-mono text-zinc-500 animate-pulse">VERİ ANALİZ EDİLİYOR...</span>
+        <div className="flex items-center gap-2 py-4">
+          <Loader2 size={14} className="animate-spin text-[#2DFF73]" />
+          <span className="text-[0.7rem] text-zinc-500">Analiz ediliyor...</span>
         </div>
-      ) : advice ? (
+      ) : advice && (
         <motion.div 
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`text-[0.9rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'} border-l-4 border-[#2DFF73] pl-4 italic`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className={`mt-4 text-[0.85rem] leading-relaxed italic border-l-2 border-[#2DFF73] pl-4 ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}
         >
           "{advice}"
-          <div className="mt-4 flex justify-end">
-            <button 
-              onClick={() => setAdvice(null)}
-              className="text-[0.6rem] font-black text-zinc-500 hover:text-[#2DFF73] transition-colors"
-            >
-              YENİLE
-            </button>
-          </div>
         </motion.div>
-      ) : (
-        <p className="text-[0.8rem] text-zinc-500 italic">
-          "Besin sadece yakıt değildir; o bir sistem girdisidir. Doğru girdiyi seçmek için mentorunla konuş."
-        </p>
       )}
     </div>
   );
@@ -962,45 +912,41 @@ export default function App() {
 }
 
 function DiscoverySection({ darkMode, onSelect }: { darkMode: boolean, onSelect: (food: string) => void }) {
-  const metabolicHeroes = initialFoods.filter(f => f.score >= 9.5).slice(0, 4);
+  const heroes = initialFoods.filter(f => f.score >= 9.6).slice(0, 4);
   
   return (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ delay: 0.3 }}
-      className="mt-20 space-y-12"
+      className="mt-16 space-y-12 pb-12"
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        <div className="space-y-6">
-          <h3 className={`text-[0.6rem] font-black uppercase tracking-[0.4em] ${darkMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
-            Metabolik İndeks: Altın Liste
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <h3 className={`text-[0.6rem] font-bold uppercase tracking-widest ${darkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>
+            METABOLİK ŞAMPİYONLAR
           </h3>
-          <div className="grid grid-cols-2 gap-4">
-            {metabolicHeroes.map((food, i) => (
+          <div className="grid grid-cols-2 gap-3">
+            {heroes.map((f, i) => (
               <button 
                 key={i}
-                onClick={() => onSelect(food.isim)}
-                className={`flex flex-col items-start p-5 rounded-2xl border transition-all ${darkMode ? 'bg-zinc-900 border-white/5 hover:border-[#2DFF73]/40' : 'bg-white border-black/5 hover:shadow-xl'}`}
+                onClick={() => onSelect(f.isim)}
+                className={`p-5 rounded-2xl border text-left transition-all ${darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-white border-black/5 hover:bg-zinc-50 shadow-sm'}`}
               >
-                <span className={`text-[0.8rem] font-bold mb-2 ${darkMode ? 'text-white' : 'text-zinc-900'}`}>{food.isim}</span>
-                <span className="text-[1.5rem] font-black font-mono text-[#2DFF73]">{food.score}</span>
+                <div className="text-[0.9rem] font-bold mb-1 tracking-tight">{f.isim}</div>
+                <div className="text-[1.5rem] font-black text-[#2DFF73]">{f.score}</div>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="space-y-6">
-          <h3 className={`text-[0.6rem] font-black uppercase tracking-[0.4em] ${darkMode ? 'text-zinc-600' : 'text-zinc-400'}`}>
-            Sistem Öğretisi
+        <div className="space-y-4">
+          <h3 className={`text-[0.6rem] font-bold uppercase tracking-widest ${darkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>
+            PRENSİP
           </h3>
-          <div className={`p-8 rounded-2xl border ${darkMode ? 'bg-zinc-900/50 border-white/10' : 'bg-zinc-50 border-black/5'}`}>
-             <p className={`text-[0.9rem] font-medium leading-[1.8] italic ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
-               "Vücut bir sistemdir; besinler girdi verileridir. Glikoz pikini minimize etmek, sistem kararlılığını (homeostazis) artırır."
+          <div className={`p-8 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-zinc-50 border-black/5'}`}>
+             <p className={`text-[1.1rem] font-medium leading-relaxed italic ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
+               "Kan şekeri kontrolü, sadece kilo yönetimi değil, hücresel sağlığın temelidir."
              </p>
-             <div className="mt-8 pt-8 border-t border-dashed border-zinc-700/20">
-               <span className={`text-[0.6rem] font-black font-mono uppercase tracking-[0.2em] ${darkMode ? 'text-zinc-700' : 'text-zinc-300'}`}>Kernel Release: Alpha-1</span>
-             </div>
           </div>
         </div>
       </div>
@@ -2131,13 +2077,14 @@ function GliSkorApp() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`rounded-[3rem] border shadow-2xl overflow-hidden max-w-lg w-full p-8 sm:p-12 text-center ${darkMode ? 'bg-[#0A0A0A] text-white border-white/10' : 'bg-[#F5F5F0] text-black border-black/10'}`}
+              className={`max-w-lg w-full p-10 md:p-12 text-center relative overflow-hidden rounded-[3rem] ${darkMode ? 'bg-[#0A0A0A] text-white border border-white/10' : 'bg-[#FAFAF9] text-black border border-black/5 shadow-2xl'}`}
             >
-              <div className="w-24 h-24 rounded-full bg-[#2DFF73]/10 flex items-center justify-center mx-auto mb-8">
-                <Target size={48} className="text-[#2DFF73]" />
+              <div className="absolute top-0 right-0 w-40 h-40 bg-[#2DFF73]/10 blur-[60px] -mr-20 -mt-20" />
+              <div className="w-20 h-20 rounded-3xl bg-[#2DFF73]/20 flex items-center justify-center mx-auto mb-8 text-[#2DFF73]">
+                <Target size={40} />
               </div>
               <h2 className="text-[2.5rem] font-black tracking-tighter leading-none mb-4">Günün Görevi</h2>
-              <p className="text-[1.1rem] font-medium text-zinc-500 mb-8 leading-relaxed">
+              <p className="text-[1.1rem] font-medium text-zinc-500 mb-10 leading-relaxed font-sans">
                 "Bugün her öğünden önce 1 bardak sirkeli su içerek glisemik tepkiyi %30'a kadar düşür!"
               </p>
               <div className="flex flex-col gap-4">
@@ -2147,13 +2094,13 @@ function GliSkorApp() {
                     updateGamification(100);
                     setAiSuccess("Görev tamamlandı! +20 Puan");
                   }}
-                  className="w-full py-5 rounded-2xl bg-[#2DFF73] text-black font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_30px_rgba(45,255,115,0.2)]"
+                  className="w-full py-5 rounded-2xl bg-[#2DFF73] text-black font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
                   Görevi Tamamladım
                 </button>
                 <button 
                   onClick={() => setIsChallengeOpen(false)}
-                  className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-black/5 border-black/10 text-black hover:bg-black/10'}`}
+                  className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest transition-all ${darkMode ? 'bg-white/5 text-white hover:bg-white/10' : 'bg-black/5 text-black hover:bg-black/10'}`}
                 >
                   Daha Sonra
                 </button>
@@ -2163,46 +2110,43 @@ function GliSkorApp() {
         )}
       </AnimatePresence>
 
-      <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-all duration-500 ${darkMode ? 'bg-black/50 border-white/5' : 'bg-white/70 border-black/5'} px-4 sm:px-8 py-3 sm:py-5`}>
-        <div className="max-w-[1200px] mx-auto flex justify-between items-center">
-          <div role="banner" className="flex items-center gap-4">
-            <div className={`text-[1.4rem] sm:text-[1.8rem] font-black tracking-tighter flex items-center ${darkMode ? 'text-white' : 'text-black'}`}>
+      <header className={`sticky top-0 z-[100] backdrop-blur-2xl border-b transition-all duration-500 ${darkMode ? 'bg-black/80 border-white/5' : 'bg-white/80 border-black/5 shadow-sm'} px-8 flex items-center justify-center`}>
+        <div className="max-w-[1200px] w-full flex justify-between items-center py-5">
+          <div role="banner" className="flex items-center gap-3">
+            <div className={`text-[1.3rem] font-black tracking-tight flex items-center ${darkMode ? 'text-white' : 'text-black'}`}>
               <span className="opacity-40">GLI</span>
               <span className="text-[#2DFF73]">SKOR</span>
             </div>
           </div>
           
-          <div className="flex gap-2 sm:gap-4 items-center">
-            {/* Professional Summary Bar */}
-            <div className="hidden md:flex items-center gap-6 px-6 py-2 rounded-2xl border border-white/5 bg-white/5">
-              <div className="flex flex-col">
-                <span className="text-[0.55rem] font-black text-zinc-500 uppercase tracking-widest">GÜNLÜK GY</span>
-                <span className={`text-[0.9rem] font-black ${dailyTotals.gl > 100 ? 'text-rose-500' : 'text-[#2DFF73]'}`}>{Math.round(dailyTotals.gl)} / 100</span>
+          <div className="flex gap-3 items-center">
+            {/* Simple Stats */}
+            <div className={`hidden sm:flex items-center gap-4 px-4 py-1.5 rounded-full border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+              <div className="flex items-center gap-2">
+                <span className="text-[0.6rem] font-bold text-zinc-500">GY</span>
+                <span className={`text-[0.85rem] font-bold ${dailyTotals.gl > 100 ? 'text-red-500' : 'text-[#2DFF73]'}`}>{Math.round(dailyTotals.gl)}</span>
               </div>
-              <div className="w-px h-6 bg-white/10" />
-              <div className="flex flex-col">
-                <span className="text-[0.55rem] font-black text-zinc-500 uppercase tracking-widest">AKTİF SERİ</span>
-                <div className="flex items-center gap-1">
-                  <Flame size={12} className="text-orange-500 fill-orange-500" />
-                  <span className="text-[0.9rem] font-black">{userStats.streak} Gün</span>
-                </div>
+              <div className="w-px h-3 bg-zinc-500/20" />
+              <div className="flex items-center gap-2">
+                <Flame size={12} className="text-orange-500" />
+                <span className="text-[0.85rem] font-bold">{userStats.streak}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setDarkMode(!darkMode)}
-                className={`p-3 rounded-2xl transition-all border ${darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-black/5 border-black/5 hover:bg-black/10'}`}
+                className={`p-2.5 rounded-lg border transition-all ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-white border-black/10 text-zinc-500 shadow-sm'}`}
               >
                 {darkMode ? <Sun size={18} /> : <Moon size={18} />}
               </button>
               
               <button 
                 onClick={() => setIsProfileOpen(true)}
-                className={`w-11 h-11 rounded-2xl overflow-hidden border transition-all ${darkMode ? 'bg-white/5 border-white/10 hover:border-[#2DFF73]/50' : 'bg-black/5 border-black/10 hover:border-[#2DFF73]/50'}`}
+                className={`p-1 rounded-lg border transition-all ${darkMode ? 'bg-white/5 border-white/10' : 'bg-white border-black/10 shadow-sm'}`}
               >
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#2DFF73] to-emerald-700">
-                  <User size={20} className="text-black" />
+                <div className="w-8 h-8 rounded-md bg-[#2DFF73] flex items-center justify-center text-black">
+                  <User size={16} />
                 </div>
               </button>
             </div>
@@ -2210,104 +2154,101 @@ function GliSkorApp() {
         </div>
       </header>
 
-      <main id="main-content" className="pb-40">
-        <div className="max-w-[800px] mx-auto mt-20 sm:mt-32 px-4 sm:px-8">
-          {/* Main Search Area */}
-          <div className="text-center mb-16 px-4">
-            <motion.h1 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`text-[3.5rem] sm:text-[5.5rem] font-black tracking-tighter leading-[0.8] mb-6 ${darkMode ? 'text-white' : 'text-zinc-900'}`}
-            >
-              Pure <br /> <span className="text-[#2DFF73]">Metabolic.</span>
-            </motion.h1>
-            <p className="text-[0.65rem] sm:text-[0.75rem] text-zinc-500 font-bold uppercase tracking-[0.6em] max-w-lg mx-auto opacity-40">
-              Data-Driven Nutrition Architecture
-            </p>
-          </div>
-
-          <div className={`group border rounded-[2.5rem] p-2 flex flex-col md:flex-row items-stretch gap-2 transition-all duration-500 hover:border-[#2DFF73]/30 ${darkMode ? 'bg-zinc-900 border-white/5 shadow-2xl shadow-black/50' : 'bg-white border-black/5 shadow-xl shadow-zinc-200'}`}>
-            <div className="flex-1 flex items-center px-6 gap-4">
-              <Search className={`transition-colors group-focus-within:text-[#2DFF73] ${darkMode ? 'text-zinc-600' : 'text-zinc-300'}`} size={20} />
+      <main id="main-content" className="p-4 xs:p-6 md:p-8 pt-12 md:pt-24 max-w-[1200px] mx-auto overflow-visible">
+        {/* Main Search Area */}
+        <div className="max-w-[700px] mx-auto text-center mb-12 md:mb-20 px-4">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`text-[3rem] xs:text-[4rem] md:text-[5rem] font-black tracking-tighter leading-tight mb-8 ${darkMode ? 'text-white' : 'text-zinc-900'}`}
+          >
+            Metabolik <br /> <span className="text-[#2DFF73]">Dengeni Keşfet.</span>
+          </motion.h1>
+          
+          <div className={`p-1.5 rounded-2xl border transition-all duration-300 flex flex-col md:flex-row items-stretch gap-1.5 ${darkMode ? 'bg-white/5 border-white/5' : 'bg-white border-black/5 shadow-lg shadow-black/[0.03]'}`}>
+            <div className="flex-1 flex items-center px-5 gap-3 py-1">
+              <Search className={darkMode ? 'text-zinc-600' : 'text-zinc-300'} size={20} />
               <input 
                 type="text" 
-                placeholder="Besin veya marka analiz et..." 
+                placeholder="Örn: Portakal Suyu" 
                 value={searchVal}
                 onChange={(e) => setSearchVal(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAiAnalysis(searchVal)}
-                className={`flex-1 bg-transparent border-none py-6 focus:outline-none font-bold text-[1.1rem] sm:text-[1.2rem] ${darkMode ? 'text-white placeholder-zinc-800' : 'text-black placeholder-zinc-300'}`}
+                className={`flex-1 bg-transparent border-none py-3 focus:outline-none font-bold ${darkMode ? 'text-white placeholder-zinc-700' : 'text-black placeholder-zinc-300'}`}
               />
             </div>
             
-            <div className="flex items-center gap-2 p-1">
+            <div className="flex gap-1.5">
               <button 
                 onClick={startListening}
-                className={`flex items-center justify-center w-14 h-14 rounded-2xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : darkMode ? 'bg-white/5 text-zinc-500 hover:text-white' : 'bg-zinc-100 text-zinc-400 hover:text-black'}`}
+                className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all ${isListening ? 'bg-red-500 text-white' : darkMode ? 'bg-white/5 text-zinc-500' : 'bg-zinc-100 text-zinc-500'}`}
               >
                 {isListening ? <MicOff size={20} /> : <Mic size={20} />}
               </button>
               <button 
                 onClick={() => handleAiAnalysis(searchVal)}
                 disabled={!searchVal || isAiLoading}
-                className="bg-[#2DFF73] text-black px-8 py-5 rounded-2xl font-black text-[0.8rem] uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center gap-2"
+                className={`px-8 rounded-xl font-bold uppercase text-[0.75rem] tracking-widest transition-all ${!searchVal || isAiLoading ? 'bg-zinc-800 text-zinc-600' : 'bg-[#2DFF73] text-black hover:opacity-90'}`}
               >
-                {isAiLoading ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />}
-                ANALİZ
+                Analiz
               </button>
             </div>
           </div>
           
-          <div className="mt-12 flex justify-center gap-8 opacity-40 hover:opacity-100 transition-opacity">
-             <button 
-                onClick={() => setIsHistoryOpen(true)}
-                className="flex items-center gap-2 text-[0.7rem] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-[#2DFF73] transition-all"
-             >
-                <History size={14} /> Kayıtlar
-             </button>
-             <button 
-                onClick={() => setIsBarcodeOpen(true)}
-                className="flex items-center gap-2 text-[0.7rem] font-black uppercase tracking-[0.2em] text-zinc-500 hover:text-[#2DFF73] transition-all"
-             >
-                <Camera size={14} /> Barkod
-             </button>
+          <div className="mt-8 flex flex-wrap justify-center gap-4">
+             {['Hünnap', 'Kuru Fasulye', 'Limonlu Su', 'Mercimek'].map(tag => (
+               <button 
+                 key={tag}
+                 onClick={() => {
+                   setSearchVal(tag);
+                   handleAiAnalysis(tag);
+                 }}
+                 className={`px-4 py-1.5 rounded-xl border text-[0.7rem] font-bold transition-all hover:scale-105 active:scale-95 ${darkMode ? 'bg-white/5 border-white/5 text-zinc-500 hover:text-[#2DFF73] hover:border-[#2DFF73]/30' : 'bg-white border-black/5 shadow-sm text-zinc-400 hover:text-emerald-600 hover:border-emerald-200'}`}
+               >
+                 {tag}
+               </button>
+             ))}
           </div>
-          
-          {!aiResult && <DiscoverySection darkMode={darkMode} onSelect={(val) => {
-            setSearchVal(val);
-            handleAiAnalysis(val);
-          }} />}
         </div>
+
+        {!aiResult && <DiscoverySection darkMode={darkMode} onSelect={(val) => {
+          setSearchVal(val);
+          handleAiAnalysis(val);
+        }} />}
       </main>
 
       {/* Floating Bottom Navigation */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[150] w-auto">
-        <div className={`p-1.5 rounded-[2.5rem] border shadow-2xl backdrop-blur-3xl flex items-center gap-1 ${darkMode ? 'bg-zinc-900/80 border-white/10' : 'bg-white/90 border-black/10'}`}>
+        <div className={`p-2.5 rounded-[3rem] border shadow-2xl flex items-center gap-2 ${darkMode ? 'bg-[#0A0A0A]/90 border-white/10' : 'bg-white/95 border-black/5'} backdrop-blur-2xl`}>
            <button 
               onClick={() => {
                 setAiResult(null);
                 setSearchVal('');
               }} 
-              className={`p-4 rounded-3xl transition-all ${!aiResult ? (darkMode ? 'text-[#2DFF73] bg-white/5' : 'text-[#2DFF73] bg-black/5') : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`p-4 rounded-3xl transition-all ${!aiResult ? 'bg-[#2DFF73] text-black' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
            >
-              <Search size={20} />
+              <Search size={22} strokeWidth={2.5} />
            </button>
            <button 
               onClick={() => setIsPlateOpen(true)}
-              className={`p-4 rounded-3xl transition-all text-zinc-500 hover:text-zinc-300`}
+              className={`p-4 rounded-3xl transition-all relative ${isPlateOpen ? 'bg-[#2DFF73] text-black' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
            >
-              <Utensils size={20} />
+              <Utensils size={22} strokeWidth={2.5} />
+              {plate.length > 0 && (
+                <div className="absolute top-2 right-2 w-4 h-4 bg-orange-500 rounded-full border-2 border-white dark:border-black" />
+              )}
            </button>
            <button 
               onClick={() => setIsTrackingOpen(true)}
-              className={`p-4 rounded-3xl transition-all text-zinc-500 hover:text-zinc-300`}
+              className={`p-4 rounded-3xl transition-all ${isTrackingOpen ? 'bg-[#2DFF73] text-black' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
            >
-              <Activity size={20} />
+              <Activity size={22} strokeWidth={2.5} />
            </button>
            <button 
               onClick={() => setIsCoachOpen(true)}
-              className={`p-4 rounded-3xl transition-all text-zinc-500 hover:text-zinc-300`}
+              className={`p-4 rounded-3xl transition-all ${isCoachOpen ? 'bg-[#2DFF73] text-black' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
            >
-              <Brain size={20} />
+              <Brain size={22} strokeWidth={2.5} />
            </button>
         </div>
       </div>
@@ -2548,80 +2489,72 @@ function GliSkorApp() {
         {isStatsOpen && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className={`w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[3rem] border p-8 sm:p-12 ${darkMode ? 'bg-[#0A0A0A] border-white/10' : 'bg-white border-black/10'}`}
+              exit={{ opacity: 0, y: 10 }}
+              className={`w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border p-8 sm:p-10 ${darkMode ? 'bg-[#0A0A0A] border-white/5' : 'bg-white border-black/5 shadow-2xl'}`}
             >
-              <div className="flex justify-between items-center mb-12">
+              <div className="flex justify-between items-center mb-10">
                 <div>
-                  <h2 className="text-3xl font-black tracking-tighter">Beslenme Trendlerin</h2>
-                  <p className="text-zinc-500 font-medium">Son 7 günlük glisemik yük ve kalori analizi</p>
+                  <h2 className="text-2xl font-black tracking-tight">Analiz Paneli</h2>
+                  <p className="text-zinc-500 text-[0.8rem] font-medium">Haftalık metabolik seyir raporu</p>
                 </div>
-                <button onClick={() => setIsStatsOpen(false)} className="p-3 hover:bg-white/5 rounded-full transition-all">
-                  <X size={24} />
+                <button onClick={() => setIsStatsOpen(false)} className={`p-2 rounded-xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                  <X size={20} />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                  <h3 className="text-lg font-black mb-6 flex items-center gap-2">
-                    <Activity className="text-[#2DFF73]" size={20} />
-                    Glisemik Yük Trendi
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className={`p-6 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-white border-black/5'}`}>
+                  <h3 className="text-[0.8rem] font-bold uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <Activity className="text-[#2DFF73]" size={16} />
+                    Glisemik Profil
                   </h3>
-                  <div className="h-[250px] w-full">
+                  <div className="h-[220px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={[
                         { day: 'Pzt', gl: 85 }, { day: 'Sal', gl: 110 }, { day: 'Çar', gl: 95 }, { day: 'Per', gl: 120 }, { day: 'Cum', gl: 80 }, { day: 'Cmt', gl: 140 }, { day: 'Paz', gl: 90 }
                       ]}>
-                        <defs>
-                          <linearGradient id="colorGl" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2DFF73" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#2DFF73" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} />
-                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} />
-                        <RechartsTooltip contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)'}} />
-                        <Area type="monotone" dataKey="gl" stroke="#2DFF73" strokeWidth={4} fillOpacity={1} fill="url(#colorGl)" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 600}} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 600}} />
+                        <Area type="monotone" dataKey="gl" stroke="#2DFF73" strokeWidth={3} fill="#2DFF73" fillOpacity={0.05} />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
-                <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                  <h3 className="text-lg font-black mb-6 flex items-center gap-2">
-                    <Flame className="text-orange-500" size={20} />
-                    Kalori Dağılımı
+                <div className={`p-6 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-white border-black/5'}`}>
+                  <h3 className="text-[0.8rem] font-bold uppercase tracking-widest mb-6 flex items-center gap-2">
+                    <Flame className="text-orange-500" size={16} />
+                    Enerji Alımı
                   </h3>
-                  <div className="h-[250px] w-full">
+                  <div className="h-[220px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={[
                         { day: 'Pzt', cal: 1800 }, { day: 'Sal', cal: 2100 }, { day: 'Çar', cal: 1950 }, { day: 'Per', cal: 2200 }, { day: 'Cum', cal: 1850 }, { day: 'Cmt', cal: 2500 }, { day: 'Paz', cal: 2000 }
                       ]}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"} />
-                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} />
-                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} />
-                        <RechartsTooltip />
-                        <Bar dataKey="cal" fill="#FF6B2B" radius={[10, 10, 0, 0]} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 600}} />
+                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 600}} />
+                        <Bar dataKey="cal" fill="#FF6B2B" radius={[4, 4, 0, 0]} barSize={20} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
-                  { label: 'Ortalama GY', value: '98', status: 'İyi', color: 'text-[#2DFF73]' },
-                  { label: 'En Yüksek GY', value: '140', status: 'Yüksek', color: 'text-red-500' },
-                  { label: 'Hedef Uyumu', value: '%85', status: 'Harika', color: 'text-blue-400' }
+                  { label: 'ORTALAMA YÜK', value: '98', status: 'Optimal', color: 'text-[#2DFF73]' },
+                  { label: 'PİK SEVİYE', value: '140', status: '+%40 Artış', color: 'text-red-500' },
+                  { label: 'HEDEF UYUMU', value: '%85', status: 'Başarılı', color: 'text-blue-400' }
                 ].map((s, i) => (
-                  <div key={i} className={`p-6 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                    <span className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-widest">{s.label}</span>
-                    <div className="flex items-end gap-2 mt-1">
-                      <span className="text-2xl font-black">{s.value}</span>
-                      <span className={`text-[0.7rem] font-bold mb-1 ${s.color}`}>{s.status}</span>
+                  <div key={i} className={`p-4 rounded-xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-white border-black/5'}`}>
+                    <span className="text-[0.55rem] font-bold text-zinc-500 uppercase tracking-widest">{s.label}</span>
+                    <div className="flex items-end justify-between mt-1">
+                      <span className="text-[1.2rem] font-black">{s.value}</span>
+                      <span className={`text-[0.6rem] font-bold ${s.color}`}>{s.status}</span>
                     </div>
                   </div>
                 ))}
@@ -2641,19 +2574,16 @@ function GliSkorApp() {
         <span className="text-[0.8rem] text-[#A8A39E] font-bold">{filteredFoods.length} besin listelendi (Listeniz boş ise arama yapıp ekleyebilirsiniz)</span>
       </div>
 
-      <div className="max-w-[1000px] mx-auto mt-12 px-4 sm:px-8 grid grid-cols-2 sm:flex sm:flex-wrap justify-center gap-x-6 gap-y-8 sm:gap-8 border-y border-white/5 py-6 sm:py-10">
+      <div className="max-w-[1000px] mx-auto mt-8 px-4 flex flex-wrap justify-center gap-6 border-y border-black/5 dark:border-white/5 py-6">
         {[
-          { color: '#2DFF73', label: '8–10 GÜVENLİ', desc: 'Metabolik denge' },
-          { color: '#FACC15', label: '5–7 ÖLÇÜLÜ', desc: 'Porsiyon kontrolü' },
-          { color: '#F97316', label: '3–4 DİKKATLİ', desc: 'Yüksek insülin' },
-          { color: '#EF4444', label: '1–2 KAÇIN', desc: 'Kritik seviye' }
+          { color: '#2DFF73', label: 'Güvenli (8-10)' },
+          { color: '#FACC15', label: 'Ölçülü (5-7)' },
+          { color: '#F97316', label: 'Dikkatli (3-4)' },
+          { color: '#EF4444', label: 'Kaçın (1-2)' }
         ].map((item, i) => (
-          <div key={i} className="flex items-center gap-3 sm:gap-4 group justify-center sm:justify-start">
-            <div className="w-2.5 h-2.5 sm:w-3 h-3 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)] transition-all group-hover:scale-125 shrink-0" style={{ backgroundColor: item.color, boxShadow: `0 0 15px ${item.color}40` }} />
-            <div className="flex flex-col">
-              <div className={`text-[0.65rem] sm:text-[0.75rem] font-black tracking-widest leading-none ${darkMode ? 'text-white' : 'text-black'}`}>{item.label}</div>
-              <div className="text-[0.55rem] sm:text-[0.6rem] font-medium text-zinc-500 uppercase tracking-wider mt-1">{item.desc}</div>
-            </div>
+          <div key={i} className="flex items-center gap-2 group">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+            <span className="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest">{item.label}</span>
           </div>
         ))}
       </div>
@@ -2673,58 +2603,61 @@ function GliSkorApp() {
             return (
               <motion.div 
                 layout
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
                 key={f.isim}
                 onClick={() => setSelectedFood(f)}
-                className={`p-8 rounded-2xl border transition-all cursor-pointer ${darkMode ? 'bg-zinc-900 border-white/5 hover:border-[#2DFF73]/40' : 'bg-white border-black/5 hover:shadow-2xl hover:shadow-zinc-200'}`}
+                className={`p-6 xs:p-8 rounded-[2rem] md:rounded-[2.5rem] border transition-all duration-500 cursor-pointer group relative overflow-hidden flex flex-col justify-between h-full ${darkMode ? 'bg-black/20 border-white/5 hover:border-[#2DFF73]/30 hover:bg-[#2DFF73]/5' : 'bg-white border-black/5 shadow-xl hover:shadow-2xl hover:border-emerald-200 shadow-black/[0.02]'}`}
               >
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-6 relative z-10">
                   <div className="flex items-start justify-between">
                     <div className="flex flex-col gap-1">
-                      <span className={`text-[0.6rem] font-bold uppercase tracking-[0.3em] opacity-40 ${darkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                      <span className="text-[0.65rem] font-black uppercase tracking-[0.2em] text-zinc-500">
                         {f.kat}
                       </span>
-                      <h2 className={`text-[1.3rem] font-black leading-tight tracking-tight ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
+                      <h2 className={`text-[1.4rem] md:text-[1.6rem] font-black leading-tight tracking-tighter ${darkMode ? 'text-white' : 'text-zinc-900'} group-hover:text-[#2DFF73] transition-colors`}>
                         {f.isim}
                       </h2>
                     </div>
                     <div className="flex flex-col items-end">
-                      <span className="text-[1.8rem] font-black font-mono text-[#2DFF73] leading-none">
+                      <span className="text-[2rem] md:text-[2.5rem] font-black text-[#2DFF73] leading-none">
                         {mScore}
                       </span>
-                      <span className="text-[0.55rem] font-black uppercase tracking-widest text-zinc-500 mt-1">META SCORE</span>
+                      <span className="text-[0.6rem] font-black uppercase tracking-widest text-zinc-500 mt-1">Metabolic</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-3 border-t border-dashed border-zinc-700/20 pt-6">
+                  <div className="grid grid-cols-3 gap-4 py-4 border-y border-black/5 dark:border-white/5">
                     {[
                       { val: f.gi, label: 'GI' },
                       { val: g.toFixed(1), label: 'GY' },
                       { val: f.kal.toFixed(0), label: 'KCAL' }
                     ].map((item, i) => (
                       <div key={i} className="flex flex-col">
-                        <span className={`text-[1rem] font-black font-mono ${darkMode ? 'text-white' : 'text-black'}`}>{item.val}</span>
-                        <span className="text-[0.55rem] font-bold text-zinc-500 uppercase tracking-widest">{item.label}</span>
+                        <span className={`text-[1rem] md:text-[1.1rem] font-black ${darkMode ? 'text-white' : 'text-black'}`}>{item.val}</span>
+                        <span className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-widest">{item.label}</span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-3 mt-2">
                     <button 
                       onClick={(e) => { e.stopPropagation(); addToLog(f, 100, 'Atıştırmalık', mScore); }}
-                      className={`flex-1 py-3 rounded-xl text-[0.7rem] font-black uppercase tracking-[0.2em] transition-all ${darkMode ? 'bg-white/5 text-zinc-400 hover:bg-[#2DFF73] hover:text-black' : 'bg-zinc-100 text-zinc-500 hover:bg-black hover:text-white'}`}
+                      className={`flex-1 py-3 rounded-xl text-[0.7rem] font-black uppercase tracking-widest transition-all ${darkMode ? 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white' : 'bg-black/5 text-zinc-500 hover:bg-black/10 hover:text-black'}`}
                     >
-                      Log
+                      Ekle
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); addToPlate(f); }}
-                      className={`flex-1 py-3 rounded-xl text-[0.7rem] font-black uppercase tracking-[0.2em] transition-all ${darkMode ? 'bg-[#2DFF73]/10 text-[#2DFF73] hover:bg-[#2DFF73] hover:text-black border border-[#2DFF73]/20' : 'bg-zinc-100 text-zinc-500 hover:bg-black hover:text-white'}`}
+                      className="flex-1 py-3 rounded-xl bg-[#2DFF73] text-black text-[0.7rem] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-[#2DFF73]/10"
                     >
-                      Plate
+                      Tabağa At
                     </button>
                   </div>
                 </div>
+                
+                {/* Decoration */}
+                <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-[#2DFF73]/5 blur-[40px] rounded-full group-hover:bg-[#2DFF73]/10 transition-all" />
               </motion.div>
             );
           })
@@ -3294,139 +3227,86 @@ function GliSkorApp() {
         {isTrackingOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`rounded-[3rem] border shadow-2xl overflow-hidden max-w-2xl w-full flex flex-col max-h-[85vh] ${darkMode ? 'bg-[#0A0A0A] border-white/10' : 'bg-[#F5F5F0] border-black/10'}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className={`rounded-3xl border shadow-2xl overflow-hidden max-w-2xl w-full flex flex-col max-h-[85vh] ${darkMode ? 'bg-[#0A0A0A] border-white/5' : 'bg-white border-black/5'}`}
             >
-              <div className={`p-10 border-b flex items-center justify-between ${darkMode ? 'border-white/5' : 'border-black/5'}`}>
+              <div className={`p-8 border-b flex items-center justify-between ${darkMode ? 'border-white/5' : 'border-black/5'}`}>
                 <div>
-                  <h3 className={`text-[2rem] font-black tracking-tighter bg-gradient-to-br bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>Günlük Takip</h3>
-                  <p className="text-zinc-500 text-[0.8rem] font-medium mt-1">Bugün tükettiğiniz besinler ve metabolik yükünüz</p>
+                  <h3 className="text-2xl font-black tracking-tight">Günlük Takip</h3>
+                  <p className="text-zinc-500 text-[0.75rem] font-medium mt-1">Bugünkü metabolik seyir özeti</p>
                 </div>
                 <button 
                   onClick={() => setIsTrackingOpen(false)}
-                  className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10' : 'bg-black/5 border-black/10 text-zinc-500 hover:bg-black/10'}`}
+                  className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${darkMode ? 'bg-white/5 border-white/5 text-zinc-400' : 'bg-black/5 border-black/5 text-zinc-500'}`}
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-10 space-y-8 custom-scrollbar">
-                {/* Daily Stats Dashboard */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
-                    { label: 'Metabolik Skor', value: dailyMetabolicPerformance, unit: '/100', color: 'text-[#2DFF73]' },
-                    { label: 'Toplam GY', value: Math.round(dailyTotals.gl), unit: '', color: 'text-blue-400' },
-                    { label: 'Kalori', value: Math.round(dailyTotals.calories), unit: 'kcal', color: 'text-zinc-400' },
-                    { label: 'Karbonhidrat', value: Math.round(dailyTotals.carbs), unit: 'g', color: 'text-orange-400' }
+                    { label: 'Skor', value: dailyMetabolicPerformance, unit: '/100', color: 'text-[#2DFF73]' },
+                    { label: 'GY', value: Math.round(dailyTotals.gl), unit: '', color: 'text-zinc-400' },
+                    { label: 'Kcal', value: Math.round(dailyTotals.calories), unit: '', color: 'text-zinc-400' },
+                    { label: 'Karb', value: Math.round(dailyTotals.carbs), unit: 'g', color: 'text-zinc-400' }
                   ].map((stat, i) => (
-                    <div key={i} className={`p-4 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                      <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-widest mb-1">{stat.label}</div>
+                    <div key={i} className={`p-4 rounded-xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-zinc-50 border-black/5'}`}>
+                      <div className="text-[0.55rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">{stat.label}</div>
                       <div className="flex items-baseline gap-1">
-                        <span className={`text-[1.4rem] font-black ${stat.color}`}>{stat.value}</span>
-                        <span className="text-[0.6rem] font-bold text-zinc-600">{stat.unit}</span>
+                        <span className={`text-[1.2rem] font-black ${stat.color}`}>{stat.value}</span>
+                        <span className="text-[0.6rem] font-medium text-zinc-500">{stat.unit}</span>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Daily Log List */}
                 <div className="space-y-4">
-                  <h4 className="text-[0.7rem] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1">Metabolik Koşullar</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Time */}
-                    <div className={`p-4 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-zinc-50 border-black/5'}`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock size={16} className="text-zinc-500" />
-                          <span className="text-[0.6rem] font-black uppercase tracking-widest text-zinc-500">Saat: {consumptionHour}:00</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => setConsumptionHour(Math.max(0, consumptionHour - 1))} className="p-1.5 hover:bg-black/10 rounded-lg"><Minus size={14} /></button>
-                          <button onClick={() => setConsumptionHour(Math.min(23, consumptionHour + 1))} className="p-1.5 hover:bg-black/10 rounded-lg"><Plus size={14} /></button>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Sleep */}
-                    <button 
-                      onClick={() => setIsLowSleep(!isLowSleep)}
-                      className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${isLowSleep ? 'bg-red-500/10 border-red-500/20 text-red-500' : (darkMode ? 'bg-white/5 border-white/5 text-zinc-500' : 'bg-zinc-50 border-black/5 text-zinc-600')}`}
-                    >
-                      <span className="text-[0.75rem] font-black uppercase tracking-widest">Uykusuzum</span>
-                      <div className={`w-8 h-4 rounded-full relative ${isLowSleep ? 'bg-red-500' : 'bg-zinc-700'}`}>
-                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isLowSleep ? 'right-0.5' : 'left-0.5'}`} />
-                      </div>
-                    </button>
-                    {/* Stress */}
-                    <button 
-                      onClick={() => setIsStressed(!isStressed)}
-                      className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${isStressed ? 'bg-amber-500/10 border-amber-500/20 text-amber-500' : (darkMode ? 'bg-white/5 border-white/5 text-zinc-500' : 'bg-zinc-50 border-black/5 text-zinc-600')}`}
-                    >
-                      <span className="text-[0.75rem] font-black uppercase tracking-widest">Stresliyim</span>
-                      <div className={`w-8 h-4 rounded-full relative ${isStressed ? 'bg-amber-500' : 'bg-zinc-700'}`}>
-                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isStressed ? 'right-0.5' : 'left-0.5'}`} />
-                      </div>
-                    </button>
-                    {/* Active */}
-                    <button 
-                      onClick={() => setHasMovement(!hasMovement)}
-                      className={`p-4 rounded-2xl border flex items-center justify-between transition-all ${hasMovement ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : (darkMode ? 'bg-white/5 border-white/5 text-zinc-500' : 'bg-zinc-50 border-black/5 text-zinc-600')}`}
-                    >
-                      <span className="text-[0.75rem] font-black uppercase tracking-widest">Hareketliyim</span>
-                      <div className={`w-8 h-4 rounded-full relative ${hasMovement ? 'bg-emerald-500' : 'bg-zinc-700'}`}>
-                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${hasMovement ? 'right-0.5' : 'left-0.5'}`} />
-                      </div>
-                    </button>
-                  </div>
-
-                  <h4 className="text-[0.7rem] font-black text-zinc-500 uppercase tracking-[0.2em] ml-1 mt-8">Bugünkü Kayıtlar</h4>
+                  <h4 className="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-widest ml-1">Kayıtlar</h4>
                   {dailyLog.length === 0 ? (
-                    <div className="py-12 text-center">
-                      <Activity size={32} className="text-zinc-700 mx-auto mb-4 opacity-20" />
-                      <p className="text-zinc-600 font-medium">Henüz bir kayıt eklemediniz.</p>
-                    </div>
+                    <div className="py-12 text-center text-zinc-500 text-[0.8rem] font-medium uppercase tracking-widest">Kayıt bulunamadı</div>
                   ) : (
-                    dailyLog.map((entry) => (
-                      <div 
-                        key={entry.id}
-                        className={`p-5 rounded-2xl border flex items-center justify-between group ${darkMode ? 'bg-white/[0.02] border-white/5' : 'bg-black/[0.02] border-black/5'}`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[0.7rem] font-black ${darkMode ? 'bg-white/5 text-zinc-400' : 'bg-black/5 text-zinc-500'}`}>
-                            {new Date(entry.timestamp).getHours()}:{new Date(entry.timestamp).getMinutes().toString().padStart(2, '0')}
-                          </div>
-                          <div>
-                            <div className="font-black text-[1rem] tracking-tight">{entry.food.isim}</div>
-                            <div className="text-[0.65rem] font-bold text-zinc-500 uppercase tracking-wider">
-                              {entry.amount}g • {entry.mealType} • {Math.round((entry.food.gi * (entry.food.karb * entry.amount / 100)) / 100)} GY
+                    <div className="space-y-3">
+                      {dailyLog.map((entry) => (
+                        <div 
+                          key={entry.id}
+                          className={`p-4 rounded-xl border flex items-center justify-between ${darkMode ? 'bg-white/5 border-white/5' : 'bg-white border-black/5'}`}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="text-[0.65rem] font-bold text-zinc-500 opacity-50 font-mono">
+                              {new Date(entry.timestamp).getHours()}:{new Date(entry.timestamp).getMinutes().toString().padStart(2, '0')}
+                            </div>
+                            <div>
+                              <div className="font-bold text-[0.95rem]">{entry.food.isim}</div>
+                              <div className="text-[0.65rem] text-zinc-500 uppercase tracking-widest">
+                                {entry.amount}g • {entry.mealType} • {Math.round((entry.food.gi * (entry.food.karb * entry.amount / 100)) / 100)} GY
+                              </div>
                             </div>
                           </div>
+                          <button onClick={() => removeFromLog(entry.id)} className="p-2 hover:bg-red-500/10 text-zinc-500 hover:text-red-400 rounded-lg transition-all">
+                            <Trash2 size={16} />
+                          </button>
                         </div>
-                        <button 
-                          onClick={() => removeFromLog(entry.id)}
-                          className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-600 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   )}
                 </div>
 
                 {/* Metabolic Advice */}
                 {dailyLog.length > 0 && (
-                  <div className={`p-6 rounded-[2rem] border ${dailyMetabolicPerformance > 80 ? 'border-emerald-500/20 bg-emerald-500/5' : dailyMetabolicPerformance > 60 ? 'border-orange-500/20 bg-orange-500/5' : 'border-red-500/20 bg-red-500/5'}`}>
+                  <div className={`p-6 rounded-2xl border ${dailyMetabolicPerformance > 80 ? 'border-emerald-500/20 bg-emerald-500/5' : dailyMetabolicPerformance > 60 ? 'border-orange-500/20 bg-orange-500/5' : 'border-red-500/20 bg-red-500/5'}`}>
                     <div className="flex items-center gap-3 mb-3">
-                      <Lightbulb className={dailyMetabolicPerformance > 80 ? 'text-emerald-500' : dailyMetabolicPerformance > 60 ? 'text-orange-500' : 'text-red-500'} size={20} />
-                      <span className="text-[0.7rem] font-black uppercase tracking-widest">Günlük Metabolik Durum</span>
+                      <Lightbulb size={20} />
+                      <span className="text-[0.7rem] font-bold uppercase tracking-widest">Metabolik Durum</span>
                     </div>
                     <p className={`text-[0.85rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
                       {dailyMetabolicPerformance > 80 
-                        ? "Harika gidiyorsun! Bugün metabolik yükün oldukça düşük. Bu dengeyi korumak yağ yakımını ve enerjini maksimize eder."
+                        ? "Harika! Bugün metabolik yükün oldukça düşük."
                         : dailyMetabolicPerformance > 60
-                        ? "Metabolik yükün sınırda. Bir sonraki öğününde lif ve protein miktarını artırıp karbonhidratı azaltarak dengeleyebilirsin."
-                        : "Bugün glikoz yükün oldukça yüksek. İnsülin direnci riskini azaltmak için bol su içmeli ve hafif bir yürüyüş yapmalısın."}
+                        ? "Metabolik yükün sınırda. Lif ve protein miktarını artırabilirsin."
+                        : "Bugün glikoz yükün yüksek. Hareket etmeye çalışmalısın."}
                     </p>
                   </div>
                 )}
@@ -3510,152 +3390,82 @@ function GliSkorApp() {
         )}
       </AnimatePresence>
 
-      {/* Modals Follow Below */}
-
-      {/* Plate Builder Floating Panel - Adjusted for Bottom Nav */}
-      <div className="fixed bottom-24 lg:bottom-8 right-4 xs:right-8 z-[150]">
+      {/* Plate Builder Floating Panel */}
+      <div className="fixed bottom-24 lg:bottom-8 right-6 z-[150]">
         <motion.button
-          whileHover={{ scale: 1.05, y: -5 }}
+          whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsPlateOpen(!isPlateOpen)}
-          className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 text-black flex items-center justify-center shadow-[0_10px_40px_rgba(16,185,129,0.4)] relative group"
+          className="w-16 h-16 rounded-full bg-[#2DFF73] text-black flex items-center justify-center shadow-xl shadow-[#2DFF73]/20 relative"
         >
-          <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
-          <Utensils size={32} />
+          <Utensils size={28} />
           {plate.length > 0 && (
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className={`absolute -top-2 -right-2 w-9 h-9 rounded-full flex items-center justify-center text-[1rem] font-black shadow-2xl z-20 border-2 ${darkMode ? 'bg-[#2DFF73] text-black border-[#0A0A0A]' : 'bg-black text-white border-white'}`}
-            >
+            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-black text-white text-[0.7rem] font-bold flex items-center justify-center border-2 border-[#2DFF73]">
               {plate.length}
-            </motion.div>
+            </div>
           )}
         </motion.button>
 
         <AnimatePresence>
           {isPlateOpen && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20, x: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20, x: 20 }}
-              className={`absolute bottom-24 right-0 w-[calc(100vw-40px)] md:w-[400px] max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar rounded-[3rem] border shadow-2xl flex flex-col ${darkMode ? 'bg-[#0A0A0A] border-white/10 glass' : 'bg-[#F5F5F0] border-black/10 light-glass'}`}
+              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              className={`absolute bottom-20 right-0 w-[calc(100vw-3rem)] md:w-[350px] rounded-3xl border shadow-2xl flex flex-col overflow-hidden ${darkMode ? 'bg-[#0A0A0A] border-white/5' : 'bg-white border-black/5'}`}
             >
-              <div className={`sticky top-0 z-30 p-8 pb-4 backdrop-blur-xl border-b ${darkMode ? 'bg-[#0A0A0A]/80 border-white/5' : 'bg-[#F5F5F0]/80 border-black/5'}`}>
-                <div className="flex items-center justify-between">
-                  <h3 className={`text-[1.8rem] font-black tracking-tighter bg-gradient-to-br bg-clip-text text-transparent ${darkMode ? 'from-white to-zinc-500' : 'from-black to-zinc-600'}`}>Tabağım</h3>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => setPlate([])}
-                      className="text-[0.65rem] font-black uppercase tracking-widest text-zinc-500 hover:text-red-400 transition-colors mr-2"
-                    >
-                      Temizle
-                    </button>
-                    <button 
-                      onClick={() => setIsPlateOpen(false)}
-                      className={`w-10 h-10 rounded-full border flex items-center justify-center transition-all ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10' : 'bg-black/5 border-black/10 text-zinc-500 hover:bg-black/10'}`}
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
+              <div className={`p-6 border-b flex justify-between items-center ${darkMode ? 'bg-white/5' : 'bg-zinc-50'}`}>
+                <h3 className="text-xl font-black tracking-tight">Tabağım</h3>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setPlate([])} className="text-[0.6rem] font-bold text-zinc-500 uppercase">Temizle</button>
+                  <button onClick={() => setIsPlateOpen(false)} className="p-1.5 opacity-50 hover:opacity-100 transition-opacity">
+                    <X size={18} />
+                  </button>
                 </div>
               </div>
 
-              <div className="p-8 pt-4">
-
+              <div className="p-6 space-y-6">
                 {plate.length === 0 ? (
-                  <div className="py-12 text-center">
-                    <div className={`w-20 h-20 rounded-full border flex items-center justify-center mx-auto mb-6 ${darkMode ? 'bg-white/5 border-white/10' : 'bg-black/5 border-black/10'}`}>
-                      <Utensils size={32} className="text-zinc-600" />
-                    </div>
-                    <p className="text-zinc-500 font-medium">Tabağın henüz boş.</p>
-                  </div>
+                  <div className="py-8 text-center text-zinc-500 text-[0.8rem] font-medium uppercase tracking-widest">Tabak Boş</div>
                 ) : (
-                  <div className="space-y-6">
-                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                  <>
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                       {plate.map((p, i) => (
-                        <div key={i} className={`flex items-center justify-between p-4 border rounded-2xl group transition-all ${darkMode ? 'bg-white/5 border-white/10 hover:border-emerald-500/30' : 'bg-black/5 border-black/10 hover:border-emerald-500/30 shadow-sm'}`}>
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 font-black text-[0.8rem]">
-                              {i + 1}
-                            </div>
-                            <div>
-                              <p className={`font-bold text-[0.9rem] ${darkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>{p.isim}</p>
-                              <p className="text-zinc-500 text-[0.75rem] font-medium">{p.kal} kcal</p>
-                            </div>
+                        <div key={i} className={`flex items-center justify-between p-3 rounded-xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-zinc-50 border-black/5'}`}>
+                          <div className="flex items-center gap-3">
+                            <div className="font-bold text-[0.85rem]">{p.isim}</div>
+                            <div className="text-[0.65rem] text-zinc-500">{p.kal} kcal</div>
                           </div>
-                          <button 
-                            onClick={() => removeFromPlate(i)}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${darkMode ? 'bg-white/5 text-zinc-500 hover:bg-red-500/20 hover:text-red-400' : 'bg-black/5 text-zinc-500 hover:bg-red-500/20 hover:text-red-400'}`}
-                          >
-                            <Trash2 size={16} />
+                          <button onClick={() => removeFromPlate(i)} className="text-zinc-500 hover:text-red-500 transition-colors">
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       ))}
                     </div>
 
                     {plateAnalysis && (
-                      <div className={`p-6 rounded-[2rem] border relative overflow-hidden ${darkMode ? 'bg-gradient-to-br from-emerald-500/10 to-blue-500/10 border-white/10' : 'bg-gradient-to-br from-emerald-500/5 to-blue-500/5 border-black/10 shadow-lg'}`}>
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[50px] rounded-full -mr-16 -mt-16" />
-                        <div className="relative z-10">
-                          <div className="flex items-center justify-between mb-4">
-                            <span className="text-[0.75rem] font-black uppercase text-zinc-400 tracking-widest">Tabak Analizi</span>
-                            <div className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                              <span className="text-emerald-400 text-[0.75rem] font-black uppercase tracking-widest">Canlı</span>
-                            </div>
+                      <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-[#2DFF73]/5 border-[#2DFF73]/10' : 'bg-zinc-50 border-black/5'}`}>
+                        <div className="flex justify-between mb-4">
+                          <div className="text-center">
+                            <div className="text-[0.5rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">İnsülin</div>
+                            <div className="text-[1.2rem] font-black" style={{ color: getRingColor(plateAnalysis.m) }}>{plateAnalysis.m}</div>
                           </div>
-                          <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className={`p-4 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5 shadow-sm'}`}>
-                  <p className="text-[0.65rem] font-black uppercase text-zinc-500 mb-2 tracking-[0.2em]">İnsülin Skoru</p>
-                  <div className="flex items-end gap-2">
-                    <p className="text-[2.2rem] font-black tracking-tighter leading-none" style={{ color: getRingColor(plateAnalysis.m), textShadow: darkMode ? `0 0 15px ${getRingColor(plateAnalysis.m)}40` : 'none' }}>
-                      {plateAnalysis.m}
-                    </p>
-                    <span className="text-[0.8rem] font-black text-zinc-600 mb-1">/10</span>
-                  </div>
-                </div>
-                <div className={`p-4 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5 shadow-sm'}`}>
-                  <p className="text-[0.65rem] font-black uppercase text-zinc-500 mb-2 tracking-[0.2em]">Sağlık Skoru</p>
-                  <div className="flex items-end gap-2">
-                    <p className="text-[2.2rem] font-black tracking-tighter leading-none" style={{ color: getRingColor(plateAnalysis.n), textShadow: darkMode ? `0 0 15px ${getRingColor(plateAnalysis.n)}40` : 'none' }}>
-                      {plateAnalysis.n}
-                    </p>
-                    <span className="text-[0.8rem] font-black text-zinc-600 mb-1">/10</span>
-                  </div>
-                </div>
-                          </div>
-                          
-                          <div className={`p-6 rounded-[1.5rem] border mb-8 relative group/verdict backdrop-blur-md ${darkMode ? 'bg-black/40 border-white/5' : 'bg-white/40 border-black/5 shadow-sm'}`}>
-                            <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500/50 rounded-full" />
-                            <p className={`text-[0.85rem] leading-relaxed italic font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>"{plateAnalysis.verdict}"</p>
-                          </div>
-
-                          <div className="grid grid-cols-4 gap-3 text-center mb-8">
-                            {[
-                              { val: plateAnalysis.totalKal, label: 'kcal' },
-                              { val: `${plateAnalysis.totalKarb}g`, label: 'karb' },
-                              { val: `${plateAnalysis.totalPro}g`, label: 'pro' },
-                              { val: `${plateAnalysis.totalLif}g`, label: 'lif' }
-                            ].map((stat, i) => (
-                              <div key={i} className={`py-3 rounded-2xl border transition-colors ${darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-black/5 border-black/5 hover:bg-black/10 shadow-sm'}`}>
-                                <div className={`text-[0.9rem] font-black tracking-tight ${darkMode ? 'text-white' : 'text-black'}`}>{stat.val}</div>
-                                <div className="text-[0.55rem] text-zinc-500 font-black uppercase tracking-widest mt-1">{stat.label}</div>
-                              </div>
-                            ))}
+                          <div className="text-center">
+                            <div className="text-[0.5rem] font-bold text-zinc-500 uppercase tracking-widest mb-1">Metabolizma</div>
+                            <div className="text-[1.2rem] font-black" style={{ color: getRingColor(plateAnalysis.n) }}>{plateAnalysis.n}</div>
                           </div>
                         </div>
+                        <p className="text-[0.8rem] italic text-zinc-500 leading-relaxed">"{plateAnalysis.verdict}"</p>
                       </div>
                     )}
-
-                    <button 
-                      className="w-full py-5 rounded-[2rem] bg-[#2DFF73] text-black font-black uppercase tracking-[0.2em] text-[0.8rem] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_30px_rgba(45,255,115,0.2)]"
-                      onClick={() => setIsPlateOpen(false)}
-                    >
-                      Analizi Kapat
-                    </button>
-                  </div>
+                  </>
                 )}
+                <button 
+                  onClick={() => setIsPlateOpen(false)}
+                  className="w-full py-4 rounded-xl bg-[#2DFF73] text-black font-bold uppercase tracking-widest text-[0.75rem]"
+                >
+                  Kapat
+                </button>
               </div>
             </motion.div>
           )}

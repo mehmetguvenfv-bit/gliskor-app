@@ -32,7 +32,7 @@ export function MacroDistribution({ karb, pro, yag, darkMode }: MacroDistributio
               paddingAngle={0}
               minAngle={15}
               dataKey="value"
-              stroke={darkMode ? '#121212' : '#F5F5F0'}
+              stroke={darkMode ? '#1A1A1A' : '#F9F9F7'}
               strokeWidth={2}
               animationBegin={0}
               animationDuration={1500}

@@ -22,7 +22,7 @@ export function GlucoseCurve({ gi, gy, color, darkMode }: GlucoseCurveProps) {
           </linearGradient>
         </defs>
         <path 
-          d={`M 0 50 Q ${peakX} ${50 - height * 1.5} 100 50`} 
+          d={`M 0 50 Q ${peakX} ${50 - height} 100 50`} 
           fill="none" 
           stroke={color} 
           strokeWidth="3"
@@ -30,7 +30,7 @@ export function GlucoseCurve({ gi, gy, color, darkMode }: GlucoseCurveProps) {
           className="drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
         />
         <path 
-          d={`M 0 50 Q ${peakX} ${50 - height * 1.5} 100 50 L 100 50 L 0 50 Z`} 
+          d={`M 0 50 Q ${peakX} ${50 - height} 100 50 L 100 50 L 0 50 Z`} 
           fill={`url(#grad-${color})`}
         />
       </svg>
