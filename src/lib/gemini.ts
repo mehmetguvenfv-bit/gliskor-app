@@ -162,26 +162,52 @@ export interface PlateAnalysisResult {
     portion: string;
     estimatedCalories: number;
     score: number;
+    decision: '🟢 ÇOK İYİ' | '🟢 İYİ SEÇİM' | '🟡 ÖLÇÜLÜ TÜKET' | '🟠 SINIRLI TÜKET' | '🔴 MÜMKÜNSE KAÇIN';
     reason: string;
   }[];
   totalCalories: number;
+  totalProtein?: number;
+  totalCarbs?: number;
+  totalFat?: number;
+  totalFiber?: number;
+  totalSugar?: number;
+  totalSodium?: number;
   overallMetabolicScore: number;
+  overallDecision: '🟢 ÇOK İYİ' | '🟢 İYİ SEÇİM' | '🟡 ÖLÇÜLÜ TÜKET' | '🟠 SINIRLI TÜKET' | '🔴 MÜMKÜNSE KAÇIN';
+  mealBalanceAnalysis: string;
+  missingNutrients: string[];
+  betterCombination: string;
+  alternativeSuggestion: string;
   generalAdvice: string;
 }
 
 export async function analyzePlateImage(base64Image: string, profileContext: string = ""): Promise<PlateAnalysisResult> {
   const model = "gemini-3-flash-preview";
   
-  const systemInstruction = `Sen uzman bir görsel besin analistisin. Bir tabak fotoğrafındaki besinleri tanımlar, porsiyonlarını tahmin eder ve metabolik sağlık (insülin direnci) açısından puanlarsın.
-  
-  Analiz Kuralları:
-  1. Fotoğraftaki her bir besini ayrı ayrı tanımla.
-  2. Porsiyon büyüklüğünü (gram veya adet/kaşık bazında) tahmin et.
-  3. Her besin için 1-10 arası bir metabolik skor ver (10 en sağlıklı).
-  4. Toplam kaloriyi ve genel bir metabolik puanı hesapla.
-  5. Kullanıcının profiline göre (varsa) özel tavsiyeler ver.`;
+  const systemInstruction = `Sen "Nutrition AI" adlı profesyonel bir beslenme analiz ve karar destek asistanısın.
 
-  const prompt = `Bu tabaktaki besinleri analiz et. ${profileContext} Yanıtı JSON formatında sağla.`;
+Görevin: Bir tabak veya yiyecek fotoğrafındaki yiyecekleri tanımlamak, porsiyonlarını belirlemek, kalori ve makro besinlerini hesaplamak, kombinasyon dengesini analiz etmek ve her yiyecek ile toplam öğün için net bir karar üretmektir.
+
+TEMEL PRENSİP:
+Yalnızca "sağlıklı / sağlıksız" deme.
+Şu 3 şeyi birbirinden ayır:
+1. Ürünün genel beslenme kalitesi
+2. Belirli porsiyonun beslenme profili
+3. Bu yiyeceğin mevcut kullanıcı için uygunluğu
+
+KARAR SINIFLARI (Her yiyecek ve toplam öğün için BİRİNİ seç):
+🟢 ÇOK İYİ
+🟢 İYİ SEÇİM
+🟡 ÖLÇÜLÜ TÜKET
+🟠 SINIRLI TÜKET
+🔴 MÜMKÜNSE KAÇIN
+
+0-10 Arasında BESLENME KALİTESİ SKORU oluştur.
+Porsiyonu belirt, belirtilmemişse standart porsiyon varsayımını açıkla.
+Kombinasyon Analizi: Toplam kalori, protein, karbonhidrat, yağ, lif, şeker ve sodyumu topla; eksik makro veya besin grubunu (örn. lif/sebze/protein eksiği) belirt.
+Alternatif Sistemi: Daha iyi hazırlanma şekli ve daha avantajlı alternatif öner.`;
+
+  const prompt = `Bu tabak fotoğrafındaki besinleri detaylı analiz et. ${profileContext} JSON formatında yanıtla.`;
 
   try {
     const response = await getGenAI().models.generateContent({
@@ -213,16 +239,44 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
                   portion: { type: Type.STRING },
                   estimatedCalories: { type: Type.NUMBER },
                   score: { type: Type.NUMBER },
+                  decision: { 
+                    type: Type.STRING, 
+                    enum: ['🟢 ÇOK İYİ', '🟢 İYİ SEÇİM', '🟡 ÖLÇÜLÜ TÜKET', '🟠 SINIRLI TÜKET', '🔴 MÜMKÜNSE KAÇIN'] 
+                  },
                   reason: { type: Type.STRING }
                 },
-                required: ["name", "portion", "estimatedCalories", "score", "reason"]
+                required: ["name", "portion", "estimatedCalories", "score", "decision", "reason"]
               }
             },
             totalCalories: { type: Type.NUMBER },
+            totalProtein: { type: Type.NUMBER },
+            totalCarbs: { type: Type.NUMBER },
+            totalFat: { type: Type.NUMBER },
+            totalFiber: { type: Type.NUMBER },
+            totalSugar: { type: Type.NUMBER },
+            totalSodium: { type: Type.NUMBER },
             overallMetabolicScore: { type: Type.NUMBER },
+            overallDecision: { 
+              type: Type.STRING, 
+              enum: ['🟢 ÇOK İYİ', '🟢 İYİ SEÇİM', '🟡 ÖLÇÜLÜ TÜKET', '🟠 SINIRLI TÜKET', '🔴 MÜMKÜNSE KAÇIN'] 
+            },
+            mealBalanceAnalysis: { type: Type.STRING },
+            missingNutrients: { type: Type.ARRAY, items: { type: Type.STRING } },
+            betterCombination: { type: Type.STRING },
+            alternativeSuggestion: { type: Type.STRING },
             generalAdvice: { type: Type.STRING }
           },
-          required: ["identifiedFoods", "totalCalories", "overallMetabolicScore", "generalAdvice"]
+          required: [
+            "identifiedFoods", 
+            "totalCalories", 
+            "overallMetabolicScore", 
+            "overallDecision", 
+            "mealBalanceAnalysis", 
+            "missingNutrients", 
+            "betterCombination", 
+            "alternativeSuggestion", 
+            "generalAdvice"
+          ]
         }
       }
     });
@@ -240,20 +294,143 @@ export async function analyzePlateImage(base64Image: string, profileContext: str
   }
 }
 
-export async function getCoachResponse(messages: {role: 'user' | 'assistant', content: string}[], profileContext: string = ""): Promise<string> {
+export async function getCoachResponse(
+  messages: { role: 'user' | 'assistant'; content: string; image?: string }[], 
+  profileContext: string = ""
+): Promise<string> {
   const model = "gemini-3-flash-preview";
   
-  const systemInstruction = `Sen GliSkor uygulamasının uzman AI Beslenme Koçusun. Kullanıcılara insülin direnci, glisemik indeks ve sağlıklı beslenme konularında rehberlik edersin.
-  
-  Kişiliğin:
-  - Bilimsel ama anlaşılır (teknik terimleri açıkla).
-  - Motive edici ve destekleyici.
-  - Aksiyon odaklı (her zaman pratik bir tavsiye ver).
-  - Kullanıcının sağlık verilerine (varsa) saygılı.
-  
-  Kullanıcı Profili: ${profileContext}`;
+  const systemInstruction = `Sen "Nutrition AI" adlı profesyonel bir beslenme analiz ve karar destek asistanısın.
+
+ANA GÖREVİN:
+Kullanıcının yazdığı veya fotoğrafını gönderdiği yiyecek ve içecekleri analiz etmek; mevcut besin verilerini kullanarak beslenme kalitesini değerlendirmek; porsiyon, kalori, makro besinler, lif, şeker, sodyum, doymuş yağ, mikrobesinler ve işlenmişlik gibi faktörleri değerlendirmek; ardından kullanıcının hedeflerini ve o günkü tüketimini dikkate alarak anlaşılır bir karar üretmektir.
+
+TEMEL PRENSİP:
+Sen yalnızca "sağlıklı / sağlıksız" demeyeceksin.
+Şu üç şeyi birbirinden ayıracaksın:
+1. Ürünün genel beslenme kalitesi
+2. Belirli porsiyonun beslenme profili
+3. Bu yiyeceğin mevcut kullanıcı ve mevcut gün için uygunluğu
+
+Örneğin yüksek kalorili bir yiyecek otomatik olarak "kötü" değildir.
+Düşük kalorili bir yiyecek de otomatik olarak "iyi" değildir.
+Kullanıcının amacı, porsiyon, öğün bağlamı ve günlük toplam tüketim mutlaka dikkate alınmalıdır.
+
+────────────────────────
+KARAR SINIFLARI
+────────────────────────
+Her analiz sonunda aşağıdaki kararlardan BİRİNİ seç:
+🟢 ÇOK İYİ
+🟢 İYİ SEÇİM
+🟡 ÖLÇÜLÜ TÜKET
+🟠 SINIRLI TÜKET
+🔴 MÜMKÜNSE KAÇIN
+
+Karar yalnızca yiyeceğin adına göre verilmemelidir.
+
+────────────────────────
+PUANLAMA
+────────────────────────
+0–10 arasında BESLENME KALİTESİ SKORU oluştur.
+Değerlendirme kriterleri:
+• Protein kalitesi ve miktarı
+• Lif
+• Vitamin ve mineral yoğunluğu
+• Eklenmiş şeker
+• Toplam şeker
+• Doymuş yağ
+• Trans yağ
+• Sodyum
+• Kalori yoğunluğu
+• İşlenmişlik seviyesi
+• Besin yoğunluğu
+• Tokluk potansiyeli
+
+Skoru oluştururken tek bir faktörün bütün sonucu domine etmesine izin verme.
+Bir ürün hakkında güvenilir besin verisi bulunmuyorsa değerleri uydurma. Tahmin yapman gerekiyorsa bunu açıkça "tahmini" olarak belirt.
+
+────────────────────────
+KİŞİSELLEŞTİRME
+────────────────────────
+Kullanıcı Profili ve Günlük Veriler: ${profileContext}
+Kullanıcı hakkında bilmediğin bilgileri varsayma, hedef yoksa genel beslenme kalitesi üzerinden değerlendirme yap.
+
+────────────────────────
+PORSİYON
+────────────────────────
+Porsiyon belirtilmemişse standart porsiyon kullan. Ancak standart porsiyonun varsayım olduğunu belirt.
+Kullanıcı miktar belirtirse (örn. "2 tabak", "1 şişe", "330 ml", "200 gram") hesaplamayı buna göre yap.
+Birden fazla yiyecek verilirse her yiyeceği ayrı analiz et ve ardından toplam öğünü değerlendir.
+
+────────────────────────
+KOMBİNASYON ANALİZİ
+────────────────────────
+Bir öğünde birden fazla yiyecek varsa toplam kalori, protein, karb, yağ, lif, şeker ve sodyumu topla. Öğünün dengesini analiz et ve eksik makro/besin grubunu (sebze, lif, protein vb.) açıkla.
+
+────────────────────────
+ALTERNATİF SİSTEMİ
+────────────────────────
+1. Mevcut yiyeceği değerlendir.
+2. Daha iyi hazırlanma şeklini öner.
+3. Benzer fakat beslenme açısından daha avantajlı alternatif öner (kullanıcıya zorunlu tutmadan).
+
+────────────────────────
+DİL VE ÜSLUP
+────────────────────────
+Türkçe konuş. Kısa, net ve anlaşılır ol. Önce sonucu söyle, sonra nedenini açıkla.
+Gereksiz akademik terminoloji kullanma. Kullanıcıyı suçlama, utandırma veya korkutma.
+"Kesinlikle bunu yeme" gibi ifadeleri yalnızca gerçekten gerekli olduğunda kullan. Tek bir yiyeceği şeytanlaştırma.
+Beslenmeyi toplam günlük ve haftalık düzen içinde değerlendir.
+
+────────────────────────
+TIBBİ SINIRLAR
+────────────────────────
+Doktor veya diyetisyen rolü üstlenme. Hastalık teşhisi koyma. İlaç veya kesin tıbbi tedavi önerisi verme. Gerektiğinde bir sağlık uzmanına danışılmasını öner.
+
+────────────────────────
+ÇIKTI KURALI
+────────────────────────
+Kullanıcı bir besin, yemek, öğün veya "Bunu yiyebilir miyim?" diye sorduğunda ya da bir fotoğraf gönderdiğinde yanıtında HER ZAMAN şu 10 maddelik yapıyı kullan:
+
+1. KARAR: [🟢 ÇOK İYİ / 🟢 İYİ SEÇİM / 🟡 ÖLÇÜLÜ TÜKET / 🟠 SINIRLI TÜKET / 🔴 MÜMKÜNSE KAÇIN]
+2. SKOR: [0-10 Arasında Puan, örn. 7.8/10]
+3. PORSİYON: [Porsiyon miktarı ve standart varsayım notu]
+4. KALORİ VE MAKROLAR: [Kalori, Protein, Karb, Yağ, Lif, Şeker, Sodyum vb.]
+5. AVANTAJLAR: [Madde imleriyle besin değerleri ve faydaları]
+6. DEZAVANTAJLAR: [Madde imleriyle dikkat edilmesi gereken noktalar]
+7. KULLANICIYA ÖZEL DEĞERLENDİRME: [Hedefine, günün saatine ve o günkü kalan kalori/makro ihtiyacına göre değerlendirme]
+8. DAHA İYİ KOMBİNASYON: [Öğünü dengeleyecek ekleme/çıkarmalar]
+9. ALTERNATİF: [Daha iyi pişirme tekniği veya avantajlı muadil besin]
+10. KISA SONUÇ: ["Bunu yiyebilir miyim?" sorusunun net, anlaşılır cevabı]
+
+Genel sohbet sorularında da bu profesyonel, yapıcı ve bilimsel yaklaşımı koru.`;
 
   try {
+    const lastMessage = messages[messages.length - 1];
+    
+    // Check if last message has an image
+    if (lastMessage && lastMessage.image) {
+      const parts: any[] = [
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: lastMessage.image.split(',')[1] || lastMessage.image
+          }
+        },
+        { text: lastMessage.content || "Bu besini veya öğünü Nutrition AI kriterlerine göre analiz et." }
+      ];
+
+      const response = await getGenAI().models.generateContent({
+        model,
+        contents: { parts },
+        config: {
+          systemInstruction,
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        }
+      });
+      return response.text || "Üzgünüm, analiz üretilemedi.";
+    }
+
     const chat = getGenAI().chats.create({
       model,
       history: messages.slice(0, -1).map(m => ({
@@ -267,12 +444,12 @@ export async function getCoachResponse(messages: {role: 'user' | 'assistant', co
     });
 
     const response = await chat.sendMessage({
-      message: messages[messages.length - 1].content
+      message: lastMessage.content
     });
     return response.text || "Üzgünüm, şu an yanıt veremiyorum.";
   } catch (error) {
-    console.error("Koç yanıt hatası:", error);
-    return "Üzgünüm, şu an yanıt veremiyorum. Lütfen daha sonra tekrar deneyin.";
+    console.error("Nutrition AI yanıt hatası:", error);
+    return "Üzgünüm, şu an analiz oluşturulamadı. Lütfen daha sonra tekrar deneyin.";
   }
 }
 
@@ -387,32 +564,39 @@ export async function analyzeFood(
     staticContext = `VERİ MEVCUT: GI:${staticData.gi}, Karb:${staticData.karb}g, Lif:${staticData.lif}g, Pro:${staticData.pro}g, Yağ:${staticData.yag}g, Kal:${staticData.kal}kcal. HESAPLAMA YAPMA, BU VERİLERİ YORUMLA.`;
   }
 
-  const systemInstruction = `Sen; beslenme bilimi, metabolizma, glisemik yük, bağırsak mikrobiyotası, sporcu beslenmesi ve uzun ömür araştırmaları konusunda uzman bir fonksiyonel beslenme analistisin.
+  const systemInstruction = `Sen "Nutrition AI" adlı profesyonel bir beslenme analiz ve karar destek asistanısın.
 
-Sana verdiğim herhangi bir gıdayı yüzeysel değil; bilimsel, metabolik ve uzun vadeli sağlık etkileri açısından analiz et.
+ANA GÖREVİN:
+Verilen yiyeceği analiz etmek; beslenme kalitesini değerlendirmek; porsiyon, kalori, makro besinler, lif, şeker, sodyum, doymuş yağ ve işlenmişliği değerlendirmek; kullanıcının hedeflerine ve metabolik durumuna göre anlaşılır bir karar üretmektir.
 
-Analiz formatın 'detailedReport' alanında HER ZAMAN şu sırayla olsun:
-1. Gıdanın temel yapısı (Makro besin profili, Kalori yoğunluğu, İşlenmişlik seviyesi)
-2. Karbonhidrat analizi (GI ve GL, Basit mi kompleks mi, İnsülin etkisi, Kan şekeri dalgalanması)
-3. Lif ve bağırsak etkisi (Lif miktarı, Prebiyotik etkiler, Mikrobiyotaya etkisi, Kabızlık/ishal üzerindeki etkileri)
-4. Yağ analizi (Omega 3/6 dengesi, Doymuş/doymamış oranı, Oksidasyon riski)
-5. Protein kalitesi (Amino asit profili, Tokluk etkisi, Kas koruma etkisi)
-6. Metabolik sağlık etkisi (İnsülin direnci, Diyabet, Yağ yakımı, Aralıklı oruç, Karaciğer sağlığı)
-7. İnflamasyon analizi (Enflamatuar mı antiinflamatuar mı, Ödem etkisi, Kronik hastalık riski)
-8. Vitamin ve mineral yoğunluğu
-9. Sporcu açısından değerlendirme (Antrenman öncesi/sonrası uygunluğu)
-10. Uzun ömür ve sağlık skoru (Longevity etkisi, Güncel bilimsel verilere göre sağlık puanı 10 üzerinden)
-11. Risk analizi (Kimler dikkat etmeli, Fazla tüketimde riskler)
-12. En iyi tüketim şekli (Günün hangi saatinde, Neyle birlikte tüketilmeli, En sağlıklı hazırlama yöntemi)
-13. Tier list değerlendirmesi (S tier / A tier / B tier vb.)
+TEMEL PRENSİP:
+Yalnızca "sağlıklı / sağlıksız" deme. Şunları ayır:
+1. Ürünün genel beslenme kalitesi
+2. Belirli porsiyonun beslenme profili
+3. Bu yiyeceğin kullanıcı için uygunluğu
 
-Cevap verirken: Gereksiz kısa cevap verme, Net karar ver, Bilimsel ama anlaşılır konuş, Gerçek metabolik etkiyi anlat, Gıdayı romantize etme, Gerektiğinde sert eleştiri yap.
+KARAR SINIFLARI (BİRİNİ SEÇ):
+🟢 ÇOK İYİ | 🟢 İYİ SEÇİM | 🟡 ÖLÇÜLÜ TÜKET | 🟠 SINIRLI TÜKET | 🔴 MÜMKÜNSE KAÇIN
 
-Sonunda kısa özet ver: 'Bu gıda kim için çok iyi, kim için kötü?'
+PUANLAMA: 0–10 arasında BESLENME KALİTESİ SKORU oluştur.
+Porsiyon belirtilmemişse standart porsiyon varsayımı yap.
 
-Ayrıca teknik verileri JSON'ın diğer alanlarında belirt. Sadece JSON dön.`;
+Analiz formatında hem citizenAnalysis hem de nutritionAiReport alanlarını eksiksiz doldur.
+nutritionAiReport içinde:
+1. karar (5 sınıftan biri)
+2. skor (0-10)
+3. porsiyon (varsayım olduğunu belirt)
+4. kaloriVeMakrolar (kalori, protein, karbonhidrat, yag, lif, seker, doymusYag, sodyum)
+5. avantajlar (dizi)
+6. dezavantajlar (dizi)
+7. kullaniciyaOzelDegerlendirme
+8. dahaIyiKombinasyon
+9. alternatif (hazırlama veya muadil)
+10. kisaSonuc ("Bunu yiyebilir miyim?" sorusuna doğrudan net cevap)
 
-  const prompt = `Lütfen şu besini profesyonel bir uzman gözüyle analiz et: ${foodName}. ${staticContext}`;
+Ayrıca 'detailedReport' alanında derinlemesine metabolik analizi de sağla. Sadece JSON dön.`;
+
+  const prompt = `Lütfen şu besini Nutrition AI standartlarında analiz et: ${foodName}. ${staticContext} ${profileContext} ${historyContext}`;
 
   try {
     const response = await getGenAI().models.generateContent({
@@ -437,6 +621,42 @@ Ayrıca teknik verileri JSON'ın diğer alanlarında belirt. Sadece JSON dön.`;
             gi: { type: Type.NUMBER },
             gy: { type: Type.NUMBER },
             lif: { type: Type.NUMBER },
+            nutritionAiReport: {
+              type: Type.OBJECT,
+              properties: {
+                karar: { 
+                  type: Type.STRING, 
+                  enum: ['🟢 ÇOK İYİ', '🟢 İYİ SEÇİM', '🟡 ÖLÇÜLÜ TÜKET', '🟠 SINIRLI TÜKET', '🔴 MÜMKÜNSE KAÇIN'] 
+                },
+                skor: { type: Type.NUMBER },
+                porsiyon: { type: Type.STRING },
+                kaloriVeMakrolar: {
+                  type: Type.OBJECT,
+                  properties: {
+                    kalori: { type: Type.NUMBER },
+                    protein: { type: Type.NUMBER },
+                    karbonhidrat: { type: Type.NUMBER },
+                    yag: { type: Type.NUMBER },
+                    lif: { type: Type.NUMBER },
+                    seker: { type: Type.NUMBER },
+                    doymusYag: { type: Type.NUMBER },
+                    sodyum: { type: Type.NUMBER }
+                  },
+                  required: ["kalori", "protein", "karbonhidrat", "yag"]
+                },
+                avantajlar: { type: Type.ARRAY, items: { type: Type.STRING } },
+                dezavantajlar: { type: Type.ARRAY, items: { type: Type.STRING } },
+                kullaniciyaOzelDegerlendirme: { type: Type.STRING },
+                dahaIyiKombinasyon: { type: Type.STRING },
+                alternatif: { type: Type.STRING },
+                kisaSonuc: { type: Type.STRING }
+              },
+              required: [
+                "karar", "skor", "porsiyon", "kaloriVeMakrolar", 
+                "avantajlar", "dezavantajlar", "kullaniciyaOzelDegerlendirme", 
+                "dahaIyiKombinasyon", "alternatif", "kisaSonuc"
+              ]
+            },
             citizenAnalysis: {
               type: Type.OBJECT,
               properties: {

@@ -1,3 +1,33 @@
+export type NutritionAiDecision = 
+  | '🟢 ÇOK İYİ'
+  | '🟢 İYİ SEÇİM'
+  | '🟡 ÖLÇÜLÜ TÜKET'
+  | '🟠 SINIRLI TÜKET'
+  | '🔴 MÜMKÜNSE KAÇIN';
+
+export interface NutritionAiReport {
+  karar: NutritionAiDecision;
+  skor: number;
+  porsiyon: string;
+  kaloriVeMakrolar: {
+    kalori: number;
+    protein: number;
+    karbonhidrat: number;
+    yag: number;
+    lif?: number;
+    seker?: number;
+    doymusYag?: number;
+    sodyum?: number;
+    tahminiMi?: boolean;
+  };
+  avantajlar: string[];
+  dezavantajlar: string[];
+  kullaniciyaOzelDegerlendirme: string;
+  dahaIyiKombinasyon: string;
+  alternatif: string;
+  kisaSonuc: string;
+}
+
 export interface Food {
   isim: string;
   kat: string;
@@ -10,6 +40,16 @@ export interface Food {
   score: number;
   isFromCache?: boolean;
   citizenAnalysis?: AnalysisResult['citizenAnalysis'];
+  nutritionAiReport?: NutritionAiReport;
+  portionGram?: number;
+  portionLabel?: string;
+  kolesterol?: number;
+  vitA?: number;
+  vitC?: number;
+  potasyum?: number;
+  kalsiyum?: number;
+  demir?: number;
+  verdict?: string;
 }
 
 export type MealSequence = 'standard' | 'carbsFirst' | 'ideal';
@@ -60,4 +100,15 @@ export interface AnalysisResult {
   karb: number;
   pro: number;
   yag: number;
+  portionGram?: number;
+  portionLabel?: string;
+  kolesterol?: number;
+  vitA?: number;
+  vitC?: number;
+  potasyum?: number;
+  kalsiyum?: number;
+  demir?: number;
+  verdict?: string;
+  suggestion?: string;
+  nutritionAiReport?: NutritionAiReport;
 }

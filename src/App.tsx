@@ -16,8 +16,8 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-class ErrorBoundary extends (React.Component as any) {
-  constructor(props: any) {
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -75,9 +75,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, onSnapshot, addDoc, orderBy, limit, Timestamp, serverTimestamp } from 'firebase/firestore';
 
 import { initialFoods } from './data/foods';
-import { GlucoseCurve } from './components/GlucoseCurve';
-import { MacroDistribution } from './components/MacroDistribution';
-import { CitizenExpertAnalysis } from './components/CitizenExpertAnalysis';
+import { NutritionAiDecisionCard } from './components/NutritionAiDecisionCard';
 
 interface UserStats {
   points: number;
@@ -603,7 +601,20 @@ function getDietitianNote(mScore: number, nScore: number, f: Food) {
   };
 }
 
-function UnifiedFoodDetail({ food, ctx, profile, darkMode, onAdd, onPlate, onLog, onClose, onEdit, onDelete, isAiResult = false }: { 
+function UnifiedFoodDetail({ 
+  food, 
+  ctx, 
+  profile, 
+  darkMode, 
+  onAdd, 
+  onPlate, 
+  onLog, 
+  onClose, 
+  onEdit, 
+  onDelete, 
+  isAiResult = false,
+  dbAverage = { kal: 180, pro: 8, karb: 22, yag: 8 }
+}: { 
   food: Food, 
   ctx: ConsumptionContext, 
   profile: any, 
@@ -614,222 +625,103 @@ function UnifiedFoodDetail({ food, ctx, profile, darkMode, onAdd, onPlate, onLog
   onClose: () => void,
   onEdit?: () => void,
   onDelete?: () => void,
-  isAiResult?: boolean
+  isAiResult?: boolean,
+  dbAverage?: { kal: number; pro: number; karb: number; yag: number }
 }) {
   const mScore = calculateMetabolicScore(food, ctx, profile);
-  const nScore = calculateNutritionalScore(food);
-  const gy = calculateGY(food, ctx);
   const status = getStatusInfo(mScore, ctx.hour, food.karb, food.lif);
-  const dietitian = getDietitianNote(mScore, nScore, food);
-  const hackerAdvice = getHackerAdvice(food, mScore, darkMode);
 
   return (
-    <div className={`overflow-hidden max-w-5xl relative max-h-[92vh] flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white' : 'bg-white text-black'} rounded-3xl border ${darkMode ? 'border-white/5' : 'border-black/5'} shadow-2xl`}>
+    <div className={`overflow-hidden max-w-5xl w-full relative max-h-[92vh] flex flex-col ${darkMode ? 'bg-[#0A0A0A] text-white' : 'bg-white text-slate-900'} rounded-3xl border ${darkMode ? 'border-white/10' : 'border-black/5'} shadow-2xl`}>
       {/* Header Controls */}
-      <div className={`sticky top-0 z-50 p-6 border-b ${darkMode ? 'bg-[#0A0A0A]/90 border-white/5' : 'bg-white/90 border-black/5'} backdrop-blur-xl`}>
-        <div className="flex justify-between items-center gap-6">
-          <div className={`flex-1 px-4 py-2 rounded-lg border flex items-center gap-2 ${status.cls}`}>
+      <div className={`sticky top-0 z-50 px-6 py-4 border-b ${darkMode ? 'bg-[#0A0A0A]/95 border-white/10' : 'bg-white/95 border-black/5'} backdrop-blur-xl flex items-center justify-between gap-4`}>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-[#2DFF73] text-black flex items-center justify-center font-black shadow-sm shrink-0">
+            <Sparkles size={18} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[0.65rem] font-black uppercase tracking-wider text-emerald-500 dark:text-[#2DFF73]">
+                Nutrition AI
+              </span>
+              <span className={`px-2 py-0.5 border rounded text-[0.6rem] font-bold uppercase tracking-wider ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
+                {food.kat}
+              </span>
+            </div>
+            <h3 className="text-base sm:text-lg font-black tracking-tight leading-tight">
+              {food.isim}
+            </h3>
+          </div>
+          {!isAiResult && onEdit && (
+            <div className="flex gap-1.5 border-l border-white/10 pl-2">
+              <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-white transition-all"><Edit2 size={14} /></button>
+              <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-red-500 transition-all"><Trash2 size={14} /></button>
+            </div>
+          )}
+        </div>
+
+        {/* Status Indicator & Action buttons */}
+        <div className="flex items-center gap-3">
+          <div className={`hidden sm:flex px-3 py-1.5 rounded-lg border items-center gap-2 ${status.cls}`}>
             <div className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-            <div className="text-[0.65rem] font-bold uppercase tracking-widest">{status.label}</div>
+            <div className="text-[0.65rem] font-bold uppercase tracking-wider">{status.label}</div>
           </div>
 
           <div className="flex gap-2">
             <button 
               onClick={onPlate}
-              className="w-10 h-10 rounded-lg bg-[#2DFF73] text-black cursor-pointer flex items-center justify-center hover:opacity-90 transition-all shadow-lg shadow-[#2DFF73]/20"
+              title="Tabağa Ekle"
+              className="w-9 h-9 rounded-lg bg-[#2DFF73] text-black cursor-pointer flex items-center justify-center hover:opacity-90 transition-all shadow-md shadow-[#2DFF73]/20"
             >
-              <Plus size={20} />
+              <Plus size={18} />
             </button>
             <button 
               onClick={onClose}
-              className={`w-10 h-10 rounded-lg border flex items-center justify-center ${darkMode ? 'text-zinc-400 bg-white/5 border-white/5' : 'text-zinc-500 bg-white border-black/5'}`}
+              title="Kapat"
+              className={`w-9 h-9 rounded-lg border flex items-center justify-center ${darkMode ? 'text-zinc-400 bg-white/5 border-white/10 hover:text-white' : 'text-zinc-500 bg-white border-black/10 hover:text-black'}`}
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 xs:p-8 md:p-10 pt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12">
-          <div className="lg:col-span-7 space-y-10">
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <span className={`px-2.5 py-1 border rounded-lg text-[0.55rem] xs:text-[0.6rem] font-black uppercase tracking-widest ${darkMode ? 'bg-white/5 border-white/10 text-zinc-400' : 'bg-black/5 border-black/10 text-zinc-500'}`}>
-                  {food.kat}
-                </span>
-                {!isAiResult && onEdit && (
-                  <div className="flex gap-2 border-l border-white/10 pl-3">
-                    <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-white transition-all"><Edit2 size={14} /></button>
-                    <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-white/5 text-zinc-500 hover:text-red-500 transition-all"><Trash2 size={14} /></button>
-                  </div>
-                )}
-                {isAiResult && (
-                  <span className={`px-2 py-1 rounded-lg text-[0.55rem] font-black uppercase tracking-widest flex items-center gap-1 ${darkMode ? 'bg-[#2DFF73]/10 text-[#2DFF73]' : 'bg-[#2DFF73]/20 text-emerald-700'}`}>
-                    <Sparkles size={10} /> AI ANALİZİ
-                  </span>
-                )}
-                {isAiResult && food.isFromCache && (
-                  <span className={`px-2 py-1 rounded-lg text-[0.55rem] font-black uppercase tracking-widest flex items-center gap-1 ${darkMode ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
-                    <Database size={10} /> ÖNBELLEK
-                  </span>
-                )}
-              </div>
-              
-              <h2 className={`text-[2rem] md:text-[3rem] font-black tracking-tighter mb-8 ${darkMode ? 'text-white' : 'text-zinc-900'}`}>
-                {food.isim}
-              </h2>
-              
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: 'META SKOR', val: mScore, color: status.color, unit: '/10' },
-                  { label: 'GLİKOZ YÜKÜ', val: gy.toFixed(1), color: gy > 10 ? '#EF4444' : '#3B82F6', unit: 'gy' },
-                  { label: 'İNDEKS (GI)', val: food.gi, color: food.gi > 55 ? '#F59E0B' : '#2DFF73', unit: 'gi' },
-                  { label: 'KALORİ', val: food.kal.toFixed(0), color: '#A1A1AA', unit: 'kcal' }
-                ].map((s, i) => (
-                  <div key={i} className={`p-4 rounded-xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-white border-black/5'}`}>
-                    <span className="text-[0.5rem] font-black text-zinc-500 mb-1 block">{s.label}</span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-[1.2rem] font-black font-mono" style={{ color: s.color }}>{s.val}</span>
-                      <span className="text-[0.6rem] font-medium text-zinc-500">{s.unit}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <GlucoseCurve gi={food.gi} gy={gy} color={status.color} darkMode={darkMode} />
-
-            <div className={`p-6 rounded-[1.5rem] border ${darkMode ? 'bg-white/5 border-white/10' : 'bg-white border-black/5'} shadow-sm`}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${dietitian.bg} ${dietitian.color}`}>
-                  {dietitian.icon}
-                </div>
-                <h4 className={`text-[1.1rem] font-black tracking-tight ${dietitian.color}`}>{dietitian.title}</h4>
-              </div>
-              <p className={`text-[0.9rem] xs:text-[1rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                {dietitian.text}
-              </p>
-            </div>
-
-            {hackerAdvice}
-
-            {isAiResult && food.citizenAnalysis && (
-              <div className="mt-12 pt-12 border-t border-black/5 dark:border-white/5">
-                <div className="flex items-center gap-3 mb-8">
-                  <Brain className="text-[#2DFF73]" size={24} />
-                  <h3 className="text-[1.2rem] font-black tracking-tight uppercase">Derin Metabolik Analiz</h3>
-                </div>
-                <CitizenExpertAnalysis analysis={{ citizenAnalysis: food.citizenAnalysis }} darkMode={darkMode} />
-              </div>
-            )}
-          </div>
-
-          <div className="lg:col-span-5 space-y-8">
-            <MacroDistribution karb={food.karb} pro={food.pro} yag={food.yag} darkMode={darkMode} />
-            
-            <MentorCard food={food} ctx={ctx} profile={profile} darkMode={darkMode} />
-
-            <div className={`p-6 rounded-2xl border ${darkMode ? 'bg-emerald-400/5 text-emerald-400 border-emerald-400/10' : 'bg-emerald-50 text-emerald-800 border-black/5'}`}>
-              <h4 className="text-[0.55rem] font-bold uppercase tracking-widest mb-3 opacity-60">Özet Tavsiye</h4>
-              <p className="text-[0.95rem] italic leading-relaxed font-medium">
-                {getTip(food, mScore, ctx)}
-              </p>
-            </div>
-
-            {isAiResult && onAdd && (
-              <button 
-                onClick={onAdd}
-                className="w-full py-5 rounded-2xl bg-[#2DFF73] text-black font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_30px_rgba(45,255,115,0.2)] flex items-center justify-center gap-2"
-              >
-                <Plus size={20} />
-                LİSTEYE KAYDET
-              </button>
-            )}
-          </div>
-        </div>
+      {/* Main Content Area - Nutrition AI Decision Report */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
+        <NutritionAiDecisionCard 
+          report={food.nutritionAiReport} 
+          food={food} 
+          darkMode={darkMode} 
+          userProfile={profile} 
+        />
       </div>
 
       {/* Footer Actions */}
-      <div className={`p-6 xs:p-8 border-t ${darkMode ? 'bg-[#0A0A0A]/50 border-white/5' : 'bg-[#FAFAF9]/50 border-black/5'}`}>
-        <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto w-full">
+      <div className={`p-4 sm:p-6 border-t ${darkMode ? 'bg-[#0A0A0A]/80 border-white/10' : 'bg-slate-50 border-black/5'}`}>
+        <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto w-full">
           <button 
             onClick={() => {
               onLog(food, mScore);
             }}
-            className="flex-1 py-4 rounded-2xl bg-blue-500 text-white font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_20px_rgba(59,130,246,0.3)]"
+            className="flex-1 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase tracking-wider text-xs transition-all shadow-md shadow-blue-500/20"
           >
-            Günlüğe Kaydet
+            Günlüğe Ekle
           </button>
           <button 
-            onClick={onClose}
-            className={`flex-1 py-4 rounded-2xl font-black uppercase tracking-widest transition-all border ${darkMode ? 'bg-white/5 border-white/10 text-white hover:bg-white/10' : 'bg-black/5 border-black/10 text-black hover:bg-black/10'}`}
+            onClick={onPlate}
+            className="flex-1 py-3.5 rounded-xl bg-[#2DFF73] hover:opacity-95 text-black font-bold uppercase tracking-wider text-xs transition-all shadow-md shadow-[#2DFF73]/20"
           >
-            Sonucu Kapat
+            Tabağa Ekle
           </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MentorCard({ food, ctx, profile, darkMode }: { food: Food, ctx: ConsumptionContext, profile: any, darkMode: boolean }) {
-  const [loading, setLoading] = useState(false);
-  const [advice, setAdvice] = useState<string | null>(null);
-
-  const getAdvice = async () => {
-    setLoading(true);
-    try {
-      const profileContext = `Yaş: ${profile.age}, Kilo: ${profile.weight}, Hedef: ${profile.goal}, İnsülin Direnci: ${profile.insulinResistance}`;
-      const prompt = `Sen Dr. Rhonda Patrick'sin. Besin: ${food.isim}. GI: ${food.gi}. Saat: ${ctx.hour}:00. Bu besini şu an yeme konusunda biyokimyasal, uzun ömür (longevity) ve mikro besin odaklı bir analiz yap. İnsülin hassasiyeti, inflamasyon ve hücresel sağlık açısından konuş. Çok teknik ama anlaşılır ol. 35 kelimeyi geçme.`;
-      const res = await getCoachResponse([{ role: 'user', content: prompt }], profileContext);
-      setAdvice(res);
-    } catch (e) {
-      setAdvice("Hücresel veri hattında kesinti oluştu. Lütfen tekrar dene.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className={`p-6 rounded-xl border ${darkMode ? 'bg-black/20 border-white/5' : 'bg-white border-black/5 shadow-sm'}`}>
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-lg bg-[#2DFF73]/10 flex items-center justify-center text-[#2DFF73]">
-          <Sparkles size={20} />
-        </div>
-        <div>
-          <h4 className="text-[0.9rem] font-bold">DR. RHONDA PATRICK</h4>
-          <span className="text-[0.6rem] font-bold text-[#2DFF73] uppercase tracking-widest">Longevity</span>
-        </div>
-      </div>
-
-      <div className="min-h-[80px] flex flex-col justify-center">
-        {loading ? (
-          <div className="flex flex-col items-center py-4 gap-2">
-             <Loader2 size={24} className="animate-spin text-[#2DFF73]" />
-             <span className="text-[0.6rem] text-zinc-500 uppercase tracking-widest">Analiz ediliyor</span>
-          </div>
-        ) : advice ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={`text-[0.9rem] leading-relaxed italic border-l-2 border-[#2DFF73] pl-4 ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}
-          >
-            "{advice}"
-          </motion.div>
-        ) : (
-          <div className="space-y-4">
-            <p className="text-[0.8rem] text-zinc-500 italic">
-              "Bu besinin hücresel düzeydeki biyolojik etkisini inceleyelim."
-            </p>
+          {isAiResult && onAdd && (
             <button 
-              onClick={getAdvice}
-              className="w-full py-4 rounded-xl bg-[#2DFF73] text-black font-bold text-[0.75rem] uppercase tracking-widest hover:opacity-90 transition-all"
+              onClick={onAdd}
+              className={`flex-1 py-3.5 rounded-xl font-bold uppercase tracking-wider text-xs transition-all border ${darkMode ? 'bg-white/10 hover:bg-white/15 text-white border-white/10' : 'bg-white hover:bg-slate-100 text-slate-800 border-slate-200'}`}
             >
-              ANALİZ ET
+              Listeme Kaydet
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -848,7 +740,17 @@ const transformAiResultToFood = (res: AnalysisResult, ctx: ConsumptionContext, p
     kal: res.kal,
     score: res.score,
     isFromCache: res.isFromCache,
-    citizenAnalysis: res.citizenAnalysis
+    citizenAnalysis: res.citizenAnalysis,
+    portionGram: res.portionGram,
+    portionLabel: res.portionLabel,
+    kolesterol: res.kolesterol,
+    vitA: res.vitA,
+    vitC: res.vitC,
+    potasyum: res.potasyum,
+    kalsiyum: res.kalsiyum,
+    demir: res.demir,
+    verdict: res.verdict,
+    nutritionAiReport: res.nutritionAiReport
   };
   
   // Dennis Ritchie: "Stateless precision is key."
@@ -1010,12 +912,29 @@ function GliSkorApp() {
           isim: f.isim || f.name || f.foodName || 'Tanımsız Besin'
         }));
       }
-      return foods;
+      return initialFoods;
     } catch (e) {
       console.error("Foods parse error:", e);
-      return foods;
+      return initialFoods;
     }
   });
+
+  const dbAverage = useMemo(() => {
+    if (!foodList || foodList.length === 0) return { kal: 180, pro: 8, karb: 22, yag: 8 };
+    const totals = foodList.reduce((acc, f) => ({
+      kal: acc.kal + (f.kal || 0),
+      pro: acc.pro + (f.pro || 0),
+      karb: acc.karb + (f.karb || 0),
+      yag: acc.yag + (f.yag || 0)
+    }), { kal: 0, pro: 0, karb: 0, yag: 0 });
+    const count = foodList.length;
+    return {
+      kal: Math.round(totals.kal / count),
+      pro: Math.round(totals.pro / count),
+      karb: Math.round(totals.karb / count),
+      yag: Math.round(totals.yag / count)
+    };
+  }, [foodList]);
   const [searchVal, setSearchVal] = useState('');
   const [activeCat, setActiveCat] = useState('Tümü');
   const [sortMode, setSortMode] = useState<'skor' | 'gi' | 'isim'>('skor');
@@ -1080,7 +999,8 @@ function GliSkorApp() {
   const [isRecipeOpen, setIsRecipeOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [waterIntake, setWaterIntake] = useState(0);
-  const [coachMessages, setCoachMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([]);
+  const [coachMessages, setCoachMessages] = useState<{role: 'user' | 'assistant', content: string; image?: string}[]>([]);
+  const [coachImagePreview, setCoachImagePreview] = useState<string | null>(null);
   const [isCoachLoading, setIsCoachLoading] = useState(false);
   const [plateAnalysisResult, setPlateAnalysisResult] = useState<PlateAnalysisResult | null>(null);
   const [isPlateAnalysisLoading, setIsPlateAnalysisLoading] = useState(false);
@@ -1444,17 +1364,17 @@ function GliSkorApp() {
     setTimeout(() => setAiSuccess(null), 3000);
   };
 
-  const handleCoachMessage = async (text: string) => {
-    if (!text.trim()) return;
-    const newMessages = [...coachMessages, { role: 'user' as const, content: text }];
+  const handleCoachMessage = async (text: string, image?: string) => {
+    if (!text.trim() && !image) return;
+    const newMessages = [...coachMessages, { role: 'user' as const, content: text, image }];
     setCoachMessages(newMessages);
     setIsCoachLoading(true);
     try {
-      const profileContext = `Kullanıcı: ${userProfile.age} yaş, ${userProfile.weight}kg, ${userProfile.goal} hedefi.`;
+      const profileContext = `Kullanıcı: ${userProfile.age || 'Bilinmiyor'} yaş, ${userProfile.weight || 'Bilinmiyor'}kg, Hedef: ${userProfile.goal}. Bugünkü Tüketim: ${Math.round(dailyTotals.calories)} kcal, ${Math.round(dailyTotals.carbs)}g karb, ${Math.round(dailyTotals.protein)}g protein.`;
       const response = await getCoachResponse(newMessages, profileContext);
       setCoachMessages(prev => [...prev, { role: 'assistant' as const, content: response }]);
     } catch (error) {
-      setAiError("Koç şu an yanıt veremiyor.");
+      setAiError("Nutrition AI şu an yanıt veremiyor.");
     } finally {
       setIsCoachLoading(false);
     }
@@ -1608,7 +1528,7 @@ function GliSkorApp() {
       // 1. CONTEXT HAZIRLA
       const profileContext = `Kullanıcı Profili: Yaş ${userProfile.age || 'Bilinmiyor'}, Kilo ${userProfile.weight || 'Bilinmiyor'}, Boy ${userProfile.height || 'Bilinmiyor'}, Cinsiyet ${userProfile.gender}, Aktivite Seviyesi ${userProfile.activityLevel}, Hedef ${userProfile.goal}, HbA1c ${userProfile.hba1c || 'Bilinmiyor'}, İnsülin Direnci Seviyesi ${userProfile.insulinResistance || 'Bilinmiyor'}.`;
       const recentAnalyses = history.map(h => h.foodName).join(", ");
-      const logSummary = dailyLog.map(l => l.isim).join(", ");
+      const logSummary = dailyLog.map(l => l.food?.isim || '').filter(Boolean).join(", ");
       const historyContext = `Son analizler: ${recentAnalyses}. Bugüne kadarki kayıtlar: ${logSummary}.`;
 
       // 2. AKILLI EŞLEŞME (DB) - %100 Hız
@@ -2309,6 +2229,7 @@ function GliSkorApp() {
               profile={userProfile}
               darkMode={darkMode}
               isAiResult={true}
+              dbAverage={dbAverage}
               onClose={() => setAiResult(null)}
               onLog={(f, s) => {
                 addToLog(f, 100, 'Analiz', s);
@@ -2345,6 +2266,7 @@ function GliSkorApp() {
               profile={userProfile}
               darkMode={darkMode}
               isAiResult={false}
+              dbAverage={dbAverage}
               onClose={() => setSelectedFood(null)}
               onLog={(f, s) => {
                 addToLog(f, 100, 'Atıştırmalık', s);
@@ -2378,12 +2300,12 @@ function GliSkorApp() {
             >
               <div className="p-6 border-b border-white/5 flex justify-between items-center bg-[#2DFF73]/5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#2DFF73] flex items-center justify-center text-black">
+                  <div className="w-10 h-10 rounded-full bg-[#2DFF73] flex items-center justify-center text-black shadow-[0_0_20px_rgba(45,255,115,0.3)]">
                     <Brain size={20} />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black tracking-tight">AI Beslenme Koçu</h2>
-                    <p className="text-[0.7rem] font-bold text-[#2DFF73] uppercase tracking-widest">Çevrimiçi • Uzman Analist</p>
+                    <h2 className="text-lg font-black tracking-tight">Nutrition AI</h2>
+                    <p className="text-[0.65rem] font-black text-[#2DFF73] uppercase tracking-widest">Beslenme Analiz & Karar Destek Asistanı</p>
                   </div>
                 </div>
                 <button onClick={() => setIsCoachOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-all">
@@ -2393,12 +2315,26 @@ function GliSkorApp() {
 
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {coachMessages.length === 0 && (
-                  <div className="text-center py-12">
-                    <Sparkles className="mx-auto text-[#2DFF73] mb-4" size={32} />
-                    <p className="text-zinc-500 font-medium">Merhaba! Ben senin kişisel beslenme koçunum. Bugün sana nasıl yardımcı olabilirim?</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
-                      {["Akşam yemeği için sağlıklı bir önerin var mı?", "Tatlı krizini nasıl yönetirim?", "İnsülin direncini kırmak için ne yapmalıyım?", "Spordan sonra ne yemeliyim?"].map((q, i) => (
-                        <button key={i} onClick={() => handleCoachMessage(q)} className={`p-3 rounded-xl border text-[0.8rem] font-bold text-left transition-all ${darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10' : 'bg-black/5 border-black/5 hover:bg-black/10'}`}>
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 rounded-2xl bg-[#2DFF73]/10 text-[#2DFF73] flex items-center justify-center mx-auto mb-3">
+                      <Sparkles size={24} />
+                    </div>
+                    <h3 className="text-base font-black mb-1">Merhaba! Ben Nutrition AI.</h3>
+                    <p className="text-xs text-zinc-400 max-w-sm mx-auto leading-relaxed">
+                      Herhangi bir yiyeceği yazabilir veya fotoğrafını yükleyebilirsiniz. Genel kalite, porsiyon ve günün bağlamına göre 10 maddelik bilimsel karar raporu üretirim.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5 text-left">
+                      {[
+                        "Bunu yiyebilir miyim? (1 porsiyon kıymalı pide ve salata)",
+                        "Tatlı krizim var, sağlıklı bir alternatif ve kombinasyon öner",
+                        "Bugün çok karbonhidrat tükettim, akşam öğünümü nasıl dengelemeliyim?",
+                        "1 kutu gazlı içecek içtim, metabolik etkisini değerlendir"
+                      ].map((q, i) => (
+                        <button 
+                          key={i} 
+                          onClick={() => handleCoachMessage(q)} 
+                          className={`p-3 rounded-xl border text-xs font-semibold text-left transition-all ${darkMode ? 'bg-white/5 border-white/5 hover:bg-white/10 text-zinc-300' : 'bg-black/5 border-black/5 hover:bg-black/10 text-zinc-800'}`}
+                        >
                           {q}
                         </button>
                       ))}
@@ -2407,32 +2343,83 @@ function GliSkorApp() {
                 )}
                 {coachMessages.map((m, i) => (
                   <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] p-4 rounded-2xl text-[0.9rem] font-medium leading-relaxed ${m.role === 'user' ? 'bg-[#2DFF73] text-black rounded-tr-none' : 'bg-white/5 border border-white/5 text-zinc-200 rounded-tl-none'}`}>
-                      {m.content}
+                    <div className={`max-w-[85%] p-4 rounded-2xl text-[0.85rem] font-medium leading-relaxed ${
+                      m.role === 'user' 
+                        ? 'bg-[#2DFF73] text-black rounded-tr-none' 
+                        : (darkMode ? 'bg-white/5 border border-white/10 text-zinc-200 rounded-tl-none' : 'bg-zinc-100 border border-zinc-200 text-zinc-900 rounded-tl-none')
+                    }`}>
+                      {m.image && (
+                        <img 
+                          src={m.image} 
+                          alt="Görsel" 
+                          className="w-48 h-32 object-cover rounded-xl mb-2 border border-black/10 shadow-sm"
+                        />
+                      )}
+                      <div className="whitespace-pre-wrap">{m.content}</div>
                     </div>
                   </div>
                 ))}
                 {isCoachLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl rounded-tl-none">
-                      <Loader2 className="animate-spin text-[#2DFF73]" size={20} />
+                    <div className={`p-4 rounded-2xl rounded-tl-none flex items-center gap-3 ${darkMode ? 'bg-white/5 border border-white/10 text-zinc-400' : 'bg-zinc-100 border border-zinc-200 text-zinc-600'}`}>
+                      <Loader2 className="animate-spin text-[#2DFF73]" size={18} />
+                      <span className="text-xs font-semibold">Nutrition AI 10 maddelik analizi hazırlıyor...</span>
                     </div>
                   </div>
                 )}
               </div>
 
-              <div className="p-6 border-t border-white/5">
-                <div className="relative">
+              <div className="p-4 sm:p-6 border-t border-white/5 space-y-2">
+                {coachImagePreview && (
+                  <div className="relative inline-block">
+                    <img 
+                      src={coachImagePreview} 
+                      alt="Önizleme" 
+                      className="w-20 h-20 object-cover rounded-xl border border-[#2DFF73]/50 shadow-md"
+                    />
+                    <button 
+                      onClick={() => setCoachImagePreview(null)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600 transition-all"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                )}
+                <div className="relative flex items-center gap-2">
+                  <label 
+                    htmlFor="coach-file-upload" 
+                    className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center justify-center shrink-0 ${darkMode ? 'bg-white/5 border-white/10 hover:bg-white/10 text-zinc-400' : 'bg-black/5 border-black/10 hover:bg-black/10 text-zinc-600'}`}
+                    title="Fotoğraf yükle"
+                  >
+                    <Camera size={20} />
+                    <input 
+                      id="coach-file-upload" 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            setCoachImagePreview(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
                   <input 
                     type="text" 
-                    placeholder="Mesajını yaz..." 
-                    className={`w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-6 pr-16 focus:outline-none focus:border-[#2DFF73]/50 transition-all ${darkMode ? 'text-white' : 'text-black'}`}
+                    placeholder="Bir yiyecek yazın veya 'Bunu yiyebilir miyim?' diye sorun..." 
+                    className={`flex-1 bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-4 pr-12 text-sm focus:outline-none focus:border-[#2DFF73]/50 transition-all ${darkMode ? 'text-white' : 'text-black'}`}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         const val = (e.target as HTMLInputElement).value;
-                        if (val.trim()) {
-                          handleCoachMessage(val);
+                        if (val.trim() || coachImagePreview) {
+                          handleCoachMessage(val || "Bu görseldeki yiyeceği analiz et.", coachImagePreview || undefined);
                           (e.target as HTMLInputElement).value = '';
+                          setCoachImagePreview(null);
                         }
                       }
                     }}
@@ -2441,14 +2428,16 @@ function GliSkorApp() {
                   <button 
                     onClick={() => {
                       const input = document.getElementById('coach-input') as HTMLInputElement;
-                      if (input && input.value.trim()) {
-                        handleCoachMessage(input.value);
-                        input.value = '';
+                      const val = input ? input.value : '';
+                      if (val.trim() || coachImagePreview) {
+                        handleCoachMessage(val || "Bu görseldeki yiyeceği analiz et.", coachImagePreview || undefined);
+                        if (input) input.value = '';
+                        setCoachImagePreview(null);
                       }
                     }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#2DFF73] text-black rounded-xl hover:scale-105 transition-all"
+                    className="absolute right-2 p-2 bg-[#2DFF73] text-black rounded-xl hover:scale-105 transition-all shadow-md"
                   >
-                    <ChevronRight size={20} />
+                    <ChevronRight size={18} />
                   </button>
                 </div>
               </div>
@@ -3132,43 +3121,81 @@ function GliSkorApp() {
                   </div>
                 ) : plateAnalysisResult ? (
                   <>
+                    {/* Top Decision Banner */}
+                    {plateAnalysisResult.overallDecision && (
+                      <div className={`p-5 rounded-2xl border flex flex-wrap items-center justify-between gap-3 ${
+                        plateAnalysisResult.overallDecision.includes('ÇOK İYİ') || plateAnalysisResult.overallDecision.includes('İYİ SEÇİM')
+                          ? (darkMode ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' : 'bg-emerald-50 border-emerald-200 text-emerald-900')
+                          : plateAnalysisResult.overallDecision.includes('ÖLÇÜLÜ')
+                          ? (darkMode ? 'bg-amber-500/15 border-amber-500/30 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-900')
+                          : (darkMode ? 'bg-rose-500/15 border-rose-500/30 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-900')
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <Sparkles size={18} className="text-[#2DFF73]" />
+                          <span className="text-xs font-black uppercase tracking-wider">Nutrition AI Tabağın Kararı:</span>
+                        </div>
+                        <span className="text-sm font-black underline underline-offset-4 decoration-2">
+                          {plateAnalysisResult.overallDecision}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Summary Stats */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className={`p-6 rounded-[2rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                        <div className="text-[0.65rem] font-black text-zinc-500 uppercase tracking-widest mb-2">Toplam Kalori</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className={`p-4 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                        <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-widest mb-1">Toplam Kalori</div>
                         <div className="flex items-baseline gap-1">
-                          <span className={`text-[2rem] font-black ${darkMode ? 'text-white' : 'text-black'}`}>{plateAnalysisResult.totalCalories}</span>
-                          <span className="text-[0.8rem] font-bold text-zinc-500">kcal</span>
+                          <span className={`text-2xl font-black ${darkMode ? 'text-white' : 'text-black'}`}>{plateAnalysisResult.totalCalories}</span>
+                          <span className="text-xs font-bold text-zinc-500">kcal</span>
                         </div>
                       </div>
-                      <div className={`p-6 rounded-[2rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                        <div className="text-[0.65rem] font-black text-zinc-500 uppercase tracking-widest mb-2">Metabolik Skor</div>
+                      <div className={`p-4 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                        <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-widest mb-1">Kalite Skoru</div>
                         <div className="flex items-baseline gap-1">
-                          <span className={`text-[2rem] font-black text-[#2DFF73]`}>{plateAnalysisResult.overallMetabolicScore}</span>
-                          <span className="text-[0.8rem] font-bold text-zinc-500">/10</span>
+                          <span className="text-2xl font-black text-[#2DFF73]">{plateAnalysisResult.overallMetabolicScore}</span>
+                          <span className="text-xs font-bold text-zinc-500">/10</span>
+                        </div>
+                      </div>
+                      <div className={`p-4 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                        <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-widest mb-1">Protein / Karb</div>
+                        <div className="text-sm font-black mt-1 text-emerald-400">
+                          {plateAnalysisResult.totalProtein || 0}g <span className="text-zinc-500 font-normal">/ {plateAnalysisResult.totalCarbs || 0}g</span>
+                        </div>
+                      </div>
+                      <div className={`p-4 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                        <div className="text-[0.6rem] font-black text-zinc-500 uppercase tracking-widest mb-1">Yağ / Lif</div>
+                        <div className="text-sm font-black mt-1 text-amber-400">
+                          {plateAnalysisResult.totalFat || 0}g <span className="text-zinc-500 font-normal">/ {plateAnalysisResult.totalFiber || 0}g</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Identified Foods */}
                     <div className="space-y-4">
-                      <h4 className="text-[0.75rem] font-black text-zinc-500 uppercase tracking-[0.2em] ml-2">Tanımlanan Besinler</h4>
-                      <div className="grid gap-4">
+                      <h4 className="text-[0.75rem] font-black text-zinc-500 uppercase tracking-[0.2em] ml-2">Tanımlanan Besinler ve Değerlendirmeler</h4>
+                      <div className="grid gap-3">
                         {plateAnalysisResult.identifiedFoods.map((food, i) => (
                           <div 
                             key={i}
-                            className={`p-6 rounded-[2.5rem] border flex items-center justify-between group transition-all ${darkMode ? 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04]' : 'bg-black/[0.02] border-black/5 hover:bg-black/[0.04]'}`}
+                            className={`p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 group transition-all ${darkMode ? 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04]' : 'bg-black/[0.02] border-black/5 hover:bg-black/[0.04]'}`}
                           >
-                            <div className="flex items-center gap-5">
-                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-[1.2rem] ${food.score >= 8 ? 'bg-emerald-500/10 text-emerald-400' : food.score >= 5 ? 'bg-orange-500/10 text-orange-400' : 'bg-red-500/10 text-red-400'}`}>
+                            <div className="flex items-start gap-4">
+                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-base shrink-0 ${food.score >= 8 ? 'bg-emerald-500/10 text-emerald-400' : food.score >= 5 ? 'bg-orange-500/10 text-orange-400' : 'bg-red-500/10 text-red-400'}`}>
                                 {food.score}
                               </div>
                               <div>
-                                <div className={`font-black text-[1.1rem] tracking-tight ${darkMode ? 'text-white' : 'text-black'}`}>{food.name}</div>
-                                <div className="text-[0.7rem] font-bold text-zinc-500 uppercase tracking-wider mt-0.5">
-                                  Tahmini: {food.portion} • {food.estimatedCalories} kcal
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`font-black text-base tracking-tight ${darkMode ? 'text-white' : 'text-black'}`}>{food.name}</span>
+                                  {food.decision && (
+                                    <span className="text-[0.65rem] px-2 py-0.5 rounded-md font-bold bg-white/10 dark:bg-white/10 border border-white/10">
+                                      {food.decision}
+                                    </span>
+                                  )}
                                 </div>
-                                <p className="text-[0.75rem] text-zinc-600 mt-2 leading-relaxed italic">"{food.reason}"</p>
+                                <div className="text-[0.7rem] font-bold text-zinc-400 uppercase tracking-wider mt-0.5">
+                                  {food.portion} • {food.estimatedCalories} kcal
+                                </div>
+                                <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed italic">"{food.reason}"</p>
                               </div>
                             </div>
                           </div>
@@ -3176,15 +3203,58 @@ function GliSkorApp() {
                       </div>
                     </div>
 
-                    {/* General Advice */}
-                    <div className={`p-8 rounded-[2.5rem] border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-full bg-[#2DFF73]/10 flex items-center justify-center text-[#2DFF73]">
-                          <Lightbulb size={20} />
-                        </div>
-                        <span className="text-[0.8rem] font-black uppercase tracking-widest">Uzman Tavsiyesi</span>
+                    {/* Öğün Dengesi & Eksik Besinler */}
+                    {(plateAnalysisResult.mealBalanceAnalysis || (plateAnalysisResult.missingNutrients && plateAnalysisResult.missingNutrients.length > 0)) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {plateAnalysisResult.mealBalanceAnalysis && (
+                          <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                            <div className="text-[0.7rem] font-black uppercase tracking-wider text-emerald-400 mb-2">Öğün Dengesi Analizi</div>
+                            <p className="text-xs leading-relaxed text-zinc-300">{plateAnalysisResult.mealBalanceAnalysis}</p>
+                          </div>
+                        )}
+                        {plateAnalysisResult.missingNutrients && plateAnalysisResult.missingNutrients.length > 0 && (
+                          <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-amber-950/15 border-amber-500/20' : 'bg-amber-50 border-amber-200'}`}>
+                            <div className="text-[0.7rem] font-black uppercase tracking-wider text-amber-500 mb-2">Eksik / Geliştirilebilir Öğeler</div>
+                            <ul className="space-y-1">
+                              {plateAnalysisResult.missingNutrients.map((mis, idx) => (
+                                <li key={idx} className="text-xs text-zinc-300 flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                  <span>{mis}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
-                      <p className={`text-[0.95rem] leading-relaxed font-medium ${darkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                    )}
+
+                    {/* Daha İyi Kombinasyon & Alternatif */}
+                    {(plateAnalysisResult.betterCombination || plateAnalysisResult.alternativeSuggestion) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {plateAnalysisResult.betterCombination && (
+                          <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                            <div className="text-[0.7rem] font-black uppercase tracking-wider text-blue-400 mb-2">Daha İyi Kombinasyon</div>
+                            <p className="text-xs leading-relaxed text-zinc-300">{plateAnalysisResult.betterCombination}</p>
+                          </div>
+                        )}
+                        {plateAnalysisResult.alternativeSuggestion && (
+                          <div className={`p-5 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                            <div className="text-[0.7rem] font-black uppercase tracking-wider text-purple-400 mb-2">Besleyici Alternatif</div>
+                            <p className="text-xs leading-relaxed text-zinc-300">{plateAnalysisResult.alternativeSuggestion}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* General Advice */}
+                    <div className={`p-6 rounded-2xl border ${darkMode ? 'bg-white/5 border-white/5' : 'bg-black/5 border-black/5'}`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-[#2DFF73]/10 flex items-center justify-center text-[#2DFF73]">
+                          <Lightbulb size={18} />
+                        </div>
+                        <span className="text-[0.75rem] font-black uppercase tracking-widest">Nutrition AI Sonuç Değerlendirmesi</span>
+                      </div>
+                      <p className={`text-sm leading-relaxed font-medium ${darkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
                         {plateAnalysisResult.generalAdvice}
                       </p>
                     </div>
@@ -3390,7 +3460,7 @@ function GliSkorApp() {
                         </div>
                       </div>
                       <p className={`text-[0.8rem] line-clamp-2 leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity ${darkMode ? 'text-zinc-400' : 'text-zinc-500'}`}>
-                        {item.suggestion}
+                        {item.suggestion || item.citizenAnalysis?.aiNote || "Metabolik analiz sonucu"}
                       </p>
                     </div>
                   ))

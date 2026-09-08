@@ -1,6 +1,26 @@
 import { Food } from '../types';
 
 export const initialFoods: Food[] = [
+  { 
+    isim: "Balkan Köftesi", 
+    gi: 0, 
+    karb: 1.92, 
+    pro: 17.0, 
+    yag: 13.8, 
+    kal: 202, 
+    lif: 0.3, 
+    kat: "Türk yemekleri", 
+    score: 4.0,
+    portionGram: 215,
+    portionLabel: "1 Porsiyon (215 g)",
+    kolesterol: 48.0,
+    vitA: 196.4,
+    vitC: 1.1,
+    potasyum: 282.0,
+    kalsiyum: 77.0,
+    demir: 1.5,
+    verdict: "Balkan köftesi, bol kalorili ve proteinli bir yemektir. Sağlıklı pişirme yöntemleri kullanılması önerilir."
+  },
   { isim: "Yumurta (Haşlanmış)", gi: 0, karb: 1, pro: 13, yag: 11, kal: 155, lif: 0, kat: "Protein Kaynakları", score: 9.8 },
   { isim: "Zeytinyağı", gi: 0, karb: 0, pro: 0, yag: 100, kal: 884, lif: 0, kat: "Yağlar ve Soslar", score: 9.5 },
   { isim: "Avokado", gi: 15, karb: 9, pro: 2, yag: 15, kal: 160, lif: 7, kat: "Meyveler", score: 9.6 },
